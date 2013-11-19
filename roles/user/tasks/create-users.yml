@@ -12,9 +12,6 @@
 # - tasks:main
 #
 # Creates:
-# - /home/{{ username }}
-# - /home/{{ username }}/.ssh
-# - /home/{{ username }}/.ssh/authorized_keys
 #
 # File modifications:
 #
@@ -30,33 +27,4 @@
     state=present
   with_items: users
 
-- name: User | Set home file permissions
-  file:
-    path=/home/{{ item.username }}
-    owner={{ item.username }} group={{ item.username }} mode=0700
-    state=directory
-  with_items: users
-  tags:
-    - security
-    - permissions
-
-- name: User | Set SSH folder permissions
-  file:
-    path=/home/{{ item.username }}/.ssh
-    owner={{ item.username }} group={{ item.username }} mode=0700
-    state=directory
-  with_items: users
-  tags:
-    - ssh
-    - security
-    - permissions
-
-- name: User | Set SSH authorized_keys permissions
-  file:
-    path=/home/{{ item.username }}/.ssh/authorized_keys
-    owner={{ item.username }} group={{ item.username }} mode=0600
-  with_items: users
-  tags:
-    - ssh
-    - security
-    - permissions
+- include: set-user-permissions.yml

@@ -1,0 +1,77 @@
+---
+# Part: User
+#
+# Description: Create a set of user accounts
+#
+# Parameters:
+# - users: A list of user dictionaries, each with the properties:
+#   username, fullname
+# - user_group: A comma delimited list of default groups to add the users to.
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+# - /home/{{ username }}
+# - /home/{{ username }}/.ssh
+# - /home/{{ username }}/.ssh/authorized_keys
+# - /home/{{ username }}/.ssh/known_hosts
+#
+###############################################################################
+- name: User | Set home file permissions: ~/
+  file:
+    path=/home/{{ item.username }}
+    owner={{ item.username }} group={{ item.username }} mode=0700
+    state=directory
+  with_items: users
+  tags:
+    - security
+    - permissions
+
+- name: User | Set SSH folder permissions: ~/.ssh
+  file:
+    path=/home/{{ item.username }}/.ssh
+    owner={{ item.username }} group={{ item.username }} mode=0700
+    state=directory
+  with_items: users
+  tags:
+    - ssh
+    - security
+    - permissions
+
+- name: User | Set SSH authorized_keys permissions: ~/.ssh/authorized_keys
+  file:
+    path=/home/{{ item.username }}/.ssh/authorized_keys
+    owner={{ item.username }} group={{ item.username }} mode=0600
+    state=present
+  with_items: users
+  tags:
+    - ssh
+    - security
+    - permissions
+
+- name: User | Set SSH known_hosts permissions: ~/.ssh/known_hosts
+  file:
+    path=/home/{{ item.username }}/.ssh/known_hosts
+    owner={{ item.username }} group={{ item.username }} mode=0600
+    state=present
+  with_items: users
+  tags:
+    - ssh
+    - security
+    - known_hosts
+
+- name: User | Add known hosts to ~/.ssh/known_hosts
+  lineinfile:
+    dest=/home/{{ item[0].username }}/.ssh/known_hosts
+    regexp="^{{ item[1].host }}"
+    line="{{ item[1].line }}"
+    state=present
+  with_nested:
+    - users
+    - known_hosts.hosts
+  tags:
+    - ssh
+    - known_hosts

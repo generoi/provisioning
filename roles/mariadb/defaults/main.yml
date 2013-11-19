@@ -77,3 +77,5 @@ pma:
   version: 4.0.9
   local_only: true
   force_ssl: true # @TODO currently only affects pma settings, not vhost
+  tarball: http://files.directadmin.com/services/all/phpMyAdmin/phpMyAdmin-{{ pma.version }}-all-languages.tar.gz
+  sha256sum: e7d22f3af3e0e363a6330f464a5f1cdd76f20bc5bcf0f980585d517c1ea4a80d

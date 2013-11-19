@@ -31,16 +31,48 @@
     - xdebug
     - install
 
-# Should we do this as root? known_hosts check might be problem.
-- name: PHP | XDebug | Download webgrind to view XDebug reports: /opt/webgrind
-  git:
-    repo={{ xdebug.webgrind_repository }}
-    dest=/opt/webgrind
+- name: PHP | XDebug | Download webgrind source tarball: /tmp/webgrind.tar.gz
+  get_url:
+    url={{ xdebug.webgrind.tarball }}
+    sha256sum={{ xdebug.webgrind.sha256sum }}
+    dest=/tmp/webgrind.tar.gz
+    mode=0440
   tags:
     - php-dev
     - xdebug
     - webgrind
     - install
+
+- name: PHP | XDebug | Create /opt/webgrind
+  file:
+    path=/opt/webgrind
+    state=directory
+  tags:
+    - php-dev
+    - xdebug
+    - webgrind
+    - install
+
+- name: PHP | XDebug | Extract source to /opt/webgrind
+  command:
+    # Strip first directory and extract its content
+    tar -xzf /tmp/webgrind.tar.gz --strip 1 -C /opt/webgrind/
+    creates=/opt/webgrind/index.php
+  tags:
+    - php-dev
+    - xdebug
+    - webgrind
+    - install
+
+- name: PHP | XDebug | Delete tarball /tmp/webgrind.tar.gz
+  file:
+    path=/tmp/webgrind.tar.gz
+    state=absent
+  tags:
+    - php-dev
+    - xdebug
+    - webgrind
+    - clean
 
 # Manage local vhost alias for /webgrind
 - include: ../../apache/tasks/vhost-local-alias.yml

@@ -25,6 +25,7 @@
   vars:
     ip: ansible_eth0.ipv4.address
     hostname: ansible_hostname
+    dotfils_repository: https://github.com/generoi/dotfiles
   vars_prompt:
     - username: 'Username'
     - fullname: 'Fullname'
@@ -72,6 +73,16 @@
         subject="New user account created"
         body={{ lookup('template', 'files/create-new-user-email.j2' }}
 
-    # Setup user directory with sensible defaults
+    # Install dotfiles
     ###
-    - { include: install-dotfiles.yml user: username }
+    - name: User | Get dotfiles for user: /home/{{ username }}/.dotfiles
+      sudo_user: username
+      git:
+        repo={{ dotfiles_repository }}
+        dest=/home/{{ username }}/.dotfiles
+
+    - name: User | Install dotfiles
+      sudo_user: username
+      command:
+        /home/{{ username }}/.dotfiles/bootstrap.sh install
+        creates=/home/{{ username }}/.vimrc

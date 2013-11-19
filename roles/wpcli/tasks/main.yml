@@ -21,6 +21,7 @@
 - name: WP-CLI | Download install script: /tmp/wpcli-install.sh
   get_url:
     url={{ install_script }}
+    sha256sum={{ sha256sum }}
     dest=/tmp/wpcli-install.sh
     mode=0700
   tags:

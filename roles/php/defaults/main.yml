@@ -29,7 +29,6 @@ composer:
 xdebug:
   install: true
   enable: true
-  webgrind_repository: git@github.com:jokkedk/webgrind.git
 
 # XHprof configurations
 ###

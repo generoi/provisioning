@@ -1,6 +1,10 @@
 motd:
   enabled: true
 
+known_hosts:
+  enabled: true
+  hosts: []
+
 packages:
   - build-essential
   - libpcre3-dev

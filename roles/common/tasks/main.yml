@@ -7,6 +7,7 @@
 # - motd.enabled (default: true)
 # - packages (default: [build-essental, libpcre3-dev, curl, sendmail, unzip,
 #   python-software-properties, nmap, git, htop, imagemagick, ca-certificates])
+# - known_hosts.enabled: setup some default known_hosts (default: true)
 #
 # Dependencies:
 #
@@ -67,3 +68,14 @@
     - motd
     - disable
 
+- name: Common | Add known hosts to /home/{{ ansible_ssh_user }}/.ssh/known_hosts
+  lineinfile:
+    dest=/home/{{ ansible_ssh_user }}/.ssh/known_hosts
+    regexp="^{{ item.host }}"
+    line="{{ item.line }}"
+    state=present
+  with: known_hosts.hosts
+  when: known_hosts.enabled
+  tags:
+    - config
+    - known_hosts

@@ -4,3 +4,6 @@ managed: []
 active: []
 departed: []
 user_groups: ''
+
+known_hosts:
+  hosts: []
