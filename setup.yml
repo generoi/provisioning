@@ -6,7 +6,8 @@
 ###############################################################################
 
 - hosts: development
-  remote_user: root # @TODO
+  remote_user: oxy # @TODO
+  sudo_user: oxy
   vars:
     hostname: {{ ansible_hostname }}
     ip: {{ ansible_eth0.ipv4.address }}

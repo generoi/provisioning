@@ -17,7 +17,9 @@
 ###############################################################################
 
 - name: Ruby | Install required packages.
-  apt: pkg={{ item }} state=present
+  apt:
+    pkg={{ item }}
+    state=present
   with_items:
     - ruby
     - rubygems
@@ -25,7 +27,10 @@
     - install
 
 - name: Ruby | Install common gems
-  gem: name={{ item }} state=latest
+  # @TODO sudo
+  gem:
+    name={{ item }}
+    state=latest
   with_items: ruby.gems
   tags:
     - install

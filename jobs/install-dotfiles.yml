@@ -21,11 +21,11 @@
   vars:
     dotfils_repository: https://github.com/generoi/dotfiles
   tasks:
-    - name: User | Make sure directory exists
+    - name: User | Make sure user {{ user }} exists
       command: id -u {{ user }}
       register: user_exists
 
-    - name: User | Get dotfiles for user
+    - name: User | Get dotfiles for user: /home/{{ user }}/.dotfiles
       git:
         repo={{ dotfiles_repository }}
         dest=/home/{{ user }}/.dotfiles
@@ -37,7 +37,7 @@
         creates=/home/{{ user }}/.vimrc
       when: user_exists|success
 
-    - name: User | Change owner of all files
+    - name: User | Change owner of all files: /home/{{ user }}
       file:
         path=/home/{{ user }}/
         owner={{ user }} group={{ user }}

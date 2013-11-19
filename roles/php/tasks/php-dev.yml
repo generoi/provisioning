@@ -24,11 +24,12 @@
 
 # PHP QA Toolchain
 ##
-- name: PHP | PHPDev | Pear install the PHP QA Toolchain
+- name: PHP | PHPDev | PEAR install the PHP QA Toolchain
   command:
     pear install pear.phpqatools.org/phpqatools
     creates=/usr/bin/phpunit
   # this fails often (dns problems, pear problems, etc. So just ignore the errors and continue.)
+  # @TODO fix this
   ignore_errors: true
   notify: restart php
   when: phpqatools.install

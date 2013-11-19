@@ -3,6 +3,8 @@
 #
 # Description: Install wp-cli together with global bash completion.
 #
+# @TODO permissions?
+#
 # Parameters:
 # - dir: Location to install wp-cli (default: /usr/local/lib/wp)
 #
@@ -16,7 +18,7 @@
 # File modifications:
 #
 ###############################################################################
-- name: WP-CLI | Download install script
+- name: WP-CLI | Download install script: /tmp/wpcli-install.sh
   get_url:
     url={{ install_script }}
     dest=/tmp/wpcli-install.sh
@@ -24,21 +26,21 @@
   tags:
     - install
 
-- name: WP-CLI | Install WP-CLI
+- name: WP-CLI | Install WP-CLI: {{ dir }}
   shell:
     INSTALL_DIR={{ dir }} /tmp/wpcli-install.sh
     creates={{ dir }}
   tags:
     - install
 
-- name: WP-CLI | Remove install script
+- name: WP-CLI | Remove install script: /tmp/wpcli-install.sh
   file:
     path=/tmp/wpcli-install.sh
     state=absent
   tags:
     - clean
 
-- name: WP-CLI | Create symlink to binary
+- name: WP-CLI | Create symlink to binary: /usr/bin/wp -> {{ dir }}/bin/wp
   file:
     src={{ dir }}/bin/wp
     dest=/usr/bin/wp

@@ -18,17 +18,17 @@
 #
 ###############################################################################
 ---
-- name: Common | Update APT package list cache.
+- name: Common | Update APT package list cache
   apt: update-cache=yes
   task:
     - update
 
-- name: Common | Upgrade APT packages.
+- name: Common | Upgrade APT packages
   apt: upgrade=yes
   task:
     - update
 
-- name: Common | Install required packages.
+- name: Common | Install required packages
   apt:
     pkg={{ item }}
     state=present
@@ -36,7 +36,7 @@
   tags:
     - install
 
-- name: Common | Compress logrotate logs by default
+- name: Common | Compress logrotate logs by default: /etc/logrotate.conf
   lineinfile:
     dest=/etc/logrotate.conf
     regex="^#?compress"
@@ -46,18 +46,18 @@
     - config
     - logrotate
 
-- name: Common | Message of the day explaining server is under Ansible control.
+- name: Common | Message of the day explaining server is under Ansible control: /etc/update-motd.d/95-ansible
   template:
     src=motd
     dest=/etc/update-motd.d/95-ansible
-    mode=755
+    mode=0755
   when: motd.enabled
   tags:
     - config
     - motd
     - enable
 
-- name: Common | Disable MOTD
+- name: Common | Disable MOTD: /etc/update-motd.d/95-ansible
   file:
     path=/etc/update-motd.d/95-ansible
     state=absent

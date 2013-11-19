@@ -67,7 +67,7 @@
     ServerName {{ vhost }}
     ServerAdmin {{ admin }}
   {% if vhost.startswith('www') %}
-    ServerAlias {{ vhost_serveralias }}
+    ServerAlias {{ vhost_server_alias }}
   {% else %}
     ServerAlias www.{{ vhost }}
   {% endif %}

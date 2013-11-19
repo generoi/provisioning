@@ -17,13 +17,14 @@
 #
 ###############################################################################
 
-- name: Node.js | Add node PPA repository
-  apt_repository: repo={{ nodejs.repository }}
+- name: Node.js | Add node PPA repository: {{ nodejs.repository }}
+  apt_repository:
+    repo={{ nodejs.repository }}
   tags:
     - install
     - nodejs
 
-- name: Node.js | Install required packages.
+- name: Node.js | Install required packages
   apt:
     pkg={{ item }}
     state=present
@@ -34,6 +35,7 @@
     - nodejs
 
 - name: Node.js | Install global npm packages
+  # @TODO sudo?
   npm:
     name={{ item }}
     global=yes

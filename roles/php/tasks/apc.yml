@@ -46,13 +46,12 @@
 - name: PHP | APC | Create APC frontend directory
   file:
     path=/opt/apc
-    user=root group=root mode=0755
     state=directory
   tags:
     - apc
     - config
 
-- name: PHP | APC | Unarchive {{ apc.frontend_archive }} to /opt/apc/
+- name: PHP | APC | Unarchive {{ apc.frontend_archive }} to /opt/apc/index.php
   shell:
     gunzip {{ apc.frontend_archive }} > /opt/apc/index.php
     creates=/opt/apc/index.php
@@ -65,12 +64,12 @@
   vars:
     docroot: /opt/apc
     alias: /apc
-    remove: not apc.enabled | bool
+    remove: not apc.enabled|bool
   tags:
     - apc
     - config
 
-- name: PHP | APC | Configure, apc.ini
+- name: PHP | APC | Configure, /etc/php5/conf.d/apc.ini
   template:
     src=apc.ini.j2
     dest=/etc/php5/conf.d/apc.ini

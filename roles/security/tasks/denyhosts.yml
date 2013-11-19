@@ -30,7 +30,7 @@
 #
 ###############################################################################
 
-- name: Security | Install DenyHosts.
+- name: Security | Install DenyHosts
   apt:
     pkg=denyhosts
     state=present
@@ -39,17 +39,16 @@
     - install
 
 # @see http://blog.bigdinosaur.org/securing-your-server-with-denyhosts/
-- name: DenyHosts | Configure denyhosts.conf
+- name: DenyHosts | Configure /etc/denyhosts.conf
   template:
     src=denyhosts.conf
     dest=/etc/denyhosts.conf
-    user=root group=root mode=0644
   notify: restart denyhosts
   tags:
     - denyhosts
     - config
 
-- name: DenyHosts | Enable the service.
+- name: DenyHosts | Start the service and enable autostart
   service:
     name=denyhosts
     state=started
@@ -60,7 +59,7 @@
     - service
     - enable
 
-- name: DenyHosts | Disable the service.
+- name: DenyHosts | Shutdown the service and disable autostart
   service:
     name=denyhosts
     state=stopped

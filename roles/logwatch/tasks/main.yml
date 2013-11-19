@@ -4,6 +4,8 @@
 # Description: Setup logwatch for emailing logs once per week.
 #
 # @TODO mysql service
+# @TODO verify version on 12.04! need 7.4!
+# http://topblogingtips.blogspot.com/2013/06/install-logwatch-740-as-this-has-built.html
 #
 # Parameters:
 # - detail: Detail level low=0, med=5, high=10 (default: 10)
@@ -32,36 +34,34 @@
   tags:
     - install
 
-- name: Logwatch | Configure logwatch
+- name: Logwatch | Configure logwatch: /etc/logwatch/conf/logwatch.conf
   template:
     src=logwatch.conf.j2
     dest=/etc/logwatch/conf/logwatch.conf
-    user=root group=root mode=0644
   tags:
     - config
 
-- name: Logwatch | Remove default cron as it is daily.
+- name: Logwatch | Remove default cron as it is daily: /etc/cron.daily/0logwatch
   file:
     path=/etc/cron.daily/0logwatch
     state=absent
   tags:
     - clean
 
-- name: Logwatch | Add cron entry for logwatch
+- name: Logwatch | Add cron entry for logwatch: /etc/cron.d/logwatch
   cron:
     name=logwatch
     cron_file=logwatch
-    user=root
     min=0 hour=2 day=1 # Monday at 2am
     job="/usr/sbin/logwatch > /dev/null"
-    user=root group=root mode=0755
+    user=root
     state=present
   when: enabled
   tags:
     - cron
     - enable
 
-- name: Logwatch | Disable cron
+- name: Logwatch | Disable cron: /etc/cron.d/logwatch
   cron:
     cron_file=logwatch
     state=absent

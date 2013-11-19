@@ -33,11 +33,11 @@
     - install
     - php
 
-- name: New Relic | PHP | Configure
+- name: New Relic | PHP | Configure: /etc/php5/conf.d/newrelic.ini
   template:
     src=newrelic.ini.j2
     dest=/etc/php5/conf.d/newrelic.ini
-    owner=root group=newrelic mode=0640 # @TODO 644?
+    owner=root group=newrelic mode=0644
   notify: restart apache
   tags:
     - config

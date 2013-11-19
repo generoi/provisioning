@@ -32,11 +32,10 @@
     - unattended-upgrades
     - install
 
-- name: Security | Adjust APT update intervals
+- name: Security | Adjust APT update intervals: /etc/apt/apt.conf.d/10periodic
   copy:
     src=apt_periodic
     dest=/etc/apt/apt.conf.d/10periodic
-    user=root group=root mode=0644
   when: common.unattended_upgrades
   tags:
     - unattended-upgrades
@@ -51,11 +50,11 @@
     - config
 
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
-- name: Security | Prevent IP spoofing
+- name: Security | Prevent IP spoofing: /etc/host.conf
   lineinfile:
     dest=/etc/host.conf
-    regexp="$item[0]"
-    line="$item[1]"
+    regexp="{{ item[0] }}"
+    line="{{ item[1] }}"
     state=present
   with_items:
     - ['^order',    'order bind,hosts']
@@ -74,14 +73,13 @@
     - tiger
     - install
 
-- name: Tiger | Run auditing at 2am on the 1st of every month
+- name: Tiger | Run auditing at 2am on the 1st of every month: /etc/cron.d/tiger-audit
   cron:
     name="tiger audit"
     cron_file=tiger-audit
-    user=root
     min=0 hour=2 day=1 # Monday at 2am
     job="/usr/sbin/tiger > /dev/null"
-    user=root group=root mode=0644
+    user=root
     state=present
   when: common.tiger
   tags:
@@ -89,7 +87,7 @@
     - cron
     - disable
 
-- name: Tiger | Disable cron
+- name: Tiger | Disable cron: /etc/cron.d/tiger-audit
   cron:
     cron_file=tiger-audit
     state=absent
@@ -103,7 +101,7 @@
 # change UID of running processes.
 # @see https://help.ubuntu.com/community/StricterDefaults#Shared_Memory
 ###
-- name: Security | Secure shared memory
+- name: Security | Secure shared memory: /dev/shm
   mount:
     name=/dev/shm
     fstype=tmpfs

@@ -24,50 +24,50 @@
 #
 ###############################################################################
 
-- name: SSH | Disallow root SSH access.
+- name: SSH | Disallow root SSH access: /etc/ssh/sshd_config
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^PermitRootLogin"
     line="PermitRootLogin no"
     state=present
-  when_boolean: ssh.disallow_root
+  when: ssh.disallow_root
   notify: restart sshd
   tags:
     - ssh
     - config
 
-- name: SSH | Prevent DoS of SSH daemon.
+- name: SSH | Prevent DoS of SSH daemon: /etc/ssh/sshd_config
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^LoginGraceTime"
     line="LoginGraceTime 20"
     state=present
-  when_boolean: ssh.prevent_dos
+  when: ssh.prevent_dos
   notify: restart sshd
   tags:
     - ssh
     - config
 
-- name: SSH | Force SFTP.
+- name: SSH | Force SFTP: /etc/ssh/sshd_config
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^Subsystem sftp"
     line="Subsystem sftp internal-sftp"
     state=present
-  when_boolean: ssh.force_sftp
+  when: ssh.force_sftp
   notify: restart sshd
   tags:
     - ssh
     - config
 
-- name: SSH | Only allow users from admin or sshlogin groups.
+- name: SSH | Only allow users from admin or sshlogin groups: /etc/ssh/sshd_config
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^AllowGroups"
-    line="AllowGroups {{ ssh_access_group }}"
+    line="AllowGroups {{ ssh.access_group }}"
     state=present
   notify: restart sshd
-  when: ssh_access_group | bool
+  when: ssh.access_group|bool
   tags:
     - security
     - ssh

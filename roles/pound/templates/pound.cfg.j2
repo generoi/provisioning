@@ -34,6 +34,8 @@ ListenHTTPS
   ## Public IP
   Address         {{ ip }}
   Port            {{ port }}
+  # Pound requires the certificate and the private key to be in one
+  # concatenated file.
   Cert            "{{ combined_cert }}"
   # Pass on https usage to varnish.
   AddHeader       "X-Forwarded-Proto: https"

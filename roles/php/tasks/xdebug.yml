@@ -32,7 +32,7 @@
     - install
 
 # Should we do this as root? known_hosts check might be problem.
-- name: PHP | XDebug | Download webgrind to view XDebug reports
+- name: PHP | XDebug | Download webgrind to view XDebug reports: /opt/webgrind
   git:
     repo={{ xdebug.webgrind_repository }}
     dest=/opt/webgrind
@@ -54,11 +54,11 @@
     - webgrind
     - config
 
-- name: PHP | XDebug | Configure, xdebug.ini
+- name: PHP | XDebug | Configure: /etc/php5/conf.d/xdebug.ini
   lineinfile:
     dest=/etc/php5/conf.d/xdebug.ini
-    regex="^$item[0]"
-    line="$item[0] = $item[1]"
+    regex="^{{ item[0] }}"
+    line="{{ item[0] }} = {{ item[1] }}"
   notify: restart php
   with_items:
     ['xdebug.profiler_enable_trigger', {{ xdebug.enabled }}]

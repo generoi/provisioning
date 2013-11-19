@@ -17,8 +17,10 @@
 ###############################################################################
 ---
 
-- name: PHP | PECL | Insure PHP development packages are installed
-  apt: pkg={{ item }} state=installed
+- name: PHP | PECL | Ensure PHP development packages are installed: php5-dev, php-pear, make
+  apt:
+    pkg={{ item }}
+    state=present
   with_items:
     - php5-dev
     - php-pear
@@ -31,13 +33,12 @@
 
 - name: PHP | PECL | Install {{ package }}-{{ version }}
   command: pecl install {{ package }}-{{ version }}
-  when_failed: php_package_exists
+  when: php_package_exists|failed
 
 - name: PHP | PECL | Set {{ package }} config (Ubuntu == 12.04)
   template:
     src={{ package }}.ini.j2
     dest=/etc/php5/conf.d/{{ package }}.ini
-    owner=root group=root mode=0644
   when: ansible_lsb.release == "12.04"
   notify: restart php
 
@@ -45,7 +46,6 @@
   template:
     src={{ package }}.ini.j2
     dest=/etc/php5/mods-available/{{ package }}.ini
-    owner=root group=root mode=0644
   when: ansible_lsb.release != "12.04"
   notify: restart php
 
@@ -53,7 +53,6 @@
   file:
     src=/etc/php5/mods-available/{{ package }}.ini
     dest=/etc/php5/conf.d/20-{{ package }}.ini
-    owner=root group=root
     state=link
   when: ansible_lsb.release != "12.04"
   notify: restart php

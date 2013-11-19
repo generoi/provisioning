@@ -19,7 +19,7 @@
 #
 ###############################################################################
 
-- name: New Relic | Add New Relic key
+- name: New Relic | Add New Relic key:https://download.newrelic.com/548C16BF.gpg
   apt_key:
     url=https://download.newrelic.com/548C16BF.gpg
     state=present
@@ -32,13 +32,13 @@
   tags:
     - install
 
-- name: New Relic | Create newrelic group
+- name: New Relic | Create newrelic group: newrelic
   group:
     name=newrelic
     state=present
   tags:
     - config
-    - group
+    - acl
 
 - include: php.yml
   when: php.install

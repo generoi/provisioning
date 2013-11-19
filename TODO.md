@@ -1,5 +1,5 @@
 - Set tags properly
-  - services: service, enable|disable
+  - services: service, enable|disable DONE
   - apt, git, npm, gem: install
   - cron: cron, enable|disable
   - user, group: acl
@@ -8,24 +8,9 @@
   - web ui: web
   - security tuning: security
   - more...
-- Make sure all variables are objects
-- Check file permissions
-- Check formatting
-  - comments
-  - flags on separate lines
-- Check deprecations
-  - Always use `{{}}`
-  - Only use `when`
 - Root vs sudo? find out of latest versions
-- check service params
-  - started|stopped|restarted|reloaded
-- monit:
-  - newrelic
-- logwatch
-  - mysql
-  - slow_queries
-- research:
-  - uptimed, ntp, pwgen
-- fix regex with ^\#? to ^#?
+- logwatch: mysql, slow_queries
 - email variables
-- validate users exists etc.
+- validations
+  - user exists
+- syslogd: rsyslogd?

@@ -27,17 +27,17 @@
     - install
     - sysmond
 
-- name: New Relic | Sysmond | Configure
+- name: New Relic | Sysmond | Configure: /etc/newrelic/nrsysmond.cfg
   template:
     src=nrsysmond.cfg.j2
     dest=/etc/newrelic/nrsysmond.cfg
-    owner=root group=newrelic mode=0640
+    owner=root group=newrelic mode=0640 # @TODO permissions
   notify: restart newrelic-sysmond
   tags:
     - sysmond
     - config
 
-- name: New Relic | Sysmond | Active service
+- name: New Relic | Sysmond | Enable service and activate autostart
   service:
     name=newrelic-sysmond
     state=started
@@ -48,7 +48,7 @@
     - service
     - enable
 
-- name: New Relic | Sysmond | Deactivate service
+- name: New Relic | Sysmond | Shutdown service and disable autostat
   service:
     name=newrelic-sysmond
     state=stopped

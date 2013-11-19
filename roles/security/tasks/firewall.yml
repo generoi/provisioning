@@ -34,7 +34,7 @@
     - config
     - ssh
 
-- name: Firewall | Allow all from development server
+- name: Firewall | Add allow all from rules
   command: ufw allow from {{ item }}
   with_items: firewall.allow_from
   tags:
@@ -52,7 +52,7 @@
   tags:
     - ufw
 
-- name: Firewall | Make sure ufw ssh is indeed allowed
+- name: Firewall | Make sure ufw ssh is indeed allowed by checking ufw status
   shell: ufw status | grep "^22\s*allow\s*anywhere"
   ignore_errors: True
   register: ssh_is_allowed
@@ -62,7 +62,7 @@
 
 # Configure auto startup depending on if ssh is allowed, we don't want to get
 # locked out of our system.
-- name: Firewall | Enable ufw on startup
+- name: Firewall | Enable ufw on startup: /etc/ufw/ufw.conf
   lineinfile:
     dest=/etc/ufw/ufw.conf
     regexp="^ENABLED"
@@ -74,7 +74,8 @@
     - config
     - enable
 
-- name: Firewall | Disable ufw on startup
+# Disable if set to disabled or ssh isnt allowed at the moment.
+- name: Firewall | Disable ufw on startup: /etc/ufw/ufw.conf
   lineinfile:
     dest=/etc/ufw/ufw.conf
     regexp="^ENABLED"

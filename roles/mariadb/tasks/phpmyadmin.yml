@@ -30,7 +30,7 @@
     - phpmyadmin
     - install
 
-- name: MariaDB | PMA | Download source tarball
+- name: MariaDB | PMA | Download source tarball to /tmp/phpmyadmin.tar.gz
   get_url:
     url=http://files.directadmin.com/services/all/phpMyAdmin/phpMyAdmin-{{ pma.version }}-all-languages.tar.gz
     dest=/tmp/phpmyadmin.tar.gz
@@ -47,16 +47,16 @@
     - phpmyadmin
     - install
 
-- name: MariaDB | PMA | Extract source
+- name: MariaDB | PMA | Extract source to /opt/phpmyadmin
   command:
     # Strip first directory and extract its content
     tar -xzf /tmp/phpmyadmin.tar.gz --strip 1 -C /opt/phpmyadmin
-    creates=/opt/phpmyadmin
+    creates=/opt/phpmyadmin/index.php
   tags:
     - phpmyadmin
     - install
 
-- name: MariaDB | PMA | Delete tarball
+- name: MariaDB | PMA | Delete tarball /tmp/phpmyadmin.tar.gz
   file:
     path=/tmp/phpmyadmin.tar.gz
     state=absent
@@ -69,11 +69,13 @@
   vars:
     docroot: /opt/phpmyadmin
     alias: /pma
+    # Trigger alias deletion if disabled
     remove: not pma.enabled
   tags:
     - phpmyadmin
     - config
 
+# Used in /etc/phpmyadmin/config.inc.php
 - name: MariaDB | PMA | Generate random blowfish secret
   command: openssl passwd -1 -in /dev/urandom | head -1 | cut -c 20-
   register: pma_blowfish_secret
@@ -81,13 +83,10 @@
     - phpmyadmin
     - config
 
-- name: MariaDB | PMA | Configure
+- name: MariaDB | PMA | Configure /etc/phpmyadmin/config.inc.php
   template:
-    src=phpmyadmin/{{ item  }}.j2
-    dest=/etc/phpmyadmin/{{ item }}
-    user=root group=root mode=0644
-  with_items:
-    - config.inc.php
+    src=phpmyadmin/config.inc.php.j2
+    dest=/etc/phpmyadmin/config.inc.php
   tags:
     - phpmyadmin
     - config

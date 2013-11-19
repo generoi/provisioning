@@ -25,20 +25,21 @@
 ###############################################################################
 
 # Extract candiate PHP version
-- name: PHP | Detect if PHP 5.4 is available in the repository.
+- name: PHP | Detect if PHP 5.4 is available in the repository
   shell: apt-cache policy php5 | grep -i 'candidate' | tr -s ' ' | cut -d ' ' -f 3
   ignore_errors: yes
   register: php_version_available
   tags:
     - install
 
-- name: PHP | Add the PHP 5.4 PPA.
-  apt_repository: repo=ppa:ondrej/php5-oldstable
+- name: PHP | Add the PHP 5.4 PPA, current is {{ php_version_avaiable.stdout }}
+  apt_repository:
+    repo=ppa:ondrej/php5-oldstable
   when: not php_version_available.stdout.startswith('5.4')
   tags:
     - install
 
-- name: PHP | Install required packages.
+- name: PHP | Install required packages
   apt:
     pkg={{ item }}
     state=installed
@@ -55,17 +56,10 @@
   tags:
     - install
 
-- name: PHP | Configuration file, php.ini
+- name: PHP | Configuration file: /etc/php5/apache2/php.ini
   template:
     src=php.ini.j2
     dest=/etc/php5/apache2/php.ini
   notify: restart apache
   tags:
     - config
-
-# - name: PHP | Configuration file for php-cli, php.ini
-#   action: template src=php-cli.ini.j2 dest=/etc/php5/php.ini
-#   notify: restart apache
-#   tags:
-#     - php
-#     - install

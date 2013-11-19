@@ -1,7 +1,8 @@
 ---
 # Part: MariaDB
 #
-# Description: Installs and configures MariaDB securely.
+# Description: Installs and configures MariaDB securely. Manage preconfigured
+# users as well.
 #
 # Parameters:
 # - development: Whether to use development or production configurations in
@@ -25,7 +26,7 @@
 #
 ###############################################################################
 
-- name: MariaDB | Install required packages.
+- name: MariaDB | Install required packages
   apt:
     pkg={{ item }}
     state=present
@@ -35,30 +36,33 @@
   tags:
     - install
 
-- name: MariaDB | Configuration file, my.cnf
+- name: MariaDB | Configure: /etc/my.cnf
   template:
     src=my.cnf.j2
     dest=/etc/my.cnf
-    user=root group=root mode=0600
+    mode=0600
   notify: restart mariadb
   tags:
     - config
 
-- name: MariaDB | Start service.
+# Start service now as we need it to configure root, this also sets the service
+# to autostart but this will be disabled at the end of the play if configured
+# thusly.
+- name: MariaDB | Start service and enable on startup
   service:
     name=mysqld
     state=started
     enabled=true
-  when: enabled
   tags:
     - service
     - enable
 
-- name: MariaDB | Set random root password
+- name: MariaDB | Set root password for all hosts
   mysql_user:
     # Dont provide login user, first time root user is without password.
     name=root
     host={{ item }}
+    # Password is stored in plain text at credentials/root/mariadb_password
     password={{ lookup('password', 'credentials/' + hostname + '/root/mariadb_password length=15') }}
     priv=*.*:ALL,GRANT # Only root should have GRANT
     state=present
@@ -68,6 +72,7 @@
     - 127.0.0.1
     - ::1
     - localhost
+  tags:
 
 - include: create-users.yml
   vars:
@@ -76,8 +81,10 @@
 - include: delete-users.yml
   vars:
     users: departed
+  tags:
+    - clean
 
-- name: MariaDB | Disable service
+- name: MariaDB | Shutdown service and disable autostart.
   service:
     name=mysqld
     state=stopped

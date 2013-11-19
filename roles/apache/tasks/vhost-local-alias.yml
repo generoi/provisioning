@@ -23,7 +23,7 @@
 #
 ###############################################################################
 
-- name: Apache | Create a vhost specific config for {{ vhost_local.vhost  }}
+- name: Apache | Create a vhost specific config /etc/apache2/vhosts.d/{{ vhost_local.vhost  }}
   file:
     path=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
     state=present
@@ -47,7 +47,7 @@
     - vhost
     - vhost-local
 
-- name: Apache | Local | Add an alias for {{ alias }} to {{ docroot }}
+- name: Apache | Local | Add an alias for {{ alias }} to {{ docroot }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
   lineinfile:
     dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
     regex="^Alias {{ alias }}"
@@ -60,7 +60,7 @@
     - vhost-local
     - enable
 
-- name: Apache | Local | Remove alias for {{ alias }}
+- name: Apache | Local | Remove alias for {{ alias }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
   lineinfile:
     dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
     regex="^Alias {{ alias }}"

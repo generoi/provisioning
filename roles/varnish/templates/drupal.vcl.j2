@@ -3,7 +3,7 @@
 # @see http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
 
 # Error page
-include "error.vcl"; 
+include "custom.vcl";
 
 # Only allow PURGE requests from the system itself.
 acl internal {
@@ -71,6 +71,9 @@ sub vcl_recv {
       req.url ~ "^.*/ahah/.*$") {
        return (pass);
   }
+
+  # Hook for custom logic
+  call custom__recv;
 
   # Pipe these paths directly to Apache for streaming.
   if (req.url ~ "^/admin/content/backup_migrate/export") {
@@ -170,6 +173,9 @@ sub vcl_fetch {
   if (req.url ~ "/fboauth/connect") {
     return (hit_for_pass);
   }
+
+  # Hook for sending hit_for_pass on custom paths.
+  call custom__fetch;
 
   # Never cache pages which set NO_CACHE
   if (beresp.http.Set-Cookie ~ "NO_CACHE") {

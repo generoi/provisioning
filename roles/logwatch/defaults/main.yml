@@ -17,6 +17,7 @@ service:
   - sudo
   - zz-disk_space
   - zz-network
+
 range: 'between -7 days and -1 days'
 disabled: []
 notify: # Email

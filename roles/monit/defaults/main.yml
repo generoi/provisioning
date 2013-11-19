@@ -1,6 +1,18 @@
 ---
 enabled: true
 
+mysql:
+  port: 3306
+
+apache:
+  port: 80
+
+varnish:
+  port: 6081
+
+pound:
+  port: 443
+
 # Services to monitor
 services: []
 

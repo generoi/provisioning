@@ -2,6 +2,7 @@
 # Part: Mail
 #
 # Description: Setup a local and null mailclient which only sends email.
+#
 # @TODO should support other mail systems
 #
 # Parameters:

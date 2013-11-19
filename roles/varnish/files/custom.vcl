@@ -1,3 +1,20 @@
+
+# Hook into vcl_recv to disallow path caching
+sub custom__recv() {
+  # # Do not cache these paths.
+  # if (req.url ~ "^/foo\.php$" ||
+  #     req.url ~ "^.*/bar/.*$") {
+  #     req.url ~ "^.*/baz/.*$") {
+  #      return (pass);
+  # }
+}
+
+sub custom__fetch() {
+  # if (req.url ~ "/fboauth/connect") {
+  #   return (hit_for_pass);
+  # }
+}
+
 # In the event of an error, show friendlier messages.
 sub vcl_error() {
   set obj.http.Content-Type = "text/html; charset=utf-8";

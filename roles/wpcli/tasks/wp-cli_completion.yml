@@ -15,7 +15,7 @@
 #
 ###############################################################################
 
-- name: WP-CLI | Install bash completion
+- name: WP-CLI | Install bash completion at {{ bash_completion_dir }}/wp-completion.sh
   copy:
     src=wp-completion.sh
     dest={{ bash_completion_dir }}/wp-completion.sh

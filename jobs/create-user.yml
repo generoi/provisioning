@@ -43,12 +43,12 @@
       vars:
         accounts: [{ username: username, privileges: '*.*:ALL' }]
 
-    - name: User | Store password in variable
+    - name: User | Store database password in variable
       shell: python -c "print \"{{ lookup('password', 'credentials/' + hostname + '/' + username + '/mariadb_password')) }}\")"
       register: password
 
     # Encrypt the password generated in the credentials file
-    - name: User | Generate Encrypted password
+    - name: User | Generate encrypted password for usage in user module
       # Use passlib for cross platform encryption
       shell: python -c 'from passlib.hash import sha512_crypt; print sha512_crypt.encrypt("{{ password.output }}")'
       register: encrypted_password
@@ -57,7 +57,7 @@
       vars:
         users: [{ username: username, fullname: fullname, user_groups: user_groups }]
 
-    - name: User | Set random generated password
+    - name: User | Set password to same as the database
       user:
         name=username
         password=encrypted_password.output
@@ -65,10 +65,12 @@
 
     # Send an email with the password to the user.
     ###
-    - name: User | Email newly created user
-      mail: from={{ notify_email }} to={{ email }}
-            subject="New user account created"
-            body={{ lookup('template', 'files/create-new-user-email.j2' }}
+    - name: User | Email newly created user at {{ email }} from {{ notify_email }}
+      mail:
+        from={{ notify_email }}
+        to={{ email }}
+        subject="New user account created"
+        body={{ lookup('template', 'files/create-new-user-email.j2' }}
 
     # Setup user directory with sensible defaults
     ###

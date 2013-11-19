@@ -32,10 +32,9 @@
     - xhrpof
     - install
 
-- name: PHP | XhProf | Create xhprof cheatsheet directory : /opt/xhprof
+- name: PHP | XhProf | Create xhprof cheatsheet directory: /opt/xhprof
   file:
     path=/opt/xhprof
-    mode=0755
     state=directory
   tags:
     - xhprof
@@ -45,7 +44,6 @@
   template:
     src=xhprof/{{ item }}.j2
     dest=/opt/xhprof/{{ item }}
-    user=root group=root mode=0644
   with_items:
     - footer.php
     - header.php
@@ -62,10 +60,10 @@
     - xhrpof
     - install
 
-- name: PHP | XhProf | Create xhprof output directory
+- name: PHP | XhProf | Create xhprof output directory: {{ xhprof.output_dir }}
+  # @TODO www-data?
   file:
     path={{ xhprof.output_dir }}
-    mode=0755
     state=directory
   tags:
     - xhprof
@@ -81,11 +79,11 @@
     - xhprof
     - config
 
-- name: PHP | XhProf | Configure, xhprof.ini
+- name: PHP | XhProf | Configure, /etc/php5/conf.d/xhprof.ini
   lineinfile:
     dest=/etc/php5/conf.d/xhprof.ini
-    regex="^$item[0]"
-    line="$item[0] = $item[1]"
+    regex="^{{ item[0] }}"
+    line="{{ item[0] }} = {{ item[1] }}"
   with_items:
     ['extension', 'xhprof.so']
     ['xhprof.output.dir', {{ xhprof.output_dir }}]

@@ -27,9 +27,8 @@
   tags:
     - service
 
-# Add each user to each host
-# Use a plain text password to login (not recommended)
-- name: MariaDB | Delete user
+# Remove each user from each host. Use a plain text password for remote login (not recommended)
+- name: MariaDB | Delete users
   mysql_user:
     login_user={{ login.user }}
     login_password={{ login.password }}
@@ -40,13 +39,14 @@
   with_nested:
     - accounts
     - hosts
+  tags:
     - disable
 
-# Use a login_password_file (thats the spirit)
-- name: MariaDB | Create user {{ user }}
+# Alternative, Use a login_password_file (thats the spirit)
+- name: MariaDB | Delete users
   mysql_user:
     login_user={{ login.user }}
-    login_password={{ lookup('password', login.password_file) }}
+    login_password={{ lookup('password', login.password_file) }} # Fetch password from file
     name={{ item[0]['username'] }}
     host={{ item[1] }}
     state=absent
@@ -54,4 +54,5 @@
   with_nested:
     - accounts
     - hosts
+  tags:
     - disable

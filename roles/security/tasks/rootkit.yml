@@ -18,7 +18,7 @@
 # File modifications:
 #
 ###############################################################################
-- name: Security | Install rootkit prevention software
+- name: Security | Install rootkit prevention software: rkunter
   apt:
     pkg=rkhunter
     state=present
@@ -43,19 +43,17 @@
 
 - name: rkhunter | Update system file properties
   command: rkhunter --propupd
-  when_boolean: rootkit.update_properties
+  when: rootkit.update_properties
   tags:
     - rootkit
     - rkhunter
     - update
 
-- name: rkhunter | Run rootkit check at 2am on every sunday
+# Only enabled if both enabled and notify_email specified
+- name: rkhunter | Run rootkit check at 2am on every sunday: /etc/cron.weekly/rkhunter-cron
   template:
     src=rkhunter-cron.j2
     dest=/etc/cron.weekly/rkhunter-cron
-    owner=root
-    group=root
-    mode=0644
   when: rootkit.enabled and rootkit.notify_email
   tags:
     - rootkit
@@ -63,7 +61,7 @@
     - cron
     - enable
 
-- name: rkhunter | Disable cron
+- name: rkhunter | Disable cron: /etc/cron.weekly/rkhunter-cron
   file:
     path=/etc/cron.weekly/rkhunter-cron
     state=absent

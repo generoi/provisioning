@@ -40,7 +40,7 @@
     - apache
     - vhost
 
-- name: Apache | Add virtual host configuration for {{ vhost }}
+- name: Apache | Add virtual host configuration for {{ vhost }}: /etc/apache2/sites-available/{{ vhost }}
   template:
     src=virtualhost.j2
     dest=/etc/apache2/sites-available/{{ vhost }}
@@ -48,7 +48,7 @@
     - apache
     - vhost
 
-- name: Apache | Activate virtual host {{ vhost }}
+- name: Apache | Activate virtual host {{ vhost }}: /etc/apache2/sites-enabled/{{ vhost }}
   command:
     a2ensite {{ vhost }}
     creates=/etc/apache2/sites-enabled/{{ vhost }}

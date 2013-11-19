@@ -1,7 +1,7 @@
 ---
 # Part: MariaDB
 #
-# Description: Creates a set of MariaDB user with randomly generated passwords
+# Description: Creates a set of MariaDB users with randomly generated passwords.
 #
 # Parameters:
 # - accounts: List of account dictionaries, each with the keys:
@@ -26,14 +26,16 @@
     name=mysql
     state=started
 
-# Add each user to each host
-# Use a plain text password to login (not recommended)
-- name: MariaDB | Create user
+# Add all user to each host. Login password is specified as a plain text string.
+# Consider using the login.password_file parameter.
+- name: MariaDB | Create users
   mysql_user:
     login_user={{ login.user }}
     login_password={{ login.password }}
+    # User information
     name={{ item[0]['username'] }}
     host={{ item[1] }}
+    # Store the password in plain text
     password={{ lookup('password', 'credentials/' + hostname + '/' + user + '/mariadb_password length=15') }}
     priv={{ item[0]['privileges'] }}
     state=present
@@ -42,13 +44,15 @@
     - accounts
     - hosts
 
-# Use a login_password_file (thats the spirit)
-- name: MariaDB | Create user
+# Alternative, add all users to each host.
+- name: MariaDB | Create users
   mysql_user:
+    # Login information for the remote host
     login_user={{ login.user }}
-    login_password={{ lookup('password', login.password_file) }}
+    login_password={{ lookup('password', login.password_file) }} # Fetch password from file
     name={{ item[0]['username'] }}
     host={{ item[1] }}
+    # Store the password in plain text
     password={{ lookup('password', 'credentials/' + hostname + '/' + user + '/mariadb_password length=15') }}
     priv={{ item[0]['privileges'] }}
     state=present

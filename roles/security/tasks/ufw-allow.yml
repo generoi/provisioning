@@ -17,8 +17,7 @@
 ---
 - name: Firewall | Allow services
   command: ufw allow {{ item }}
-  with_items:
-    $services
+  with_items: services
   tags:
     - ufw
     - config

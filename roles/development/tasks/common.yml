@@ -13,13 +13,16 @@
 #
 ###############################################################################
 
-- name: Common | Add the silver searcher PPA.
-  apt_repository: repo={{ common.ag_repository }}
+- name: Common | Add the silver searcher PPA: {{ common.ag_repository }}
+  apt_repository:
+    repo={{ common.ag_repository }}
   tag:
     - install
 
-- name: Common | Install development packages.
-  apt: pkg={{ item }} state=present
+- name: Common | Install development packages
+  apt:
+    pkg={{ item }}
+    state=present
   with_items:
     - mosh
     - luajit # fast vim plugins

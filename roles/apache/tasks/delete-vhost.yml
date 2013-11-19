@@ -20,7 +20,7 @@
 #
 ###############################################################################
 
-- name: Apache | Remove document root at $docroot
+- name: Apache | Remove document root at {{ docroot }}
   file:
     path={{ docroot }}
     state=absent
@@ -29,7 +29,7 @@
     - apache
     - vhost
 
-- name: Apache | Deactivate virtual host {{ vhost }}
+- name: Apache | Deactivate virtual host {{ vhost }}: /etc/apache2/sites-enabled/{{ vhost }}
   command:
     a2dissite {{ vhost }}
     removes=/etc/apache2/sites-enabled/{{ vhost }}
@@ -38,7 +38,7 @@
     - apache
     - vhost
 
-- name: Apache | Remove virtual host configuration
+- name: Apache | Remove virtual host configuration: /etc/apache2/sites-available/{{ vhost }}
   file:
     path=/etc/apache2/sites-available/{{ vhost }}
     state=absent
@@ -46,7 +46,7 @@
     - apache
     - vhost
 
-- name: Apache | Remove per virtual host include configuration
+- name: Apache | Remove per virtual host include configuration: /etc/apache2/vhosts.d/{{ vhost }}
   file:
     path=/etc/apache2/vhosts.d/{{ vhost }}
     state=absent

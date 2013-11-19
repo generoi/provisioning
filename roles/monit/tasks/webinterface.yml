@@ -20,18 +20,17 @@
 #
 ###############################################################################
 
-- name: monit | Setup Webinterface
+- name: monit | Setup Webinterface: /etc/monit/conf.d/webinterface
   template:
     src=webinterface.j2
     dest=/etc/monit/conf.d/webinterface
-    owner=root group=root mode=0644
   notify: restart monit
   when: webinterface.enabled
   tags:
     - config
     - enable
 
-- name: monit | Disable webinterface
+- name: monit | Disable webinterface: delete /etc/monit/conf.d/webinterface
   file:
     path=/etc/monit/conf.d/webinterface
     state=absent
@@ -41,16 +40,16 @@
     - config
     - disable
 
-- name: Monit | Add RW Group
+- name: Monit | Add RW Group: {{ webinterface.rw_group }}
   group:
-    name={{ monit_webinterface_rw_group }}
+    name={{ webinterface.rw_group }}
     state=present
   tags:
-    - group
+    - acl
 
-- name: Monit | Add R Group
+- name: Monit | Add R Group: {{ webinterface.r_group }}
   group:
-    name={{ monit_webinterface_r_group }}
+    name={{ webinterface.r_group }}
     state=present
   tags:
-    - group
+    - acl

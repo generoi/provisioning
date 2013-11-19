@@ -11,6 +11,8 @@
 # - sshd
 # - syslog
 # - varnish
+# - newrelic-sysmond
+# - pound
 #
 # Parameters:
 # - enabled (default: true)
@@ -35,7 +37,7 @@
   tags:
     - install
 
-- name: Monit | Configure monit to start
+- name: Monit | Configure monit to start: /etc/default/monit
   lineinfile:
     dest=/etc/default/monit
     regex="^startup"
@@ -49,16 +51,15 @@
 - include: mail.yml
   when: mail.install
 
-- name: Monit | Write monitors
+- name: Monit | Create monitors
   template:
     src=monitors/{{ item }}.j2
     dest=/etc/monit/conf.d/{{ item }}
-    owner=root group=root mode=0644
   with_items: services
   notify: restart monit
   tags: monit
 
-- name: Monit | Start monit service
+- name: Monit | Start monit service and enable autostart
   service:
     name=monit
     state=started
@@ -68,7 +69,7 @@
     - service
     - enable
 
-- name: Monit | Disable monit service
+- name: Monit | Shutdown monit service and disable autostart
   service:
     name=monit
     state=stopped

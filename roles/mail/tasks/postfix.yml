@@ -19,6 +19,7 @@
   template:
     src=postfix_selections
     dest=/tmp/postfix_selections
+    mode=0600
   tags:
     - config
     - postfix
@@ -29,7 +30,7 @@
     - config
     - postfix
 
-- name: Postfix | Install required packages.
+- name: Postfix | Install required packages
   apt:
     pkg={{ item }}
     state=present
@@ -41,7 +42,7 @@
     - install
     - postfix
 
-- name: Postfix | Set up Postfix to be a null client, only sending mail
+- name: Postfix | Set up Postfix to be a null client, only sending mail: /etc/postfix/main.cf
   template:
     src=postfix-main.cf.j2
     dest=/etc/postfix/main.cf
@@ -50,7 +51,7 @@
     - config
     - postfix
 
-- name: Postfix | Enable postfix service
+- name: Postfix | Enable service and autostart it on boot
   service:
     name=postfix
     state=running
@@ -61,7 +62,7 @@
     - postfix
     - enable
 
-- name: Postfix | Disable postfix service
+- name: Postfix | Shutdown service and disable autostart
   service:
     name=postfix
     state=stopped

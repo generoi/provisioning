@@ -13,3 +13,5 @@ packages:
   - htop
   - imagemagick
   - ca-certificates
+  - pwgen
+  - ntp

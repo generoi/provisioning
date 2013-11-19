@@ -10,7 +10,7 @@
 #
 # Dependencies:
 # - php:tasks:main
-# - php:tasks:pecl
+# - php:tasks:pear
 #
 # Creates:
 # - /usr/local/etc/drush
@@ -21,7 +21,7 @@
 #
 ###############################################################################
 
-- include: ../../php/tasks/pecl.yml
+- include: ../../php/tasks/pear.yml
   vars:
     package: drush
     version: stable

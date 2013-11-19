@@ -13,12 +13,12 @@
 # File modifications:
 #
 ###############################################################################
-- name: PHP | PEAR | Install PHP development packages
+- name: PHP | PEAR | Install PHP development packages: php-pear
   apt:
-    pkg={{ item }}
+    pkg=php-pear
     state=installed
-  with_items:
-    - php-pear
+  tags:
+    - install
 
 - name: PHP | PHPDev | Update pear packages
   command: pear upgrade

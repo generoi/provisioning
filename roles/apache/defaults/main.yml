@@ -1,4 +1,5 @@
 # deflate expires headers mime setenvif substitute
+enabled: true
 mods_enabled: ['rewrite', 'vhost_alias', 'ssl']
 mods_disabled: []
 root: /var/www

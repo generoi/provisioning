@@ -30,7 +30,7 @@
 #
 ###############################################################################
 
-- name: Pound | Install package
+- name: Pound | Install package: pound
   apt:
     pkg=pound
     state=present
@@ -44,17 +44,16 @@
     output: combined_cert
   when: join_cert_key
 
-- name: Pound | Configure Pound
+- name: Pound | Configure Pound: /usr/local/etc/pound.cfg
   template:
     src=pound.cfg.j2
     dest=/usr/local/etc/pound.cfg
-    user=root group=root mode=0644
   notify:
     restart pound
   tags:
     - config
 
-- name: Pound | Enable service
+- name: Pound | Start service and enable autostart
   service:
     name=pound
     state=started
@@ -64,7 +63,7 @@
     - service
     - enable
 
-- name: Pound | Disable service
+- name: Pound | Shutdown service and disable autostart
   service:
     name=pound
     state=stopped

@@ -45,7 +45,7 @@
 #
 ###############################################################################
 
-- name: Apache | Install required packages.
+- name: Apache | Install required packages
   apt:
     pkg={{ item }}
     state=installed
@@ -56,7 +56,7 @@
   tags:
     - install
 
-- name: Apache | Configure Apache
+- name: Apache | Configure Apache: /etc/apach2/{envvars, apache2.conf, ports.conf, conf.d/security}
   template:
     src={{ item }}.j2
     dest=/etc/apache2/{{ item }}
@@ -69,17 +69,15 @@
   tags:
     - config
 
-- name: Apache | Enable some required modules.
+- name: Apache | Enable some required modules
   command: a2enmod {{ item }}
   with_items: mods_enabled
-    mods_enabled
-  notify:
-    - restart apache
+  notify: restart apache
   tags:
     - install
     - apachemods
 
-- name: Apache | Disable some banned modules.
+- name: Apache | Disable some banned modules
   command: a2enmod {{ item }}
   with_items: mods_disabled
   notify:
@@ -88,7 +86,7 @@
     - clean
     - apachemods
 
-- name: Apache | Remove default index file from default docroot
+- name: Apache | Remove default index file from default docroot: /var/www/index.html
   file:
     path=/var/www/index.html
     state=absent
@@ -104,17 +102,29 @@
   tags:
     - vhost
 
-- name: Apache | Create a directory for per vhost configurations
+- name: Apache | Create a directory for per vhost configurations: /etc/apache2/vhosts.d/
   file:
     path=/etc/apache2/vhosts.d
     state=directory
   tags:
     - vhost
 
-- name: Apache | Ensure service exists
+- name: Apache | Start service and enable autostart
   service:
     name=apache2
     enabled=yes
     state=started
+  when: enabled
   tags:
     - service
+    - enable
+
+- name: Apache | Shutdown service and disable autostart
+  service:
+    name=apache2
+    enabled=no
+    state=stopped
+  when: not enabled
+  tags:
+    - service
+    - disable

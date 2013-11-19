@@ -5,6 +5,8 @@
 # should most likely be included twice, once for administrative users and once
 # for regular users.
 #
+# @TODO use list instead of comma separated list?
+#
 # Parameters:
 # - active: A list of user dictionaries, each with the properties:
 #   username, fullname
@@ -23,8 +25,10 @@
 #
 ###############################################################################
 
-- name: User | Create user group
-  group: name={{ item }} state=present
+- name: User | Create user groups: {{ user_groups  }}
+  group:
+    name={{ item }}
+    state=present
   with_items: user_groups.split(',')
   when: user_groups|bool
 

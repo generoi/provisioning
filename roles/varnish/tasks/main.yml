@@ -40,7 +40,7 @@
   tags:
     - install
 
-- name: Varnish | Install Varnish package 
+- name: Varnish | Install Varnish package
   apt:
     pkg=varnish
     state=present
@@ -51,46 +51,39 @@
   shell: grep processor /proc/cpuinfo | wc -l
   register: cpu_cores
 
-- name: Varnish | Push varnish startup configurations
+- name: Varnish | Push varnish startup configurations: /etc/default/varnish
   template:
     src=varnish.j2
     dest=/etc/default/varnish
-    owner=root
-    group=root
-    mode=0644
   notify: restart varnish
   tags:
     - config
 
-- name: Varnish | Verify secrets file permissions
+- name: Varnish | Verify secrets file permissions: /etc/varnish/secret
   file:
     path=/etc/varnish/secret
-    user=root group=root mode=0600
   tags:
     - security
 
-- name: Varnish | Push varnish configuration templates
+- name: Varnish | Configurations: /etc/varnish/drupal
   template:
     src={{ item }}.j2
     dest=/etc/varnish/{{ item }}
-    owner=root
-    group=root
-    mode=0644
   with_items:
     - drupal
   notify: restart varnish
   tags:
     - config
 
-- name: Varnish | Ensure error.vcl exists for error page.
+- name: Varnish | Ensure /etc/varnish/custom.vcl exists for error pages and hooks.
   copy:
-    src=error.vcl
-    dest=/etc/varnish/error.vcl
+    src=custom.vcl
+    dest=/etc/varnish/custom.vcl
     force=no
   tags:
     - config
 
-- name: Varnish | Ensure deamon is running correctly
+- name: Varnish | Start service and enable autostart
   service:
     name=varnish
     state=started
@@ -100,7 +93,7 @@
     - service
     - enable
 
-- name: Varnish | Disable daemon
+- name: Varnish | Shutdown service and disable autostart
   service:
     name=varnish
     state=stopped
