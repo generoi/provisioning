@@ -53,8 +53,7 @@
     regexp="^Alias {{ alias }}"
     line="Alias {{ alias }} {{ docroot }}"
   when: not remove
-  notify:
-    restart apache
+  notify: restart apache
   tags:
     - vhost
     - vhost-local
@@ -66,8 +65,7 @@
     regexp="^Alias {{ alias }}"
     state=absent
   when: remove
-  notify:
-    restart apache
+  notify: restart apache
   tags:
     - vhost
     - vhost-local

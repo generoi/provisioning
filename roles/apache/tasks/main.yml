@@ -80,8 +80,7 @@
 - name: Apache | Disable some banned modules
   command: a2enmod {{ item }}
   with_items: mods_disabled
-  notify:
-    - restart apache
+  notify: restart apache
   tags:
     - clean
     - apachemods

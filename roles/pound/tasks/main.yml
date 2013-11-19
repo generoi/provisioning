@@ -48,8 +48,7 @@
   template:
     src=pound.cfg.j2
     dest=/usr/local/etc/pound.cfg
-  notify:
-    restart pound
+  notify: restart pound
   tags:
     - config
 

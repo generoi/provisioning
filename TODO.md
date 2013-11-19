@@ -8,7 +8,6 @@
   - web ui: web
   - security tuning: security
   - more...
-- Root vs sudo? find out of latest versions
 - logwatch: mysql, slow_queries
 - email variables
 - validations
