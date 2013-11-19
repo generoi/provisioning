@@ -1,0 +1,87 @@
+---
+# Part: Security
+#
+# Description: Configure the firewall
+# @see https://help.ubuntu.com/12.04/serverguide/firewall.html
+#
+# Parameters:
+# - enabled (default: true)
+# - firewall.allow: list of services to allow (default: ['http', 'ssh'])
+# - firewall.allow_from: list of servers to allow all access from
+#
+# Dependencies:
+# - tasks:ufw-allow
+#
+# Creates:
+#
+# File modifications:
+# - /etc/ufw/ufw.conf
+#
+###############################################################################
+- include: ufw-allow.yml
+  vars:
+    services: firewall.allow
+  tags:
+    - ufw
+    - config
+
+# Always enable ssh.
+- include: ufw-allow.yml
+  vars:
+    services: ['ssh']
+  tags:
+    - ufw
+    - config
+    - ssh
+
+- name: Firewall | Allow all from development server
+  command: ufw allow from {{ item }}
+  with_items: firewall.allow_from
+  tags:
+    - ufw
+    - config
+
+- name: Firewall | Turn on logging
+  command: ufw logging on
+    - ufw
+    - config
+
+- name: Firewall | Enable firewall
+  command: ufw enable
+  when: firewall.enabled
+  tags:
+    - ufw
+
+- name: Firewall | Make sure ufw ssh is indeed allowed
+  shell: ufw status | grep "^22\s*allow\s*anywhere"
+  ignore_errors: True
+  register: ssh_is_allowed
+  tags:
+    - ufw
+    - config
+
+# Configure auto startup depending on if ssh is allowed, we don't want to get
+# locked out of our system.
+- name: Firewall | Enable ufw on startup
+  lineinfile:
+    dest=/etc/ufw/ufw.conf
+    regexp="^ENABLED"
+    line="ENABLED=yes"
+    state=present
+  when: firewall.enabled and ssh_is_allowed | success
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: Firewall | Disable ufw on startup
+  lineinfile:
+    dest=/etc/ufw/ufw.conf
+    regexp="^ENABLED"
+    line="ENABLED=no"
+    state=present
+  when: firewall.disabled or ssh_is_allowed | failed
+  tags:
+    - ufw
+    - config
+    - disable

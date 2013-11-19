@@ -1,0 +1,22 @@
+---
+enabled: true
+send_email: true
+detail: 10
+service:
+  - http
+  - cron
+  - pound
+  - syslogd
+  - denyhosts
+  - imapd
+  - iptables
+  - postfix
+  - php
+  - sshd
+  - sshd2
+  - sudo
+  - zz-disk_space
+  - zz-network
+range: 'between -7 days and -1 days'
+disabled: []
+notify: # Email

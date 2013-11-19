@@ -1,0 +1,38 @@
+---
+# Part: Monit
+#
+# Description: Set up monit mail
+#
+# Parameters:
+# - mail.enabled: Whether email notifications should be enabled (default: false)
+# - mail.alerts: List of mail addresses to email on alerts (default: [])
+# - mail.timeouts: List of mail addresses to email on timeouts (default: [])
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/monit/conf.d/mail
+#
+###############################################################################
+- name: Monit | Setup Mail
+  template:
+    src=mail.j2
+    dest=/etc/monit/conf.d/mail
+    owner=root group=root mode=0644
+  notify: restart monit
+  when: mail.enabled
+  tags:
+    - config
+    - enable
+
+- name: Monit | Disable Mail
+  file:
+    path=/etc/monit/conf.d/mail
+    state=absent
+  notify: restart monit
+  when: not mail.enabled
+  tags:
+    - config
+    - disable

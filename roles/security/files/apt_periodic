@@ -1,0 +1,13 @@
+APT::Periodic::Enable "1";
+
+// run "apt-get update" every n-day (1)
+APT::Periodic::Update-Package-Lists "1";
+
+// run "apt-get upgrade --download-only"
+APT::Periodic::Download-Upgradeable-Packages "1";
+
+// run security upgrade script
+APT::Periodic::Unattended-Upgrade "1";
+
+// run "apt-get autoclean"
+APT::Periodic::AutocleanInterval "7";

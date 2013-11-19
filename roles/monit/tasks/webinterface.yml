@@ -1,0 +1,56 @@
+---
+# Part: Monit
+#
+# Description: Set up monit webinterface
+#
+# Parameters:
+# - webinterface.enabled: Enable the webinterface for monit (default: false)
+# - webinterface.rw_group: A user group which has read and write access (default: sudo)
+# - webinterface.r_group: A user group which has read only access (default: admin)
+# - webinterface.port: Port for webinterface to listen to (default: 2812)
+# - webinterface.bind: Address to bind to (default: 0.0.0.0)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+# - /etc/monit/conf.d/webinterface
+#
+###############################################################################
+
+- name: monit | Setup Webinterface
+  template:
+    src=webinterface.j2
+    dest=/etc/monit/conf.d/webinterface
+    owner=root group=root mode=0644
+  notify: restart monit
+  when: webinterface.enabled
+  tags:
+    - config
+    - enable
+
+- name: monit | Disable webinterface
+  file:
+    path=/etc/monit/conf.d/webinterface
+    state=absent
+  notify: restart monit
+  when: not webinterface.enabled
+  tags:
+    - config
+    - disable
+
+- name: Monit | Add RW Group
+  group:
+    name={{ monit_webinterface_rw_group }}
+    state=present
+  tags:
+    - group
+
+- name: Monit | Add R Group
+  group:
+    name={{ monit_webinterface_r_group }}
+    state=present
+  tags:
+    - group

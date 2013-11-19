@@ -1,0 +1,33 @@
+---
+# Part: Development
+#
+# Description: Install ruby and common packages such as compass. If ruby is
+# used for development however, then it should be installed per user through
+# rvm.
+#
+# Parameters:
+# - ruby.gems (default: ['compass'])
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Ruby | Install required packages.
+  apt: pkg={{ item }} state=present
+  with_items:
+    - ruby
+    - rubygems
+  tags:
+    - install
+
+- name: Ruby | Install common gems
+  gem: name={{ item }} state=latest
+  with_items: ruby.gems
+  tags:
+    - install
+    - ruby
+    - gems

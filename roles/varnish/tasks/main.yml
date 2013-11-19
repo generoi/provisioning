@@ -1,0 +1,111 @@
+---
+# Part: Varnish
+#
+# Description: Installs and configures Varnish
+#
+# Parameters:
+# - enabled (default: true)
+# - https_enabled (default: true)
+# - port: Port to run on, should be 80 on live (default: 6081)
+# - admin_port: Port for admin usage (default: 6082)
+# - vcl_conf: Configuration file to use (default: /etc/varnish/drupal.vcl)
+# - malloc_size: Memory allocation (default: 1G)
+# - backend_addr: The address of the backend (default: 127.0.0.1)
+# - backend_addr: The port of the backend (default: 8080)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/varnish/drupal.vcl
+# - /etc/varnish/error.vcl (does not override!)
+#
+# File modifications:
+# - /etc/default/varnish
+# - /etc/varnish/secret
+#
+###############################################################################
+
+- name: Varnish | Fetch signing key
+  apt_key:
+    url=http://repo.varnish-cache.org/debian/GPG-key.txt
+    state=present
+  when: ansible_lsb.release != "13.04"
+  tags:
+    - install
+
+- name: Varnish | Add Varnish repository
+  apt_repository:
+    repo="http://repo.varnish-cache.org/ubuntu/ {{ ansible_lsb.codename }} varnish-3.0"
+  when: ansible_lsb.release != "13.04"
+  tags:
+    - install
+
+- name: Varnish | Install Varnish package 
+  apt:
+    pkg=varnish
+    state=present
+  tags:
+    - install
+
+- name: Varnish | Count CPU cores
+  shell: grep processor /proc/cpuinfo | wc -l
+  register: cpu_cores
+
+- name: Varnish | Push varnish startup configurations
+  template:
+    src=varnish.j2
+    dest=/etc/default/varnish
+    owner=root
+    group=root
+    mode=0644
+  notify: restart varnish
+  tags:
+    - config
+
+- name: Varnish | Verify secrets file permissions
+  file:
+    path=/etc/varnish/secret
+    user=root group=root mode=0600
+  tags:
+    - security
+
+- name: Varnish | Push varnish configuration templates
+  template:
+    src={{ item }}.j2
+    dest=/etc/varnish/{{ item }}
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+    - drupal
+  notify: restart varnish
+  tags:
+    - config
+
+- name: Varnish | Ensure error.vcl exists for error page.
+  copy:
+    src=error.vcl
+    dest=/etc/varnish/error.vcl
+    force=no
+  tags:
+    - config
+
+- name: Varnish | Ensure deamon is running correctly
+  service:
+    name=varnish
+    state=started
+    enabled=yes
+  when: enabled
+  tags:
+    - service
+    - enable
+
+- name: Varnish | Disable daemon
+  service:
+    name=varnish
+    state=stopped
+    enabled=no
+  when: not enabled
+  tags:
+    - service
+    - disable

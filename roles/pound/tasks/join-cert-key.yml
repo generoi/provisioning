@@ -1,0 +1,26 @@
+---
+# Part: Pound
+#
+# Description: Concatenate a certificate file and a private key file into a
+# combined certificate as required by pound.
+#
+# Parameters:
+# - certificate
+# - private_key
+# - output: Certificate to output, should end with .pem
+#
+# Dependencies:
+#
+# Creates:
+# - {{ output }}
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Pound | Join a {{ certificate }} certificate and a private key {{ private_key }} into one {{ output }}
+  shell:
+    cat {{ certficate }} {{ private_key }} > {{ output }}
+    creates={{ output }}
+  tags:
+    - config

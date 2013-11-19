@@ -1,0 +1,55 @@
+---
+# Part: Apache
+#
+# Description: Deletes a virtual host
+#
+# Parameters:
+# - remove_docroot: Whether to remove the document root (default: false)
+# - docroot: The location of document root, eg. /var/www/foo.com
+# - vhost: Virtual host name, eg. foo.com
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+# - /etc/apache2/sites-available/{{ vhost }}
+# - /etc/apache2/sites-enabled/{{ vhost }}
+# - /etc/apache2/vhosts.d/{{ vhost }}
+#
+###############################################################################
+
+- name: Apache | Remove document root at $docroot
+  file:
+    path={{ docroot }}
+    state=absent
+  when: remove_docroot
+  tags:
+    - apache
+    - vhost
+
+- name: Apache | Deactivate virtual host {{ vhost }}
+  command:
+    a2dissite {{ vhost }}
+    removes=/etc/apache2/sites-enabled/{{ vhost }}
+  notify: reload apache
+  tags:
+    - apache
+    - vhost
+
+- name: Apache | Remove virtual host configuration
+  file:
+    path=/etc/apache2/sites-available/{{ vhost }}
+    state=absent
+  tags:
+    - apache
+    - vhost
+
+- name: Apache | Remove per virtual host include configuration
+  file:
+    path=/etc/apache2/vhosts.d/{{ vhost }}
+    state=absent
+  tags:
+    - apache
+    - vhost

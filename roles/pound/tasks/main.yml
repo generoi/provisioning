@@ -1,0 +1,75 @@
+---
+# Part: Pound
+#
+# Description: Concatenate a certificate file and a private key file into a
+# combined certificate as required by pound.
+#
+# Parameters:
+# - enabled: true
+# - certificate: Pound certificate (default: snakeoil)
+# - private_key: Pound private key (default: snakeoil)
+# - combined_cert: The combined output certificate. If this exists from before
+#   the other parameters in this set should be set to false.
+# - join_cert_key: Join the $certificate with the
+#   $private_key and output to $combined_cert (default: true).
+#
+# - user: User for pound (default: www-data).
+# - group: User group for pound (default: www-data).
+# - alive_check: How often to check if backend is alive (default: 30)
+# - port: The port to listen to (default: 443)
+# - backend_addr: The backend address (default: 127.0.0.1)
+# - backend_port: The backend port (default: 80)
+#
+# Dependencies:
+# - tasks:join-cert-key
+#
+# Creates:
+#
+# File modifications:
+# - /usr/local/etc/pound.cfg
+#
+###############################################################################
+
+- name: Pound | Install package
+  apt:
+    pkg=pound
+    state=present
+  tags:
+    - install
+
+- include: join-cert-key.yml
+  vars:
+    certificate: certificate
+    private_key: private_key
+    output: combined_cert
+  when: join_cert_key
+
+- name: Pound | Configure Pound
+  template:
+    src=pound.cfg.j2
+    dest=/usr/local/etc/pound.cfg
+    user=root group=root mode=0644
+  notify:
+    restart pound
+  tags:
+    - config
+
+- name: Pound | Enable service
+  service:
+    name=pound
+    state=started
+    enabled=yes
+  when: enabled
+  tags:
+    - service
+    - enable
+
+- name: Pound | Disable service
+  service:
+    name=pound
+    state=stopped
+    enabled=no
+  when: not enabled
+  tags:
+    - service
+    - disable

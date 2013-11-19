@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+# https://docs.newrelic.com/docs/php/php-agent-phpini-settings
+newrelic.enabled={{ php.enabled }}
+newrelic.license={{ license  }}
+newrelic.appname={{ hostname }}
+newrelic.loglevel={{ php.loglevel }}
+newrelic.logfile={{ php.logfile }}
+newrelic.daemon.logfile={{ php.daemon_logfile }}
+
+# This enables auto-insertion of the JavaScript fragments for browser
+# monitoring
+# @see https://docs.newrelic.com/docs/php/real-user-monitoring-in-php
+newrelic.browser_monitoring.auto_instrument={{ php.browser_monitoring_auto_instrument }}
+
+newrelic.framework.drupal.modules={{ php.drupal_modules }}
+
+# transaction_tracer and error_collector not available for free edition
+newrelic.error_collector.record_database_errors={{ php.error_collector_record_database_errors }}
+newrelic.error_collector.include_notices={{ php.error_collector_include_notices }}
+
+# When set to true, the agent will collect and report analytics event data.
+# Event data allows the New Relic UI to show additional information such as
+# histograms and percentiles.
+newrelic.analytics_events.enabled={{ php.analytics_events }}

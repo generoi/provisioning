@@ -1,0 +1,71 @@
+---
+# Part: Logwatch
+#
+# Description: Setup logwatch for emailing logs once per week.
+#
+# @TODO mysql service
+#
+# Parameters:
+# - detail: Detail level low=0, med=5, high=10 (default: 10)
+# - enabled: List of services to check
+# - range: logwatch range as a string (default: 'between -7 days and -1 days').
+# - disabled: List of speficically disabled services
+# - with_logwatch_email: Activate email of logs (default: true)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/cron.d/logwatch
+#
+# File modifications:
+# - /etc/logwatch/conf/logwatch.conf
+#
+###############################################################################
+
+- name: Logwatch | Install packages
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - libdate-manip-perl
+    - logwatch
+  tags:
+    - install
+
+- name: Logwatch | Configure logwatch
+  template:
+    src=logwatch.conf.j2
+    dest=/etc/logwatch/conf/logwatch.conf
+    user=root group=root mode=0644
+  tags:
+    - config
+
+- name: Logwatch | Remove default cron as it is daily.
+  file:
+    path=/etc/cron.daily/0logwatch
+    state=absent
+  tags:
+    - clean
+
+- name: Logwatch | Add cron entry for logwatch
+  cron:
+    name=logwatch
+    cron_file=logwatch
+    user=root
+    min=0 hour=2 day=1 # Monday at 2am
+    job="/usr/sbin/logwatch > /dev/null"
+    user=root group=root mode=0755
+    state=present
+  when: enabled
+  tags:
+    - cron
+    - enable
+
+- name: Logwatch | Disable cron
+  cron:
+    cron_file=logwatch
+    state=absent
+  when: not enabled
+  tags:
+    - cron
+    - disable

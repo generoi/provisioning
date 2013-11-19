@@ -1,0 +1,23 @@
+---
+# Part: User
+#
+# Description: Deletes a set of user accounts
+#
+# Parameters:
+# - users: A list of user dictionaries, each with the properties: username
+# - remove_home: Whether to remove the users home directory (default: yes)
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: User | Delete user accounts
+  user:
+    name={{ item.username }}
+    remove={{ remove_home }}
+    state=absent
+  with_items: users
+  tags:
+    - clean

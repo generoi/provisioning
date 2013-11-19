@@ -1,0 +1,79 @@
+---
+enabled: true
+
+# List of users active or departed
+active: []
+departed: []
+
+# Should ansible manage root
+configure_root: true
+
+# Changes if logging is enabled
+development: false
+
+# Hosts to add users to
+hosts: ['localhost']
+
+# Create User
+###
+
+login:
+  user: root
+  password: false
+  password_file: 'credentials/{{ hostname }}/{{ login_user }}/mariadb_password length=15'
+
+# my.cnf
+###
+
+config:
+  # client
+  port: 3306
+  socket: /var/lib/mysql/mysql.sock
+  # password: Set this securely
+
+  # mysqld
+  datadir: /var/lib/mysql
+
+  # MyISAM
+  key_buffer_size: 32M
+
+  # Safety
+  max_allowed_packet: 16M
+
+  # Caches and limits
+  tmp_table_size: 32M
+  max_heap_table_size: 32M
+  query_cache_type: 1
+  query_cache_size: 4M
+  query_cache_limit: 256K
+  query_cache_min_res_unit: 1K
+  max_connections: 128
+  thread_cache_size: 128
+
+  # InnoDB
+  innodb_buffer_pool_size: 512M
+  innodb_flush_log_at_trx_commit: 0
+
+  # Logging
+  log_error: /var/log/mysqld.log
+  long_query_time: 1
+  slow_query_log_file: 1
+
+  # Buffers
+  join_buffer_size: 8M
+  read_buffer_size: 2M
+  sort_buffer_size: 3M
+  read_rnd_buffer_size: 4M
+
+  # mysqld_safe
+  pid_file: /var/run/mysqld/mysqld.pid
+
+# PHPMyAdmin
+###
+
+pma:
+  enabled: true
+  install: true
+  version: 4.0.9
+  local_only: true
+  force_ssl: true # @TODO currently only affects pma settings, not vhost

@@ -1,0 +1,21 @@
+---
+nodejs:
+  install: true
+  repository: ppa:chris-lea/node.js
+  packages:
+    - grunt-cli
+    - yslow
+    - bower
+    - browserstack-cli
+    - jshint
+    - marked
+    - yo
+    - generator-webapp
+
+common:
+  install: true
+  ag_repository: ppa:mizuno-as/silversearcher-ag
+
+ruby:
+  install: true
+  gems: ['compass']

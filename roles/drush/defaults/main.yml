@@ -1,0 +1,13 @@
+---
+dev: 
+  install: false
+  modules: 
+    - cacheaudit
+    - drush-hosts
+    - clean_missing_modules
+    - module_builder
+    - coder
+
+# Should be set to /home/deploy/.drush on live.
+dir: /usr/local/etc/drush
+dump_dir: {{ drush_dir }}/dump

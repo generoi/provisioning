@@ -1,0 +1,72 @@
+---
+# Part: PHP
+#
+# Description: Install XDebug from PECL and configure it together with
+# webgrind as a frontend. The frontend is only accessable to localhost so users
+# should use tunneling.
+#
+# Parameters:
+#
+# Dependencies:
+# - tasks:setup
+# - tasks:pecl: Used to install PECL packages.
+# - apache:tasts:main: Apache should be installed.
+# - apache:tasks:vhost-local-alias: Manage localhost only accessable vhost alias
+#
+# Creates:
+# - /opt/webgrind: Git clone of webgrind.
+# - {{ vhost_local.url }}/webgrind: Localhost only access to webgrind
+#
+# File modifications:
+# - /etc/php5/conf.d/xdebug.init
+#
+###############################################################################
+
+- include: pecl.yml
+  vars:
+    package: xdebug
+    version: stable
+  tags:
+    - php-dev
+    - xdebug
+    - install
+
+# Should we do this as root? known_hosts check might be problem.
+- name: PHP | XDebug | Download webgrind to view XDebug reports
+  git:
+    repo={{ xdebug.webgrind_repository }}
+    dest=/opt/webgrind
+  tags:
+    - php-dev
+    - xdebug
+    - webgrind
+    - install
+
+# Manage local vhost alias for /webgrind
+- include: ../../apache/tasks/vhost-local-alias.yml
+  vars:
+    docroot: /opt/webgrind
+    alias: /webgrind
+    remove: not xdebug.enabled
+  tags:
+    - php-dev
+    - xdebug
+    - webgrind
+    - config
+
+- name: PHP | XDebug | Configure, xdebug.ini
+  lineinfile:
+    dest=/etc/php5/conf.d/xdebug.ini
+    regex="^$item[0]"
+    line="$item[0] = $item[1]"
+  notify: restart php
+  with_items:
+    ['xdebug.profiler_enable_trigger', {{ xdebug.enabled }}]
+    ['xdebug.profiler_output_dir', '/tmp']
+    ['xdebug.profiler_output_name', 'cachegrind.out.%t.%p']
+    ['xdebug.max_nesting_level', 150]
+  tags:
+    - php-dev
+    - xdebug
+    - config
+    - webgrind

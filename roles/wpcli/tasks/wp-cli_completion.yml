@@ -1,0 +1,21 @@
+---
+# Part: WP CLI
+#
+# Description: Install wp-cli bash completion
+#
+# Parameters:
+# - bash_completion_dir: Directory where to place completion file
+#
+# Dependencies:
+#
+# Creates:
+# - {{ bash_completion_dir }}/wp-completion.sh
+#
+# File modifications:
+#
+###############################################################################
+
+- name: WP-CLI | Install bash completion
+  copy:
+    src=wp-completion.sh
+    dest={{ bash_completion_dir }}/wp-completion.sh

@@ -1,0 +1,72 @@
+---
+# Part: Security
+#
+# Description: Install denyhosts to block failed ssh login attempts
+#
+# Parameters:
+# - denyhosts.enabled (defaults: true)
+# - denyhosts.purge (default: 1w)
+# - denyhosts.purge_threshold (default: 2)
+# - denyhosts.deny_threshold_invalid (default: 2)
+# - denyhosts.deny_threshold_valid (default: 3)
+# - denyhosts.deny_threshold_root (default: 1)
+# - denyhosts.deny_threshold_restricted (default: 1)
+# - denyhosts.notify_email (default: '')
+# - denyhosts.syslog (default: yes)
+# - denyhosts.age_reset_valid (default: 1h)
+# - denyhosts.age_reset_root (default: 30d)
+# - denyhosts.age_reset_restricted (default: 30d)
+# - denyhosts.age_reset_invalid (default: 10d)
+# - denyhosts.reset_on_success (default: yes)
+# - denyhosts.daemon_sleep (default: 20s)
+# - denyhosts.daemon_purge (default: 1h)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/denyhosts.conf
+#
+###############################################################################
+
+- name: Security | Install DenyHosts.
+  apt:
+    pkg=denyhosts
+    state=present
+  tags:
+    - denyhosts
+    - install
+
+# @see http://blog.bigdinosaur.org/securing-your-server-with-denyhosts/
+- name: DenyHosts | Configure denyhosts.conf
+  template:
+    src=denyhosts.conf
+    dest=/etc/denyhosts.conf
+    user=root group=root mode=0644
+  notify: restart denyhosts
+  tags:
+    - denyhosts
+    - config
+
+- name: DenyHosts | Enable the service.
+  service:
+    name=denyhosts
+    state=started
+    enabled=true
+  when: denyhosts.enabled
+  tags:
+    - denyhosts
+    - service
+    - enable
+
+- name: DenyHosts | Disable the service.
+  service:
+    name=denyhosts
+    state=stopped
+    enabled=false
+  when: not denyhosts.enabled
+  tags:
+    - denyhosts
+    - service
+    - disable

@@ -1,0 +1,120 @@
+---
+# Part: Apache
+#
+# Description: Sets up Apache2 and mods
+#
+# Parameters:
+# - mods_enabled: List of apache modules to enable (default: [rewrite, vhost_alias, ssl])
+# - mods_disabled: List of apache modules to disable (default: [])
+# - root: Document root (default: /var/www)
+# - hostname: Hostname of server
+#
+# - user (default: www-data)
+# - group (default: www-data)
+# - admin (default: admin@localhost)
+#
+# - port.http (default: 80)
+# - port.https (default: 443)
+#
+# - config.timeout (default: 300)
+# - config.keepalive.enabled (default: 'On')
+# - config.keepalive.requests (default: '100')
+# - config.keepalive.timeout (default: '2')
+#
+# - config.mpm.mpm_start_servers (default: 2)
+# - config.mpm.min_spare_threads (default: 25)
+# - config.mpm.spare_threads (default: 25)
+# - config.mpm.max_spare_threads (default: 75)
+# - config.mpm.thread_limit (default: 64)
+# - config.mpm.threads_per_child (default: 25)
+# - config.mpm.max_clients (default: 150)
+# - config.mpm.max_requests_per_child (default: 0)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/apache2/sites-available/{{ hostname }}
+# - /etc/apache2/sites-enabled/{{ hostname }}
+# - http://{{ hostname }}
+#
+# File modifications:
+# - /etc/apache2/envvars
+# - /etc/apache2/apache2.conf
+# - /etc/apache2/ports.conf
+# - /etc/apache2/conf.d/security
+#
+###############################################################################
+
+- name: Apache | Install required packages.
+  apt:
+    pkg={{ item }}
+    state=installed
+  with_items:
+    - apache2
+    - apache2-utils # ab, rotatelogs
+    - ssl-cert # snakeoil certificate
+  tags:
+    - install
+
+- name: Apache | Configure Apache
+  template:
+    src={{ item }}.j2
+    dest=/etc/apache2/{{ item }}
+  with_items:
+    - envvars
+    - apache2.conf
+    - ports.conf
+    - conf.d/security
+  notify: restart apache
+  tags:
+    - config
+
+- name: Apache | Enable some required modules.
+  command: a2enmod {{ item }}
+  with_items: mods_enabled
+    mods_enabled
+  notify:
+    - restart apache
+  tags:
+    - install
+    - apachemods
+
+- name: Apache | Disable some banned modules.
+  command: a2enmod {{ item }}
+  with_items: mods_disabled
+  notify:
+    - restart apache
+  tags:
+    - clean
+    - apachemods
+
+- name: Apache | Remove default index file from default docroot
+  file:
+    path=/var/www/index.html
+    state=absent
+  tags:
+    - clean
+
+- include: create-vhost.yml
+  vars:
+    create_docroot: true
+    docroot: root
+    vhost: hostname
+    # The rest are passed on as they were passed into this task.
+  tags:
+    - vhost
+
+- name: Apache | Create a directory for per vhost configurations
+  file:
+    path=/etc/apache2/vhosts.d
+    state=directory
+  tags:
+    - vhost
+
+- name: Apache | Ensure service exists
+  service:
+    name=apache2
+    enabled=yes
+    state=started
+  tags:
+    - service

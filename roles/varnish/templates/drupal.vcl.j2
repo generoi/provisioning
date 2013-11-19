@@ -1,0 +1,194 @@
+# {{ ansible_managed }}
+# @see https://www.varnish-cache.org/docs/3.0/tutorial/vcl.html
+# @see http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
+
+# Error page
+include "error.vcl"; 
+
+# Only allow PURGE requests from the system itself.
+acl internal {
+  "{{ backend_addr }}";
+}
+
+backend default {
+  .host = "{{ backend_addr }}";
+  .port = "{{ backend_port }}";
+}
+
+# Provide success information for debugging
+sub vcl_deliver {
+  if (obj.hits > 0) {
+    set resp.http.X-Varnish-Cache = "HIT";
+  } else {
+    set resp.http.X-Varnish-Cache = "MISS";
+  }
+}
+
+# Called just as a request has been parsed. Should decide whether what to do
+# with the request.
+sub vcl_recv {
+  # Objects:
+  # - req: the request object as it looks before being passed to the backend
+  #
+  # Actions:
+  # - pass: Pass object to and from the backend without caching it.
+  # - lookup: Deliver content from cache even though otherwise told to pass.
+  # - pipe: Shuttle byte data without inspect it.
+
+  # Use anonymous, cached pages if all backends are down.
+  if (!req.backend.healthy) {
+    unset req.http.Cookie;
+  }
+
+  # Allow the backend to serve up stale content if it is responding slowly.
+  set req.grace = 6h;
+
+{% if https_enabled %}
+  # Pound will set the X-Forwarded-Proto to https, complete it with the port.
+  if (req.http.X-Forwarded-Proto == "https" ) {
+    set req.http.X-Forwarded-Port = "443";
+  }
+  # If not set, we are coming directly to varnish, set the port and the proto.
+  else {
+    set req.http.X-Forwarded-Proto = "http";
+    set req.http.X-Forwarded-Port = "80";
+  }
+{% endif %}
+
+  # Pass on client IP
+  unset req.http.X-Forwarded-For;
+  set req.http.X-Forwarded-For = client.ip;
+
+  # Do not cache these paths.
+  if (req.url ~ "^/status\.php$" ||
+      req.url ~ "^/update\.php$" ||
+      req.url ~ "^/ooyala/ping$" ||
+      req.url ~ "^/admin/build/features" ||
+      req.url ~ "^/info/.*$" ||
+      req.url ~ "^/flag/.*$" ||
+      req.url ~ "^/admin.*$" ||
+      req.url ~ "^.*/ajax/.*$" ||
+      req.url ~ "^.*/ahah/.*$") {
+       return (pass);
+  }
+
+  # Pipe these paths directly to Apache for streaming.
+  if (req.url ~ "^/admin/content/backup_migrate/export") {
+    return (pipe);
+  }
+
+  # Do not allow outside access to cron.php or install.php.
+  if (req.url ~ "^/(cron|install)\.php$" && !client.ip ~ internal) {
+    # Have Varnish throw the error directly.
+    error 404 "Page not found.";
+  }
+
+  # Handle compression correctly. Different browsers send different
+  # "Accept-Encoding" headers, even though they mostly all support the same
+  # compression mechanisms. By consolidating these compression headers into
+  # a consistent format, we can reduce the size of the cache and get more hits.=
+  # @see: http:// varnish.projects.linpro.no/wiki/FAQ/Compression
+  if (req.http.Accept-Encoding) {
+    if (req.http.Accept-Encoding ~ "gzip") {
+      # If the browser supports it, we'll use gzip.
+      set req.http.Accept-Encoding = "gzip";
+    }
+    else if (req.http.Accept-Encoding ~ "deflate") {
+      # Next, try deflate if it is supported.
+      set req.http.Accept-Encoding = "deflate";
+    }
+    else {
+      # Unknown algorithm. Remove it and send unencoded.
+      unset req.http.Accept-Encoding;
+    }
+  }
+
+  # Always cache the following file types for all users.
+  if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm)(\?[a-z0-9]+)?$") {
+    # Do however honor NO_CACHE cookie as it could be a dynamic image.
+    if (!req.http.Cookie ~ "NO_CACHE"){
+      unset req.http.Cookie;
+    }
+  }
+
+  # Remove all cookies that Drupal doesn't need to know about. ANY remaining
+  # cookie will cause the request to pass-through to Apache. For the most part
+  # we always set the NO_CACHE cookie after any POST request, disabling the
+  # Varnish cache temporarily. The session cookie allows all authenticated users
+  # to pass through as long as they're logged in.
+  if (req.http.Cookie) {
+    set req.http.Cookie = ";" + req.http.Cookie;
+    set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+    set req.http.Cookie = regsuball(req.http.Cookie, ";(SESS[a-z0-9]+|NO_CACHE)=", "; \1=");
+    set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
+
+    if (req.http.Cookie == "") {
+      # If there are no remaining cookies, remove the cookie header. If there
+      # aren't any cookie headers, Varnish's default behavior will be to cache
+      # the page.
+      unset req.http.Cookie;
+    }
+    else {
+      # If there is any cookies left (a session or NO_CACHE cookie), do not
+      # cache the page. Pass it on to Apache directly.
+      return (pass);
+    }
+  }
+
+  # Pass on to varnish default procedure.
+}
+
+# cl_hash creates the key for varnish under which the object is stored. It is
+# possible to store the same url under 2 different keys, by making vcl_hash
+# create a different hash.
+# @see https://www.varnish-cache.org/trac/wiki/VCLExampleCachingLoggedInUsers
+sub vcl_hash {
+{% if https_enabled %}
+  hash_data(req.url);
+  if (req.http.X-Forwarded-Proto) {
+    hash_data(req.http.X-Forwarded-Proto);
+  }
+  return (hash);
+{% endif %}
+}
+
+# Called after document has been retrieved from the backend. Here you can alter
+# response headers etc.
+sub vcl_fetch {
+  # Objects:
+  # - beresp: Backend response object from the web server
+  # - req: Request object
+  # - obj: The cached object
+  #
+  # Actions:
+  # - hit_for_pass: Save decision that this cannot be cached.
+  # - deliver: deliver the cached object to the client
+
+  # FBOauth has some problems with varnish caching.
+  # @see http://drupal.stackexchange.com/questions/37373/cache-problems-with-varnish-and-fboauth-module
+  if (req.url ~ "/fboauth/connect") {
+    return (hit_for_pass);
+  }
+
+  # Never cache pages which set NO_CACHE
+  if (beresp.http.Set-Cookie ~ "NO_CACHE") {
+    return (hit_for_pass);
+  }
+
+  # Dont allow static files to set cookies
+  if (req.url ~ "\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|eot|woff|ttf)(\?[a-z0-9]*)?$") {
+    unset beresp.http.set-cookie;
+    # Cache them as well!
+    unset beresp.Etag;
+    unset beresp.Expires;
+    set beresp.http.Cache-Control = "max-age=3153600";
+    set beresp.ttl = 86400s;
+    return (deliver);
+  }
+
+  # Allow items to be stale if needed
+  set beresp.grace = 6h;
+
+  # Pass on to varnish default procedure.
+}

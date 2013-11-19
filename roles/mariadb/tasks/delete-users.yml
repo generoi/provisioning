@@ -1,0 +1,57 @@
+---
+# Part: MariaDB
+#
+# Description: Deletes MariaDB users set as absent
+#
+# Parameters:
+# - accounts: List of account dictionaries, each with the keys: username
+# - login.user: User to log in as when creating (default: root)
+# - login.password: Optional password to sign in with. If not present
+#   login.password_file is used, and preferred (default: false)
+# - login.password_file: File with encrypted password
+#   (default: credentials/{{ hostname }}/root/mariadb_password length=15)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: MariaDB | Start the service
+  service:
+    name=mysql
+    state=started
+  tags:
+    - service
+
+# Add each user to each host
+# Use a plain text password to login (not recommended)
+- name: MariaDB | Delete user
+  mysql_user:
+    login_user={{ login.user }}
+    login_password={{ login.password }}
+    name={{ item[0]['username'] }}
+    host={{ item[1] }}
+    state=absent
+  when: login.password|bool
+  with_nested:
+    - accounts
+    - hosts
+    - disable
+
+# Use a login_password_file (thats the spirit)
+- name: MariaDB | Create user {{ user }}
+  mysql_user:
+    login_user={{ login.user }}
+    login_password={{ lookup('password', login.password_file) }}
+    name={{ item[0]['username'] }}
+    host={{ item[1] }}
+    state=absent
+  when: not login.password|bool
+  with_nested:
+    - accounts
+    - hosts
+    - disable

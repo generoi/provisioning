@@ -1,0 +1,14 @@
+---
+# Used while securing /dev/shm
+- name: reload fstab
+  command: mount -a
+
+- name: restart denyhosts
+  service:
+    name=denyhosts
+    state=restarted
+
+- name: restart sshd
+  service:
+    name=sshd
+    state=restarted

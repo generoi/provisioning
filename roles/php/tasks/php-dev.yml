@@ -1,0 +1,55 @@
+---
+# Part: PHP
+#
+# Description: Installs PHP packages used for development, for example
+# profiling tools.
+#
+# Parameters:
+# - phpqatools.install (default: true)
+# - composer.install (default: true)
+# - xhprof.install (default: true)
+# - xdebug.install (default: true)
+#
+# Dependencies:
+# - tasks:setup
+# - tasks:pear
+#
+# Creates:
+# - /usr/local/bin/composer
+# - /usr/bin/phpunit
+#
+# File modifications:
+#
+###############################################################################
+
+# PHP QA Toolchain
+##
+- name: PHP | PHPDev | Pear install the PHP QA Toolchain
+  command:
+    pear install pear.phpqatools.org/phpqatools
+    creates=/usr/bin/phpunit
+  # this fails often (dns problems, pear problems, etc. So just ignore the errors and continue.)
+  ignore_errors: true
+  notify: restart php
+  when: phpqatools.install
+  tags:
+    - php-dev
+    - phpqatools
+    - install
+
+# Composer
+###
+- name: PHP | PHPDev | Install Composer
+  shell:
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin && mv /usr/local/bin/composer{.phar,}
+    creates=/usr/local/bin/composer
+  when: composer.install
+  tags:
+    - php-dev
+    - composer
+    - install
+
+- include: xhprof.yml
+  when: xhprof.install
+- include: xdebug.yml
+  when: xdebug.install

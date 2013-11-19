@@ -1,0 +1,24 @@
+---
+# Part: Security
+#
+# Description: Allow services for the firewall
+#
+# Parameters:
+# - services: list of services to allow
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+---
+- name: Firewall | Allow services
+  command: ufw allow {{ item }}
+  with_items:
+    $services
+  tags:
+    - ufw
+    - config

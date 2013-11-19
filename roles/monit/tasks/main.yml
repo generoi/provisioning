@@ -1,0 +1,82 @@
+---
+# Part: Monit
+#
+# Description: Set up monit and specified monitoring services.
+#
+# Supported monitors:
+# - apache
+# - cron
+# - mysql
+# - postfix
+# - sshd
+# - syslog
+# - varnish
+#
+# Parameters:
+# - enabled (default: true)
+# - services: List of service names to monitor (default: [])
+# - webinterface.install (default: false)
+# - mail.install (default: false)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/default/monit
+# - /etc/monit/conf.d/{{ services }}
+#
+###############################################################################
+
+- name: Monit | Install required packages.
+  apt:
+    pkg=monit
+    state=present
+  tags:
+    - install
+
+- name: Monit | Configure monit to start
+  lineinfile:
+    dest=/etc/default/monit
+    regex="^startup"
+    line="statup={{ enabled }}"
+  tags:
+    - config
+
+- include: webinterface.yml
+  when: webinterface.install
+
+- include: mail.yml
+  when: mail.install
+
+- name: Monit | Write monitors
+  template:
+    src=monitors/{{ item }}.j2
+    dest=/etc/monit/conf.d/{{ item }}
+    owner=root group=root mode=0644
+  with_items: services
+  notify: restart monit
+  tags: monit
+
+- name: Monit | Start monit service
+  service:
+    name=monit
+    state=started
+    enabled=yes
+  when: enabled
+  tags:
+    - service
+    - enable
+
+- name: Monit | Disable monit service
+  service:
+    name=monit
+    state=stopped
+    enabled=no
+  when: not enabled
+  tags:
+    - service
+    - disable
+
+- name: Monit | Verify configurations are valid
+  command: monit -t

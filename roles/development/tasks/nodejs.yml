@@ -1,0 +1,45 @@
+---
+# Part: Development
+#
+# Description: Install Node.js and common packages such as jshint. If Node.js
+# is used for development however, then it should be installed per user through
+# nvm.
+#
+# Parameters:
+# - nodejs.packages: (default: [grunt-cli, yslow, bower, browserstack-cli,
+#   jshint, marked, yo, generator-webapp])
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Node.js | Add node PPA repository
+  apt_repository: repo={{ nodejs.repository }}
+  tags:
+    - install
+    - nodejs
+
+- name: Node.js | Install required packages.
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - nodejs
+  tags:
+    - install
+    - nodejs
+
+- name: Node.js | Install global npm packages
+  npm:
+    name={{ item }}
+    global=yes
+    state=present
+  with_items: nodejs.packages
+  tags:
+    - install
+    - nodejs
+    - npm

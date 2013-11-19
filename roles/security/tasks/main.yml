@@ -1,0 +1,26 @@
+---
+# Part: Security
+#
+# Description: Secures a server
+#
+# Parameters: Read respective yml file.
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+- include: common.yml
+  when: common.install
+- include: ssh.yml
+  when: ssh.install
+- include: denyhosts.yml
+  when: denyhosts.install
+- include: sysctl.yml
+  when: sysctl.install
+- include: firewall.yml
+  when: firewall.install
+- include: rootkit.yml
+  when: rootkit.install

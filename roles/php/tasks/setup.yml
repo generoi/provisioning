@@ -1,0 +1,71 @@
+---
+# Part: PHP
+#
+# Description: Installs PHP 5.4 (specific for Ubuntu 12.04) with useful
+# packages and configures php.ini for development/production
+#
+# Parameters:
+# - development: Whether to use development or production configurations in
+#   php.ini (default: false).
+# - php.max_execution_time (default: 30)
+# - php.memory_limit (default: 256M)
+# - php.max_size (default: 8M)
+# - php.upload_max_filesize (default: 10M)
+# - php.max_file_uploads (default: 20)
+# - php.post_max_size (default: 10M)
+#
+# Dependencies:
+# - apache:tasks:main
+#
+# Creates:
+#
+# File modifications:
+# - /etc/php5/apache2/php.ini
+#
+###############################################################################
+
+# Extract candiate PHP version
+- name: PHP | Detect if PHP 5.4 is available in the repository.
+  shell: apt-cache policy php5 | grep -i 'candidate' | tr -s ' ' | cut -d ' ' -f 3
+  ignore_errors: yes
+  register: php_version_available
+  tags:
+    - install
+
+- name: PHP | Add the PHP 5.4 PPA.
+  apt_repository: repo=ppa:ondrej/php5-oldstable
+  when: not php_version_available.stdout.startswith('5.4')
+  tags:
+    - install
+
+- name: PHP | Install required packages.
+  apt:
+    pkg={{ item }}
+    state=installed
+  with_items:
+    - php5
+    - php5-curl
+    - php5-dev
+    - php5-mysqlnd
+    - php5-xmlrpc
+    - php5-gd
+    - php5-cli
+    - php5-imagick
+    - php5-common
+  tags:
+    - install
+
+- name: PHP | Configuration file, php.ini
+  template:
+    src=php.ini.j2
+    dest=/etc/php5/apache2/php.ini
+  notify: restart apache
+  tags:
+    - config
+
+# - name: PHP | Configuration file for php-cli, php.ini
+#   action: template src=php-cli.ini.j2 dest=/etc/php5/php.ini
+#   notify: restart apache
+#   tags:
+#     - php
+#     - install

@@ -1,0 +1,33 @@
+---
+# Part: Development
+#
+# Description: Install common packages used for development servers
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Common | Add the silver searcher PPA.
+  apt_repository: repo={{ common.ag_repository }}
+  tag:
+    - install
+
+- name: Common | Install development packages.
+  apt: pkg={{ item }} state=present
+  with_items:
+    - mosh
+    - luajit # fast vim plugins
+    - python # @TODO figure out bin names
+    - python3
+    - silversearcher-ag
+    - tmux
+    - tree
+    - lftp
+  tags:
+    - install

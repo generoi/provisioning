@@ -1,0 +1,3 @@
+---
+- name: cache-clear drush
+  command: drush cache-clear drush

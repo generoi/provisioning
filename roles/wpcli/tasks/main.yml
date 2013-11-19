@@ -1,0 +1,54 @@
+---
+# Part: WP CLI
+#
+# Description: Install wp-cli together with global bash completion.
+#
+# Parameters:
+# - dir: Location to install wp-cli (default: /usr/local/lib/wp)
+#
+# Dependencies:
+#
+# Creates:
+# - /usr/local/lib/wp
+# - /usr/local/bin/wp
+# - /etc/bash_completion.d/wp
+#
+# File modifications:
+#
+###############################################################################
+- name: WP-CLI | Download install script
+  get_url:
+    url={{ install_script }}
+    dest=/tmp/wpcli-install.sh
+    mode=0700
+  tags:
+    - install
+
+- name: WP-CLI | Install WP-CLI
+  shell:
+    INSTALL_DIR={{ dir }} /tmp/wpcli-install.sh
+    creates={{ dir }}
+  tags:
+    - install
+
+- name: WP-CLI | Remove install script
+  file:
+    path=/tmp/wpcli-install.sh
+    state=absent
+  tags:
+    - clean
+
+- name: WP-CLI | Create symlink to binary
+  file:
+    src={{ dir }}/bin/wp
+    dest=/usr/bin/wp
+    state=link
+  tags:
+    - install
+
+- include: wp-cli_completion.yml
+  vars:
+    bash_completion_dir: /etc/bash_completion.d
+  tags:
+    - config
+    - shell

@@ -1,0 +1,44 @@
+---
+# Part: New Relic
+#
+# Description: Sets up the PHP agent for New Relic
+#
+# Parameters:
+# - license
+# - php.enabled: Whether to enable the service or not (default: true)
+# - php.loglevel (default: info)
+# - php.logfile (default: /var/log/newrelic/php_agent.log)
+# - php.daemon_logfile (default: /var/log/newrelic/php_daemon.log)
+# - php.browser_monitoring_auto_instrument (default: 1)
+# - php.drupal_modules (default: 1)
+# - php.error_collector_record_database_error (default: 1)
+# - php.error_collector_include_notices (default: 1)
+# - php.analytics_events (default: 1)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+# - /etc/newrelic/newrelic.cfg
+#
+# File modifications:
+#
+###############################################################################
+
+- name: New Relic | PHP | Install agent
+  apt:
+    pkg=newrelic-php5
+    state=present
+  tags:
+    - install
+    - php
+
+- name: New Relic | PHP | Configure
+  template:
+    src=newrelic.ini.j2
+    dest=/etc/php5/conf.d/newrelic.ini
+    owner=root group=newrelic mode=0640 # @TODO 644?
+  notify: restart apache
+  tags:
+    - config
+    - php

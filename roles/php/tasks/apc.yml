@@ -1,0 +1,80 @@
+---
+# Part: PHP
+#
+# Description: Install APC from PECL and configure it.
+#
+# Parameters:
+# - apc.enabled (default: true)
+# - apc.frontend_archive (default: /usr/share/doc/php-apc/apc.php.gz)
+# - apc.shm_segments (default: 1)
+# - apc.shm_size (default: 256M)
+# - apc.num_files_hint (default: 3000)
+# - apc.ttl (default: 0)
+# - apc.user_ttl (default: 7200)
+# - apc.gc_ttl (default: 3600)
+# - apc.cache_by_default (default: 1)
+# - apc.filters (default: '/opt/apc/index.php,/opt')
+# - apc.mmap_file_mask (default: '/tmp/apc.XXXXXX')
+# - apc.max_file_size (default: 8M)
+# - apc.write_lock (default: 1)
+# - apc.report_autofilter (default: 1)
+# - apc.include_once_override (default: 1)
+#
+# Dependencies:
+# - tasks:setup
+# - tasks:pecl: Used to install PECL packages
+# - apache:tasks:main: Apache should be installed.
+# - apache:tasks:vhost-local-alias: Manage localhost only accessable vhost alias
+#
+# Creates:
+# - /opt/apc: Frontend for apc
+# - {{ vhost_local.url }}/apc: Localhost only access to apc
+#
+# File modifications:
+# - /etc/php5/conf.d/apc.ini
+#
+###############################################################################
+
+- include: pecl.yml
+  vars:
+    package: apc
+    version: stable
+  tags:
+    - apc
+    - install
+
+- name: PHP | APC | Create APC frontend directory
+  file:
+    path=/opt/apc
+    user=root group=root mode=0755
+    state=directory
+  tags:
+    - apc
+    - config
+
+- name: PHP | APC | Unarchive {{ apc.frontend_archive }} to /opt/apc/
+  shell:
+    gunzip {{ apc.frontend_archive }} > /opt/apc/index.php
+    creates=/opt/apc/index.php
+  tags:
+    - apc
+    - config
+
+# Manage local access only vhost alias /apc
+- include: ../../apache/tasks/vhost-local-alias.yml
+  vars:
+    docroot: /opt/apc
+    alias: /apc
+    remove: not apc.enabled | bool
+  tags:
+    - apc
+    - config
+
+- name: PHP | APC | Configure, apc.ini
+  template:
+    src=apc.ini.j2
+    dest=/etc/php5/conf.d/apc.ini
+  notify: restart php
+  tags:
+    - apc
+    - config

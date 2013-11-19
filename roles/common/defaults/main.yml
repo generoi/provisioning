@@ -1,0 +1,15 @@
+motd:
+  enabled: true
+
+packages:
+  - build-essential
+  - libpcre3-dev
+  - curl
+  - sendmail
+  - unzip
+  - python-software-properties # unattended-upgrades for example
+  - nmap
+  - git
+  - htop
+  - imagemagick
+  - ca-certificates

@@ -1,0 +1,23 @@
+---
+# Part: Development
+#
+# Description: Install common packages used for development servers
+#
+# Parameters:
+# - nodejs.install (default: true)
+# - ruby.install (default: true)
+# - common.install (default: true)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+- include: common.yml
+  when: common.install
+- include: ruby.yml
+  when: ruby.install
+- include: nodejs.yml
+  when: nodejs.install

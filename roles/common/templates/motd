@@ -1,0 +1,10 @@
+#!/bin/sh
+# {{ ansible_managed }}
+
+echo
+echo " ********************************************************"
+echo " * This server is configured using Ansible."
+echo " *"
+echo " * Any manual changes you do might be removed."
+echo " ********************************************************"
+echo

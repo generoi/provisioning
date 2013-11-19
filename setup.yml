@@ -1,0 +1,77 @@
+---
+# Job: Setup
+#
+# Description: Manages all the servers
+#
+###############################################################################
+
+- hosts: development
+  remote_user: root # @TODO
+  vars:
+    hostname: {{ ansible_hostname }}
+    ip: {{ ansible_eth0.ipv4.address }}
+    # Global flag for apache, mariadb, php
+    development: true
+  vars_files:
+    - vars/settings.yml
+  roles:
+    # Make sure admin users exist
+    - { role: user, active: admins_active, departed: admins_departed, user_groups: admin_groups }
+    # Make sure regular users exist
+    - { role: user, active: users_active, departed: users_departed, user_groups: user_groups }
+    # Make sure managed users exist and have correct passwords.
+    - { role: user, managed: managed }
+    - { role: common }
+    - { role: mail }
+    - { role: monit }
+    - { role: development }
+    - { role: apache }
+    - { role: php }
+    - { role: mariadb, active: mariadb_active, departed: mariadb_departed }
+    - { role: drush }
+    - { role: wpcli }
+    - { role: varnish }
+    - { role: pound }
+    - { role: security }
+    - { role: logwatch }
+    - { role: newrelic }
+
+- hosts: fullstack
+  remote_user: root # @TODO
+  vars:
+    hostname: {{ ansible_hostname }}
+    ip: {{ ansible_eth0.ipv4.address }}
+    # Global flag for apache, mariadb, php
+    development: false
+  vars_files:
+    - vars/settings.yml
+  roles:
+    # Make sure admin users exist
+    - { role: user, active: admins_active, departed: admins_departed, user_groups: admin_groups }
+    # Make sure regular users exist
+    - { role: user, active: users_active, departed: users_departed, user_groups: user_groups }
+    # Make sure managed users exist and have correct passwords.
+    - { role: user, managed: managed }
+    - { role: common }
+    - { role: mail }
+    - { role: monit }
+    - { role: apache }
+    - { role: php }
+    - { role: mariadb, active: mariadb_active, departed: mariadb_departed }
+    - { role: drush }
+    - { role: varnish }
+    - { role: pound }
+    - { role: security }
+    - { role: logwatch }
+    - { role: newrelic }
+
+# - hosts: backup
+#   remote_user: root # @TODO
+#   vars:
+#     hostname: {{ ansible_hostname }}
+#     ip: {{ ansible_eth0.ipv4.address }}
+#   vars_files:
+#     - vars/settings.yml
+#   roles:
+#     - backup mysql and gzip
+#     - backup public_html and gzip

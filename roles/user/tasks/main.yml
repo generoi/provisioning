@@ -1,0 +1,46 @@
+---
+# Part: User
+#
+# Description: Manage active and departed users of a single group type. This
+# should most likely be included twice, once for administrative users and once
+# for regular users.
+#
+# Parameters:
+# - active: A list of user dictionaries, each with the properties:
+#   username, fullname
+# - departed: A list of departed user dictionaries with the property:
+#   username
+# - managed: A list of completely managed user dictionaries, each with the
+#   properties: username, fullname, groups
+# - user_groups: A comma delimited list of default groups to add the users to.
+# - remove_home: Remove home for absent users.
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: User | Create user group
+  group: name={{ item }} state=present
+  with_items: user_groups.split(',')
+  when: user_groups|bool
+
+- include: create-users.yml
+  vars:
+    users: active
+    user_groups: user_groups
+  when: active|bool
+
+- include: create-managed-users.yml
+  vars:
+    users: managed
+  when: managed|bool
+
+- include: delete-users.yml
+  vars:
+    users: departed
+    user_groups: user_groups
+  when: depared|bool

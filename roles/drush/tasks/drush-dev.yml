@@ -1,0 +1,92 @@
+---
+# Part: Drush
+#
+# Description: Install drush development modules
+#
+# Modules:
+# - https://drupal.org/project/cacheaudit
+# - https://drupal.org/project/drush-hosts
+# - https://drupal.org/project/clean_missing_modules
+# - https://drupal.org/project/module_builder
+# - https://drupal.org/project/coder
+#
+# Parameters:
+# - dir: Directory of drush configurations (default: /var/local/etc/drush).
+# - modules: Modules to install globally
+#   (default: cacheaudit, drush-hosts, clean_missing_modules, module_builder,
+#   coder)
+#
+# Dependencies:
+# - tasks:main
+# - php:tasks:main
+#
+# Creates:
+# - /var/local/etc/drush/hooks
+#
+# File modifications:
+# - /var/local/etc/drush/drushrc.php
+#
+###############################################################################
+
+
+- name: Drush | Development | Install module to {{ dir }}
+  command:
+    drush dl -y {{ item }} --destination={{ dir }}/
+    creates={{ dir }}/{{ item }}
+  with_items: dev.modules
+  notify: cache-clear drush
+  tags:
+    - drush-dev
+    - install
+
+# Module Builder
+###
+- name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
+  lineinfile:
+    dest={{ dir }}/drushrc.php
+    regex="^\$command_specific\['mb-build'\]\['write'\]"
+    line="$command_specific['mb-build']['write'] = TRUE;"
+    state=present
+  tags:
+    - drush-dev
+    - module_builder
+    - config
+
+- name: Drush | Module Builder | Check if hook directory is present
+  file:
+    path={{ dir }}/hooks
+    state=directory
+  tags:
+    - drush-dev
+    - module_builder
+    - config
+
+- name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
+  lineinfile: dest={{ dir }}/drushrc.php
+    regex="^\$options\['data'\]"
+    line="$options['data'] = {{ dir }}/hooks;"
+    state=present
+  tags:
+    - drush-dev
+    - module_builder
+    - config
+
+# Coder
+###
+- name: Drush | Coder | Find out pear php_dir
+  command: pear config-get php_dir
+  register: php_dir
+  tags:
+    - drush-dev
+    - coder
+    - config
+
+- name: Drush | Coder | Symlink Drupal CoderSniffer standard to PHPCS standards.
+  file:
+    src={{ dir }}/coder/coder_sniffer/Drupal
+    dest={{ php_dir.output }}/PHP/CodeSniffer/Standards/Drupal
+    state=link
+  tags:
+    - drush-dev
+    - coder
+    - config

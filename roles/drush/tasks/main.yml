@@ -1,0 +1,53 @@
+---
+# Part: Drush
+#
+# Description: Sets up drush with extra modules and global config defaults.
+#
+# Parameters:
+# - dev.install: Whether to install drush development modules (default: false).
+# - dir: Directory of drush configurations (default: /usr/local/etc/drush).
+# - dump_dir: Directory of drush sql dumps (default: {{ drush_dir }}/dump).
+#
+# Dependencies:
+# - php:tasks:main
+# - php:tasks:pecl
+#
+# Creates:
+# - /usr/local/etc/drush
+# - /usr/local/etc/drush/dump
+#
+# File modifications:
+# - /usr/local/etc/drush/drushrc.php
+#
+###############################################################################
+
+- include: ../../php/tasks/pecl.yml
+  vars:
+    package: drush
+    version: stable
+  tags:
+    - install
+
+- name: Drush | Run drush once so it downloads it's dependencies
+  command: drush
+  ignore_errors: yes
+  tags:
+    - install
+
+- name: Drush | Ensure global drush directory {{ dir }} is present
+  file:
+    path={{ dir }}
+    state=directory
+  tags:
+    - config
+
+# Install drush development modules
+- include: drush-dev.yml
+  when: dev.install
+
+- name: Drush | Add global {{ dir }}/drushrc.php
+  template:
+    src=drushrc.php.j2
+    dest={{ dir }}/drushrc.php
+  tags:
+    - config

@@ -1,0 +1,116 @@
+---
+# Part: Security
+#
+# Description: Secures a server
+#
+# Parameters:
+# - common.tiger: set up tiger auditing (default: true)
+# - common.ipspoof: prevent ip spoofing (default: true)
+# - common.limit_su: Limit su to only admin group (default: true)
+# - common.untattended_upgrades: Enable unattended upgrades (default: true)
+# - common.secure_shm: Secure shared memory (default: false)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/apt/apt.conf.d/10periodic
+# - /etc/cron.d/tiger-audit
+#
+# File modifications:
+# - /etc/hosts.conf
+# - /etc/fstab
+#
+###############################################################################
+
+---
+- name: Security | Install uttanded-upgrades
+  apt:
+    pkg=unattended-upgrades
+    state=present
+  when: common.unattended_upgrades
+  tags:
+    - unattended-upgrades
+    - install
+
+- name: Security | Adjust APT update intervals
+  copy:
+    src=apt_periodic
+    dest=/etc/apt/apt.conf.d/10periodic
+    user=root group=root mode=0644
+  when: common.unattended_upgrades
+  tags:
+    - unattended-upgrades
+    - config
+
+# @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
+- name: Security | Limit su access to only admin group.
+  command: dpkg-statoverride --update --add root admin 4750 /bin/su
+  when: common.limit_su
+  tags:
+    - su
+    - config
+
+# @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
+- name: Security | Prevent IP spoofing
+  lineinfile:
+    dest=/etc/host.conf
+    regexp="$item[0]"
+    line="$item[1]"
+    state=present
+  with_items:
+    - ['^order',    'order bind,hosts']
+    - ['^nospoof',  'nospoof on']
+  when: common.ipspoof
+  tags:
+    - ipspoofing
+    - config
+
+- name: Security | Install tiger security auditing system
+  apt:
+    pkg=tiger
+    state=present
+  when: common.tiger
+  tags:
+    - tiger
+    - install
+
+- name: Tiger | Run auditing at 2am on the 1st of every month
+  cron:
+    name="tiger audit"
+    cron_file=tiger-audit
+    user=root
+    min=0 hour=2 day=1 # Monday at 2am
+    job="/usr/sbin/tiger > /dev/null"
+    user=root group=root mode=0644
+    state=present
+  when: common.tiger
+  tags:
+    - tiger
+    - cron
+    - disable
+
+- name: Tiger | Disable cron
+  cron:
+    cron_file=tiger-audit
+    state=absent
+  when: not common.tiger
+  tags:
+    - tiger
+    - cron
+    - enable
+
+# Mount shared memory as wrtiable but without permission to execute programs or
+# change UID of running processes.
+# @see https://help.ubuntu.com/community/StricterDefaults#Shared_Memory
+###
+- name: Security | Secure shared memory
+  mount:
+    name=/dev/shm
+    fstype=tmpfs
+    opts=defaults,noexec,nosuid
+    state=present
+  notify: reload fstab
+  when: common.secure_shm
+  tags:
+    - shm
+    - config

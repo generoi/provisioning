@@ -1,0 +1,75 @@
+---
+# Job: Create User
+#
+# Description: Create a new user account with a randomly generated password
+# which will be emailed to them.
+#
+# Parameters:
+#
+# Dependencies:
+# - ../roles/mariadb/tasks/create-users.yml
+# - ../roles/user/tasks/create-users.yml
+# - install-dotfiles.yml
+#
+# Creates:
+# - /home/{{ username }}
+# - /home/{{ username }}/.ssh
+# - /home/{{ username }}/.ssh/authorized_keys
+#
+# File modifications:
+#
+###############################################################################
+
+- hosts: any
+  user: root
+  vars:
+    ip: ansible_eth0.ipv4.address
+    hostname: ansible_hostname
+  vars_prompt:
+    - username: 'Username'
+    - fullname: 'Fullname'
+    - email: 'E-mail'
+    - github: 'GitHub username'
+    - name: 'user_groups'
+      prompt: 'Comma delimited list of user groups'
+      default: 'admin,sudo'
+    - name: 'account_type'
+      prompt: 'Account type (admin,user)'
+      default: 'admin'
+  tasks:
+    # Create a MariaDB user, consequently creating a credentials file with a
+    # random generated password.
+    - include: ../roles/mariadb/tasks/create-users.yml
+      vars:
+        accounts: [{ username: username, privileges: '*.*:ALL' }]
+
+    - name: User | Store password in variable
+      shell: python -c "print \"{{ lookup('password', 'credentials/' + hostname + '/' + username + '/mariadb_password')) }}\")"
+      register: password
+
+    # Encrypt the password generated in the credentials file
+    - name: User | Generate Encrypted password
+      # Use passlib for cross platform encryption
+      shell: python -c 'from passlib.hash import sha512_crypt; print sha512_crypt.encrypt("{{ password.output }}")'
+      register: encrypted_password
+
+    - include: ../roles/user/tasks/create-users.yml
+      vars:
+        users: [{ username: username, fullname: fullname, user_groups: user_groups }]
+
+    - name: User | Set random generated password
+      user:
+        name=username
+        password=encrypted_password.output
+        update_password=on_create # Requires ansible 1.3
+
+    # Send an email with the password to the user.
+    ###
+    - name: User | Email newly created user
+      mail: from={{ notify_email }} to={{ email }}
+            subject="New user account created"
+            body={{ lookup('template', 'files/create-new-user-email.j2' }}
+
+    # Setup user directory with sensible defaults
+    ###
+    - { include: install-dotfiles.yml user: username }

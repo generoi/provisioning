@@ -1,0 +1,74 @@
+---
+# Part: Apache
+#
+# Description: Manage a vhost for local only access. Subsequent runs will add aliases
+# into the vhost.
+#
+# Parameters:
+# - alias: The alias to add, eg. /apc
+# - docroot: The destination docroot, eg. /opt/apc
+# - remove: Whether to remove the alias (default: false)
+#
+# Dependencies:
+# - tasks:main
+# - tasks:create-vhost
+#
+# Creates:
+# - /etc/apache2/sites-available/localhost.{{ hostname }}
+# - /etc/apache2/sites-enabled/localhost.{{ hostname }}
+# - {{ vhost_local.url }}: Localhost only accessable virtual host
+#
+# File modifications:
+# - /etc/apache2/vhosts.d/localhost.{{ hostname }}
+#
+###############################################################################
+
+- name: Apache | Create a vhost specific config for {{ vhost_local.vhost  }}
+  file:
+    path=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+    state=present
+  tags:
+    - vhost
+    - vhost-local
+
+- include: create-vhost.yml
+  vars:
+    create_docroot: true
+    docroot: vhost_local.docroot
+    # We want to list folder contents of this vhost.
+    docroot_options: -Multiviews
+    local_only: true
+    vhost: vhost_local.vhost
+    ssl:
+      enabled: true
+      only: true
+    vhost_include: ['/etc/apache2/vhosts.d/{{ vhost_local.vhost }}']
+  tags:
+    - vhost
+    - vhost-local
+
+- name: Apache | Local | Add an alias for {{ alias }} to {{ docroot }}
+  lineinfile:
+    dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+    regex="^Alias {{ alias }}"
+    line="Alias {{ alias }} {{ docroot }}"
+  when: not remove
+  notify:
+    restart apache
+  tags:
+    - vhost
+    - vhost-local
+    - enable
+
+- name: Apache | Local | Remove alias for {{ alias }}
+  lineinfile:
+    dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+    regex="^Alias {{ alias }}"
+    state=absent
+  when: remove
+  notify:
+    restart apache
+  tags:
+    - vhost
+    - vhost-local
+    - disable

@@ -1,0 +1,75 @@
+---
+# Part: Security
+#
+# Description: Enables rootkit detection and manually checks
+#
+# @TODO set notify email
+#
+# Parameters:
+# - rkhunter.enabled (default: true)
+# - rkhunter.update_propeties (default: false)
+# - rkhunter.notify_email (default: false)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/cron.weekly/rkhunter-cron
+#
+# File modifications:
+#
+###############################################################################
+- name: Security | Install rootkit prevention software
+  apt:
+    pkg=rkhunter
+    state=present
+  tags:
+    - rootkit
+    - rkhunter
+    - install
+
+- name: rkhunter | Check for updates
+  command: rkhunter --check
+  tags:
+    - rootkit
+    - rkhunter
+    - update
+
+- name: rkhunter | Check for updates
+  command: rkhunter --check
+  tags:
+    - rootkit
+    - rkhunter
+    - update
+
+- name: rkhunter | Update system file properties
+  command: rkhunter --propupd
+  when_boolean: rootkit.update_properties
+  tags:
+    - rootkit
+    - rkhunter
+    - update
+
+- name: rkhunter | Run rootkit check at 2am on every sunday
+  template:
+    src=rkhunter-cron.j2
+    dest=/etc/cron.weekly/rkhunter-cron
+    owner=root
+    group=root
+    mode=0644
+  when: rootkit.enabled and rootkit.notify_email
+  tags:
+    - rootkit
+    - rkhunter
+    - cron
+    - enable
+
+- name: rkhunter | Disable cron
+  file:
+    path=/etc/cron.weekly/rkhunter-cron
+    state=absent
+  when: not rootkit.enabled or not rootkit.notify_email
+  tags:
+    - rooktkit
+    - rkhunter
+    - cron
+    - disable

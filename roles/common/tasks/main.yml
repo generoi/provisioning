@@ -1,0 +1,69 @@
+---
+# Part: Common
+#
+# Description: Install common packages used for every server
+#
+# Parameters:
+# - motd.enabled (default: true)
+# - packages (default: [build-essental, libpcre3-dev, curl, sendmail, unzip,
+#   python-software-properties, nmap, git, htop, imagemagick, ca-certificates])
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/update-mord.d/95-ansible
+#
+# File modifications:
+# - /etc/logrotate.conf
+#
+###############################################################################
+---
+- name: Common | Update APT package list cache.
+  apt: update-cache=yes
+  task:
+    - update
+
+- name: Common | Upgrade APT packages.
+  apt: upgrade=yes
+  task:
+    - update
+
+- name: Common | Install required packages.
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items: packages
+  tags:
+    - install
+
+- name: Common | Compress logrotate logs by default
+  lineinfile:
+    dest=/etc/logrotate.conf
+    regex="^#?compress"
+    line="compress"
+    state=present
+  tags:
+    - config
+    - logrotate
+
+- name: Common | Message of the day explaining server is under Ansible control.
+  template:
+    src=motd
+    dest=/etc/update-motd.d/95-ansible
+    mode=755
+  when: motd.enabled
+  tags:
+    - config
+    - motd
+    - enable
+
+- name: Common | Disable MOTD
+  file:
+    path=/etc/update-motd.d/95-ansible
+    state=absent
+  when: not motd.enabled
+  tags:
+    - config
+    - motd
+    - disable
+

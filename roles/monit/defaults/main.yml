@@ -1,0 +1,21 @@
+---
+enabled: true
+
+# Services to monitor
+services: []
+
+# Webinterface settings
+webinterface:
+  install: false
+  enabled: false
+  port: 2812
+  bind: 0.0.0.0
+  rw_group: sudo
+  r_group: admin
+
+# Email notifications
+mail:
+  install: false
+  enabled: false
+  alerts: []
+  timeouts: []

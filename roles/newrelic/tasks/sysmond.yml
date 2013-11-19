@@ -1,0 +1,60 @@
+---
+# Part: New Relic
+#
+# Description: Sets up the system monitor agent for New Relic
+#
+# Parameters:
+# - license
+# - sysmond.enabled: Whether to enable the service or not (default: true)
+# - sysmond.loglevel (default: info)
+# - sysmond.logfile (default: /var/log/newrelic/nrsysmond.log)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+# - /etc/newrelic/nrsysmond.cfg
+#
+# File modifications:
+#
+###############################################################################
+
+- name: New Relic | Sysmond | Install agent
+  apt:
+    pkg=newrelic-sysmond
+    state=present
+  tags:
+    - install
+    - sysmond
+
+- name: New Relic | Sysmond | Configure
+  template:
+    src=nrsysmond.cfg.j2
+    dest=/etc/newrelic/nrsysmond.cfg
+    owner=root group=newrelic mode=0640
+  notify: restart newrelic-sysmond
+  tags:
+    - sysmond
+    - config
+
+- name: New Relic | Sysmond | Active service
+  service:
+    name=newrelic-sysmond
+    state=started
+    enabled=yes
+  when: sysmond.enabled
+  tags:
+    - sysmond
+    - service
+    - enable
+
+- name: New Relic | Sysmond | Deactivate service
+  service:
+    name=newrelic-sysmond
+    state=stopped
+    enabled=no
+  when: not sysmond.enabled
+  tags:
+    - sysmond
+    - service
+    - disable

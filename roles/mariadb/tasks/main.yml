@@ -1,0 +1,91 @@
+---
+# Part: MariaDB
+#
+# Description: Installs and configures MariaDB securely.
+#
+# Parameters:
+# - development: Whether to use development or production configurations in
+#   my.cnf (default: false).
+# - configure_root (default: true).
+# - enabled (default: true)
+# - active: List of active users
+# - departed: List of departed users
+# - hosts: List of hosts (default: ['localhost'])
+#
+# - login.user (default: root)
+# - login.password (default: false)
+# - login.password_file (default: credentials/{{ hostname }}/root/mariadb_password length=15)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/my.cnf
+#
+###############################################################################
+
+- name: MariaDB | Install required packages.
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - mariadb-server
+    - mariadb-client
+  tags:
+    - install
+
+- name: MariaDB | Configuration file, my.cnf
+  template:
+    src=my.cnf.j2
+    dest=/etc/my.cnf
+    user=root group=root mode=0600
+  notify: restart mariadb
+  tags:
+    - config
+
+- name: MariaDB | Start service.
+  service:
+    name=mysqld
+    state=started
+    enabled=true
+  when: enabled
+  tags:
+    - service
+    - enable
+
+- name: MariaDB | Set random root password
+  mysql_user:
+    # Dont provide login user, first time root user is without password.
+    name=root
+    host={{ item }}
+    password={{ lookup('password', 'credentials/' + hostname + '/root/mariadb_password length=15') }}
+    priv=*.*:ALL,GRANT # Only root should have GRANT
+    state=present
+  when: configure_root
+  with_items:
+    - {{ hostname }}
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- include: create-users.yml
+  vars:
+    accounts: active
+
+- include: delete-users.yml
+  vars:
+    users: departed
+
+- name: MariaDB | Disable service
+  service:
+    name=mysqld
+    state=stopped
+    enabled=false
+  when: not enabled
+  tags:
+    - service
+    - disable
+
+- include: phpmyadmin.yml
+  when: pma.install

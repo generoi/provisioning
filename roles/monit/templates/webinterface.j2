@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+set httpd port {{ webinterface.port }} and
+    use address {{ webinterface.bind }}
+    allow @{{ webinterface.rw_group }}
+    allow @{{ webinterface.r_group }} readonly
+{% else %}

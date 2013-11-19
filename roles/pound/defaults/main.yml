@@ -1,0 +1,18 @@
+---
+enabled: true
+
+certificate: /etc/ssl/private/ssl-cert-snakeoil.pem
+private_key: /etc/ssl/private/ssl-cert-snakeoil.key
+combined_cert: /etc/ssl/private/ssl-cert-snakeoil-pound.pem
+# Whether to join $pound_certificate and $pound_private_key into the finald $pound_key
+join_cert_key: true
+
+user: www-data
+group: www-data
+
+alive_check: 30
+port: 443
+
+# Should be set to varnish
+backend_addr: 127.0.0.1
+backend_port: 80

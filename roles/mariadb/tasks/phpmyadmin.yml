@@ -1,0 +1,93 @@
+---
+# Part: MariaDB
+#
+# Description: Installs PHPMyAdmin and adds it to the localhost only apache
+# virtual host
+#
+# Parameters:
+# - pma.enabled (default: true)
+# - pma.version (default: 4.0.9)
+#
+# Dependencies:
+# - apache:tasks:main
+# - apache:tasks:vhost-local-alias
+#
+# Creates:
+# - /opt/phpmyadmin
+# - {{ vhost_local.url }}/pma: Localhost only access to phpmyadmin
+#
+# File modifications:
+# - /etc/phpmyadmin/config.inc.php
+#
+###############################################################################
+- name: MariaDB | PMA | Install dependencies
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - php_mcrypt
+  tags:
+    - phpmyadmin
+    - install
+
+- name: MariaDB | PMA | Download source tarball
+  get_url:
+    url=http://files.directadmin.com/services/all/phpMyAdmin/phpMyAdmin-{{ pma.version }}-all-languages.tar.gz
+    dest=/tmp/phpmyadmin.tar.gz
+    mode=0440
+  tags:
+    - phpmyadmin
+    - install
+
+- name: MariaDB | PMA | Create /opt/phpmyadmin
+  file:
+    path=/opt/phpmyadmin
+    state=directory
+  tags:
+    - phpmyadmin
+    - install
+
+- name: MariaDB | PMA | Extract source
+  command:
+    # Strip first directory and extract its content
+    tar -xzf /tmp/phpmyadmin.tar.gz --strip 1 -C /opt/phpmyadmin
+    creates=/opt/phpmyadmin
+  tags:
+    - phpmyadmin
+    - install
+
+- name: MariaDB | PMA | Delete tarball
+  file:
+    path=/tmp/phpmyadmin.tar.gz
+    state=absent
+  tags:
+    - phpmyadmin
+    - clean
+
+# Manage local vhost alias /pma
+- include: ../../apache/tasks/vhost-local-alias.yml
+  vars:
+    docroot: /opt/phpmyadmin
+    alias: /pma
+    remove: not pma.enabled
+  tags:
+    - phpmyadmin
+    - config
+
+- name: MariaDB | PMA | Generate random blowfish secret
+  command: openssl passwd -1 -in /dev/urandom | head -1 | cut -c 20-
+  register: pma_blowfish_secret
+  tags:
+    - phpmyadmin
+    - config
+
+- name: MariaDB | PMA | Configure
+  template:
+    src=phpmyadmin/{{ item  }}.j2
+    dest=/etc/phpmyadmin/{{ item }}
+    user=root group=root mode=0644
+  with_items:
+    - config.inc.php
+  tags:
+    - phpmyadmin
+    - config

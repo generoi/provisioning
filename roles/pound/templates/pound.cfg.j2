@@ -1,0 +1,49 @@
+# {{ ansible_managed }}
+## Minimal sample pound.cfg
+##
+## see pound(8) for details
+
+
+######################################################################
+## global options:
+
+User      "{{ user }}"
+Group     "{{ group }}"
+
+## Logging: (goes to syslog by default)
+##        0        no logging
+##        1        normal
+##        2        extended
+##        3        Apache-style (common log format)
+LogLevel  1
+
+## check backend every X secs:
+Alive     {{ alive_check }}
+
+## use hardware-accelleration card supported by openssl(1):
+#SSLEngine        "<hw>"
+
+# poundctl control socket
+Control   "/var/run/pound/poundctl.socket"
+
+######################################################################
+## listen, redirect and ... to:
+
+## redirect all requests on port 8080 ("ListenHTTP") to the local webserver (see "Service" below):
+ListenHTTPS
+  ## Public IP
+  Address         {{ ip }}
+  Port            {{ port }}
+  Cert            "{{ combined_cert }}"
+  # Pass on https usage to varnish.
+  AddHeader       "X-Forwarded-Proto: https"
+  HeadRemove      "X-Forwarded-Proto"
+  RewriteLocation 2
+  Service
+    ## Varnish
+    BackEnd
+      Address     {{ backend_addr }}
+      Port        {{ backend_port }}
+    End
+  End
+End

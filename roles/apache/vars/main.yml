@@ -1,0 +1,8 @@
+# These should not be changed
+
+# Create a localhost only accessable virtual host
+vhost_local:
+  create_local_access_vhost: false
+  docroot: /opt/localhost
+  vhost: localhost.{{ hostname }}
+  url: https://{{ vhost_local.vhost }}

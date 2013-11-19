@@ -1,0 +1,96 @@
+---
+# Part: PHP
+#
+# Description: Install XhProf from PECL and configure it. Also set up a virtual
+# host for the xhprof_html interface, only accessable to localhost.
+#
+# Parameters:
+# - xhprof.enable (default: true)
+# - xhprof.output_dir (default: /opt/xhprof/output)
+#
+# Dependencies:
+# - tasks:setup
+# - tasks:pecl: Used to install PECL packages
+# - apache:tasks:main: Apache should be installed.
+# - apache:tasks:vhost-local-alias: Manage localhost only accessable vhost alias
+#
+# Creates:
+# - /opt/xhprof: Cheatsheet for xhprof usage
+# - /opt/xhprof/output: Analysis data for xhprof runs.
+# - {{ vhost_local.url }}/xhprof: Localhost only access to xhprof
+#
+# File modifications:
+# - /etc/php5/conf.d/xhprof.init
+##
+###############################################################################
+
+- include: pecl.yml
+  vars:
+    package: xhprof
+    version: stable
+  tags:
+    - xhrpof
+    - install
+
+- name: PHP | XhProf | Create xhprof cheatsheet directory : /opt/xhprof
+  file:
+    path=/opt/xhprof
+    mode=0755
+    state=directory
+  tags:
+    - xhprof
+    - config
+
+- name: PHP | XhProf | Put xhprof quick loading header and footer + usage instructions in /opt/xhprof
+  template:
+    src=xhprof/{{ item }}.j2
+    dest=/opt/xhprof/{{ item }}
+    user=root group=root mode=0644
+  with_items:
+    - footer.php
+    - header.php
+    - notes.txt
+  tags:
+    - xhrpof
+    - config
+
+- name: PHP | XhProf | Install graphviz for execution flow plotting by XhProf
+  apt:
+    pkg=graphviz
+    state=installed
+  tags:
+    - xhrpof
+    - install
+
+- name: PHP | XhProf | Create xhprof output directory
+  file:
+    path={{ xhprof.output_dir }}
+    mode=0755
+    state=directory
+  tags:
+    - xhprof
+    - config
+
+# Manage local vhost alias for /xhprof
+- include: ../../apache/tasks/vhost-local-alias.yml
+  vars:
+    docroot: {{ pecl.install_dir }}/xhprof_html
+    alias: /xhprof
+    remove: not xhprof.enabled
+  tags:
+    - xhprof
+    - config
+
+- name: PHP | XhProf | Configure, xhprof.ini
+  lineinfile:
+    dest=/etc/php5/conf.d/xhprof.ini
+    regex="^$item[0]"
+    line="$item[0] = $item[1]"
+  with_items:
+    ['extension', 'xhprof.so']
+    ['xhprof.output.dir', {{ xhprof.output_dir }}]
+  notify: restart php
+  tags:
+    - php-dev
+    - xdebug
+    - config

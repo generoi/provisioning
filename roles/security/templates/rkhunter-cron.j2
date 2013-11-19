@@ -1,0 +1,7 @@
+#/bin/sh
+# {{ ansible_managed }}
+(
+  rkhunter --versioncheck
+  rkhunter --update
+  rkhunter --cronjob --report-warnings-only
+) | mail -s 'rkhunter Weekly Run ({{ hostname }})' {{ rootkit.notify_email }}
