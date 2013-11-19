@@ -89,7 +89,7 @@
 - name: PHP | XDebug | Configure: /etc/php5/conf.d/xdebug.ini
   lineinfile:
     dest=/etc/php5/conf.d/xdebug.ini
-    regex="^{{ item[0] }}"
+    regexp="^{{ item[0] }}"
     line="{{ item[0] }} = {{ item[1] }}"
   notify: restart php
   with_items:

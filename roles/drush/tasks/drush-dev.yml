@@ -44,7 +44,7 @@
 - name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
   lineinfile:
     dest={{ dir }}/drushrc.php
-    regex="^\$command_specific\['mb-build'\]\['write'\]"
+    regexp="^\$command_specific\['mb-build'\]\['write'\]"
     line="\$command_specific['mb-build']['write'] = TRUE;" # @TODO interpolation?
     state=present
   tags:
@@ -64,7 +64,7 @@
 - name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
   lineinfile:
     dest={{ dir }}/drushrc.php
-    regex="^\$options\['data'\]"
+    regexp="^\$options\['data'\]"
     line="\$options['data'] = {{ dir }}/hooks;" #@TODO interpolation?
     state=present
   tags:

@@ -40,7 +40,7 @@
 - name: Monit | Configure monit to start: /etc/default/monit
   lineinfile:
     dest=/etc/default/monit
-    regex="^startup"
+    regexp="^startup"
     line="statup={{ enabled }}"
   tags:
     - config

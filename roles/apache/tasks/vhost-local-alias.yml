@@ -50,7 +50,7 @@
 - name: Apache | Local | Add an alias for {{ alias }} to {{ docroot }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
   lineinfile:
     dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
-    regex="^Alias {{ alias }}"
+    regexp="^Alias {{ alias }}"
     line="Alias {{ alias }} {{ docroot }}"
   when: not remove
   notify:
@@ -63,7 +63,7 @@
 - name: Apache | Local | Remove alias for {{ alias }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
   lineinfile:
     dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
-    regex="^Alias {{ alias }}"
+    regexp="^Alias {{ alias }}"
     state=absent
   when: remove
   notify:

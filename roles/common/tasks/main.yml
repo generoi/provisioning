@@ -40,7 +40,7 @@
 - name: Common | Compress logrotate logs by default: /etc/logrotate.conf
   lineinfile:
     dest=/etc/logrotate.conf
-    regex="^#?compress"
+    regexp="^#?compress"
     line="compress"
     state=present
   tags:

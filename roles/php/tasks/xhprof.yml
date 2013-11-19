@@ -82,7 +82,7 @@
 - name: PHP | XhProf | Configure, /etc/php5/conf.d/xhprof.ini
   lineinfile:
     dest=/etc/php5/conf.d/xhprof.ini
-    regex="^{{ item[0] }}"
+    regexp="^{{ item[0] }}"
     line="{{ item[0] }} = {{ item[1] }}"
   with_items:
     ['extension', 'xhprof.so']
