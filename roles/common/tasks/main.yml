@@ -68,6 +68,16 @@
     - motd
     - disable
 
+- name: Common | Start and enable ntp service
+  service:
+    name=ntp
+    state=started
+    enabled=yes
+  tags:
+    - service
+    - enable
+    - ntp
+
 - name: Common | Add known hosts to /home/{{ ansible_ssh_user }}/.ssh/known_hosts
   lineinfile:
     dest=/home/{{ ansible_ssh_user }}/.ssh/known_hosts

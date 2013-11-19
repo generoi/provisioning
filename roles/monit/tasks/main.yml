@@ -13,6 +13,7 @@
 # - varnish
 # - newrelic-sysmond
 # - pound
+# - ntp
 #
 # Parameters:
 # - enabled (default: true)
