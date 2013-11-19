@@ -4,7 +4,7 @@
 # Description: Secures a server
 #
 # Parameters:
-# - common.tiger: set up tiger auditing (default: true)
+# - common.tiger: set up tiger auditing (default: false)
 # - common.ipspoof: prevent ip spoofing (default: true)
 # - common.limit_su: Limit su to only admin group (default: true)
 # - common.untattended_upgrades: Enable unattended upgrades (default: true)

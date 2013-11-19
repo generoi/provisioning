@@ -29,6 +29,9 @@ composer:
 xdebug:
   install: true
   enable: true
+  webgrind:
+    tarball: https://github.com/jokkedk/webgrind/archive/master.tar.gz
+    sha256sum: f4d73d0b4e327280b43ea6b96f8f64418b28a3d4ea7fcdef1a9759c64845cd58
 
 # XHprof configurations
 ###

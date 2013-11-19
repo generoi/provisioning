@@ -16,6 +16,7 @@
 # - /etc/monit/conf.d/mail
 #
 ###############################################################################
+
 - name: Monit | Setup mail: /etc/monit/conf.d/mail
   template:
     src=mail.j2

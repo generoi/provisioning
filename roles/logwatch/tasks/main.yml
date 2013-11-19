@@ -5,14 +5,17 @@
 #
 # @TODO mysql service
 # @TODO verify version on 12.04! need 7.4!
+# @TODO not in use!
 # http://topblogingtips.blogspot.com/2013/06/install-logwatch-740-as-this-has-built.html
 #
 # Parameters:
+# - enabled (default: false)
 # - detail: Detail level low=0, med=5, high=10 (default: 10)
-# - enabled: List of services to check
+# - services: List of services to check
 # - range: logwatch range as a string (default: 'between -7 days and -1 days').
 # - disabled: List of speficically disabled services
-# - with_logwatch_email: Activate email of logs (default: true)
+# - mail.enabled: Activate email of logs (default: false)
+# - mail.notify_email
 #
 # Dependencies:
 #

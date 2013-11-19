@@ -1,8 +1,8 @@
 ---
-enabled: true
-send_email: true
+# This is not in use in favour of logstash
+enabled: false
 detail: 10
-service:
+services:
   - http
   - cron
   - pound
@@ -20,4 +20,6 @@ service:
 
 range: 'between -7 days and -1 days'
 disabled: []
-notify: # Email
+mail:
+  enabled: false
+  notify_email:

@@ -1,0 +1,60 @@
+---
+# Part: Rsyslog
+#
+# Description: Set up and configure rsyslog
+#
+# Parameters:
+# - poll_interval (default: 10)
+# - reception.udp.enabled (default: true)
+# - reception.udp.port (default: 514)
+# - reception.tcp.enabled (default: false)
+# - reception.tcp.port (default: 514)
+#
+# - loggly.enabled (default: true)
+# - loggly.udp_logger (default: true)
+# - loggly.key
+#
+# - logs.mysql_slow_query (default: /var/log/mysqld_slow_query.log)
+# - logs.mysql_error (default: /var/log/mysqld_error.log)
+# - logs.apache_error (default: /var/log/apache2/error.log)
+# - logs.apache_access (default: /var/log/apache2/access.log)
+# - logs.pound_log (default: /var/log/pound.log)
+# - logs.monit_log (default: /var/log/monit.log)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/rsyslog.conf
+# - /var/spool/rsyslog
+#
+###############################################################################
+- name: Rsyslog | Install package
+  apt:
+    pkg=rsyslog
+    state=present
+  tags:
+    - install
+
+- name: Rsyslog | Configure: /etc/rsyslog.conf
+  template:
+    src=rsyslog.conf.j2
+    dest=/etc/rsyslog.conf
+  notify: restart rsyslog
+  tags:
+    - config
+
+- name: Rsyslog | Set owner of /var/spool/rsyslog to syslog
+  file:
+    path=/var/spool/rsyslog
+    owner=syslog
+  notify: restart rsyslog
+  tags:
+    - install
+    - bug
+
+- name: Rsyslog | Verify configuration
+  command: rsyslogd -N1
+  tags:
+    - lint

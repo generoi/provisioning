@@ -9,7 +9,7 @@
 # - mysql
 # - postfix
 # - sshd
-# - syslog
+# - rsyslogd
 # - varnish
 # - newrelic-sysmond
 # - pound
@@ -21,6 +21,10 @@
 # - webinterface.install (default: false)
 # - mail.install (default: false)
 #
+# - config.daemon (default: 120)
+# - config.daemon_delay (default: 120)
+# - config.log_facility (default: log_local5)
+#
 # Dependencies:
 #
 # Creates:
@@ -28,6 +32,7 @@
 # File modifications:
 # - /etc/default/monit
 # - /etc/monit/conf.d/{{ services }}
+# - /etc/monitrc
 #
 ###############################################################################
 
@@ -46,6 +51,14 @@
   tags:
     - config
 
+- name: Monit | Confiugre monit: /etc/monitrc
+  template:
+    src=monitrc.j2
+    dest=/etc/monitrc
+  notify: restart monit
+  tags:
+    - config
+
 - include: webinterface.yml
   when: webinterface.install
 
@@ -58,7 +71,8 @@
     dest=/etc/monit/conf.d/{{ item }}
   with_items: services
   notify: restart monit
-  tags: monit
+  tags:
+    - config
 
 - name: Monit | Start monit service and enable autostart
   service:

@@ -9,7 +9,11 @@
   - security tuning: security
   - more...
 - logwatch: mysql, slow_queries
-- email variables
 - validations
   - user exists
 - syslogd: rsyslogd?
+  - varnish
+  - php
+  - denyhosts
+  - tiger?
+  - newrelic

@@ -11,7 +11,6 @@
 # - denyhosts.deny_threshold_valid (default: 3)
 # - denyhosts.deny_threshold_root (default: 1)
 # - denyhosts.deny_threshold_restricted (default: 1)
-# - denyhosts.notify_email (default: '')
 # - denyhosts.syslog (default: yes)
 # - denyhosts.age_reset_valid (default: 1h)
 # - denyhosts.age_reset_root (default: 30d)
@@ -20,6 +19,8 @@
 # - denyhosts.reset_on_success (default: yes)
 # - denyhosts.daemon_sleep (default: 20s)
 # - denyhosts.daemon_purge (default: 1h)
+# - denyhosts.mail.enabled (default: false)
+# - denyhosts.mail.notify_email (default: '')
 #
 # Dependencies:
 #

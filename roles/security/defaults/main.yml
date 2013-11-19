@@ -1,7 +1,7 @@
 ---
 common:
   install: true
-  tiger: true
+  tiger: false # disabled until tested
   ipspoof: true
   limit_su: true
   untattended_upgrades: true
@@ -35,7 +35,7 @@ denyhosts:
   deny_threshold_root: 1
   deny_threshold_restricted: 1
   notify_email: ''
-  syslog: yes
+  syslog: YES
   age_reset_valid: 1h
   age_reset_root: 30d
   age_reset_restricted: 30d
@@ -43,6 +43,9 @@ denyhosts:
   reset_on_success: yes
   daemon_sleep: 20s
   daemon_purge: 1h
+  mail:
+    enabled: false
+    notify_email:
 
 firewall:
   install: true

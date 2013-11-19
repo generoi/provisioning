@@ -13,6 +13,28 @@
     ip: {{ ansible_eth0.ipv4.address }}
     # Global flag for apache, mariadb, php
     development: true
+    notify_email: public@oxy.fi
+    email:
+      # This should be used to get fast notifications
+      monit:
+        enabled: true
+        alerts: []
+        timeouts: []
+      # Disabled in favour of logstash
+      logwach:
+        mail:
+          enabled: false
+          notify_email: ''
+      # Uses syslogd instead
+      denyhosts:
+        mail:
+          enabled: false
+          notify_email: ''
+      # Not in syslogd
+      # Set to false to disable cron
+      rootkit:
+        notify_email: {{ notify_email }}
+
   vars_files:
     - vars/settings.yml
   roles:
@@ -34,5 +56,6 @@
     - { role: varnish }
     - { role: pound }
     - { role: security }
+    - { role: rsyslog }
     - { role: logwatch }
     - { role: newrelic }

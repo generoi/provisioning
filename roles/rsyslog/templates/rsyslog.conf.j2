@@ -1,0 +1,122 @@
+# {{ ansible_managed }}
+# if you experience problems, check
+# http://www.rsyslog.com/troubleshoot for assistance
+
+# Modules
+###
+
+$ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+$ModLoad imklog   # kernel logging (formerly provided by rklogd)
+$ModLoad imfile   # Convert any standard text into a syslog message (eg. apache)
+
+{% if reception.udp.enabled %}
+  $ModLoad imudp
+  $UDPServerRun {{ reception.udp.port }}
+{% endif}
+{% if reception.tcp.enabled %}
+  $ModLoad imtcp
+  $InputTCPServerRun {{ reception.tcp.port }}
+{% endif}
+
+# Global directives
+###
+
+# Default permissions for log files
+# $ActionFileDefaultTemplate   RSYSLOG_TraditionalFileFormat
+$FileOwner                   syslog
+$FileGroup                   adm
+$FileCreateMode              0640
+$DirCreateMode               0755
+$Umask                       0022
+$PrivDropToUser              syslog
+$PrivDropToGroup             adm
+
+$EscapeControlCharactersOnReceive   off
+$SystemLogRateLimitInterval         0
+$RepeatedMsgReduction               off
+$MaxMessageSize                     32768
+
+# Remote output
+###
+
+# An on-disk queue is created for this action. If the remote host is
+# down, messages are spooled to disk and sent when it is up again.
+$WorkDirectory /rsyslog/spool # where to place spool files
+$ActionQueueFileName uniqName # unique name prefix for spool files
+$ActionQueueMaxDiskSpace 1g   # 1gb space limit (use as much as possible)
+$ActionQueueSaveOnShutdown on # save messages to disk on shutdown
+$ActionQueueType LinkedList   # run asynchronously
+$ActionResumeRetryCount -1    # infinite retries if host is down
+
+# Apache
+###
+
+# Watch /var/log/apache2/access.log
+$InputFileName          {{ logs.apache_access }}
+$InputFileTag           apache-access:        # Tag is referenced in $programname
+$InputFileStateFile     stat-apache-access    # Name of file within rsyslogs working directory
+$InputFileSeverity      info                  # info, notice...
+$InputRunFileMonitor                          # File monitoring
+
+# Watch /var/log/apach2/error.log
+$InputFileName          {{ logs.apache_error }}
+$InputFileTag           apache-error:
+$InputFileStateFile     stat-apache-error
+$InputFileSeverity      info
+$InputRunFileMonitor
+
+# MariaDB
+###
+
+# Watch /var/log/mysql/mysqld_error.log
+$InputFileName          {{ logs.mysql_error }}
+$InputFileTag           mysql-error:
+$InputFileStateFile     state-mysql-error
+$InputFileSeverity      info
+$InputRunFileMonitor
+
+# Watch /var/log/mysql/mysqld_slow_query.log
+$InputFileName          {{ logs.mysql_slow_query }}
+$InputFileTag           mysql-slow-query:
+$InputFileStateFile     state-mysql-slow-query
+$InputFileSeverity      info
+$InputRunFileMonitor
+
+# Set to how often you'd like rsyslog to check out that file every second (defaults to 10 seconds)
+$InputFilePollInterval  {{ poll_interval }}
+
+$template LogglyFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [{{ loggly.key }}] %msg%\n"
+$template LogglyFormatApache,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [{{ loggly.key }} tag=\"apache\"] %msg%\n"
+
+# @TODO centralized logging if needed
+# $template syslog,       "/var/log/external/%fromhost%/syslog.log"
+# $template apacheError,  "/var/log/external/%fromhost%/apache/error.log"
+# $template apacheAccess, "/var/log/external/%fromhost%/apache/%msg:R,ERE,1,ZERO:imp:([a-zA-Z0-9\-]+)\.--end%-access.log"
+# $template mailError,    "/var/log/external/%fromhost%/mail/error.log"
+
+{% if loggly.enabled %}
+if $programname == 'apache-access'    then @{{ loggly.udp_logger }};LogglyFormatApache
+if $programname == 'apache-error'     then @{{ loggly.udp_logger }};LogglyFormatApache
+if $programname == 'mysql-error'      then @{{ loggly.udp_logger }};LogglyFormat
+if $programname == 'mysql-slow-query' then @{{ loggly.udp_logger }};LogglyFormat
+
+# Base loggers
+###
+:msg,contains,"[UFW "   @{{ loggly.udp_logger }};LogglyFormat # already logged in 20-ufw.conf
+
+local6.*                @{{ loggly.udp_logger }};LogglyFormat
+& -{{ logs.pound_log }}
+
+local5.*                @{{ loggly.udp_logger }};LogglyFormat
+& -{{ logs.monit_log }}
+
+cron.*                  @{{ loggly.udp_logger }};LogglyFormat # already logged in 50-default.conf
+mail.*                  @{{ loggly.udp_logger }};LogglyFormat # already logged in 50-default.conf
+{% else %}
+
+local6.*                -{{ logs.pound_log }}
+local5.*                -{{ logs.monit_log }}
+
+{% endif %}
+
+$IncludeConfig /etc/rsyslog.d/*.conf

@@ -1,6 +1,11 @@
 ---
 enabled: true
 
+config:
+  daemon: 120
+  daemon_delay: 120
+  log_facility: log_local5
+
 mysql:
   port: 3306
 

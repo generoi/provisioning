@@ -217,7 +217,11 @@ LOCK_FILE = /var/lock/subsys/denyhosts
 # Multiple email addresses can be delimited by a comma, eg:
 # ADMIN_EMAIL = foo@bar.com, bar@foo.com, etc@foobar.com
 #
-ADMIN_EMAIL = {{ denyhosts_notify_email }}
+{% if denyhosts.mail.enabled %}
+ADMIN_EMAIL = {{ denyhosts.notify_email }}
+{% else %}
+ADMIN_EMAIL =
+{% endif %}
 #
 #######################################################################
 

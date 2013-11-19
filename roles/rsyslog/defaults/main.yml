@@ -1,0 +1,21 @@
+poll_interval: 10
+
+reception:
+  udp:
+    enabled: true
+    port: 514
+  tcp:
+    enabled: false
+    port: 514
+
+loggly:
+  enabled: true
+  udp_logger: logs-01.loggly.com:514
+
+logs:
+  mysql_slow_query: /var/log/mysqld_slow_query.log
+  mysql_error: /var/log/mysqld_error.log
+  apache_error: /var/log/apache2/error.log
+  apache_access: /var/log/apache2/access.log
+  pound_log: /var/log/pound.log
+  monit_log: /var/log/monit.log

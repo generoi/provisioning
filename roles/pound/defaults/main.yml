@@ -16,3 +16,6 @@ port: 443
 # Should be set to varnish
 backend_addr: 127.0.0.1
 backend_port: 80
+
+loglevel: 3
+logfacility: local6 # @see http://en.wikipedia.org/wiki/Syslog

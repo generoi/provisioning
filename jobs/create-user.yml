@@ -26,6 +26,7 @@
     ip: ansible_eth0.ipv4.address
     hostname: ansible_hostname
     dotfils_repository: https://github.com/generoi/dotfiles
+    notify_email: 'public@oxy.fi'
   vars_prompt:
     - username: 'Username'
     - fullname: 'Fullname'
