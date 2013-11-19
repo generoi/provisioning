@@ -55,7 +55,7 @@
 - name: User | Set SSH known_hosts permissions: ~/.ssh/known_hosts
   file:
     path=/home/{{ item.username }}/.ssh/known_hosts
-    owner={{ item.username }} group={{ item.username }} mode=0600
+    owner={{ item.username }} group={{ item.username }} mode=0644
     state=present
   with_items: users
   tags:
