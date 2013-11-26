@@ -5,8 +5,8 @@
 #
 # Parameters:
 # - users: A list of user dictionaries, each with the properties:
-#   username, fullname
-# - user_group: A comma delimited list of default groups to add the users to.
+#   username, fullname, email
+# - user_groups: A list of default groups to add the users to.
 #
 # Dependencies:
 # - tasks:main
@@ -17,14 +17,32 @@
 #
 ###############################################################################
 
-- name: User | Create user accounts
-  user:
-    name={{ item.username }}
-    comment={{ item.fullname }}
-    groups={{ user_groups }}
-    generate_ssh_key=yes
-    ssh_key_bits=2048
+- name: "Create user groups"
+  group:
+    name={{ item }}
     state=present
-  with_items: users
+  with_items: user_groups
+
+- name: Create user accounts (without passwords)
+  user:
+    name="{{ item.username }}"
+    comment="{{ item.fullname }}"
+    groups="{{ user_groups|join(',') }}"
+    generate_ssh_key=yes
+    ssh_key_comment={{ item.email }}
+    state=present
+  with_items: '{{ users|rejectattr("password")|list }}'
+
+- name: Create user accounts (with passwords)
+  user:
+    name="{{ item.username }}"
+    comment="{{ item.fullname }}"
+    groups="{{ user_groups|join(',') }}"
+    generate_ssh_key=yes
+    ssh_key_comment={{ item.email }}
+    state=present
+    password={{ item.password }}
+    update_password=on_create
+  with_items: '{{ users|selectattr("password")|list }}'
 
 - include: set-user-permissions.yml

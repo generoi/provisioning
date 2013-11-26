@@ -1,0 +1,46 @@
+---
+# Part: Common
+#
+# Description: Manage service autostart
+#
+# Parameters:
+# - name: Name of service
+# - enabled (default: true)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+# @TODO why change event?
+- name: "service | enable | Start service and enable autostart: {{ name }}"
+  service:
+    name={{ name }}
+    state=started
+    enabled=yes
+  when: enabled|default(true)
+  tags:
+    - service
+    - enable
+
+- name: "service | disable | Shutdown service and disable autostart: {{ name }}"
+  service:
+    name={{ name }}
+    state=stopped
+    enabled=no
+  when: not enabled|default(true)
+  tags:
+    - service
+    - disable
+- name: "service | Set startup in /etc/default/{{ name }}"
+  lineinfile:
+    dest=/etc/default/{{ name }}
+    regexp="^startup"
+    line="startup={{ enabled|default(true)|bool|int }}"
+  when: set_default|default(false)
+  tags:
+    - service
+    - config

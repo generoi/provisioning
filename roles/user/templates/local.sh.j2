@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export GIT_USER_NAME="{{ item.fullname|default('') }}"
+export GIT_USER_EMAIL="{{ item.email|default('') }}"
+export GITHUB_USER="{{ item.github|default('') }}"
+
+export DEFAULT_USERNAME="{{ item.username }}"
+export DEFAULT_HOSTNAME="not-{{ hostname }}" # Should be your own computer

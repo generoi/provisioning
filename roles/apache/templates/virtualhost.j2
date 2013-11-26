@@ -1,29 +1,25 @@
 # {{ ansible_managed }}
-{% if not ssl.only %}
-<VirtualHost *:{{ port.http }}>
+{% if not ssl.enabled|default(false) %}
+<VirtualHost *:{{ apache.port.http }}>
     ServerName {{ vhost }}
-    ServerAdmin {{ admin }}
-  {% if vhost.startswith('www') %}
-    ServerAlias {{ vhost_server_alias }}
-  {% else %}
+    ServerAdmin {{ apache.admin }}
+  {% if server_alias is defined %}
+    ServerAlias {{ server_alias }}
+  {% elif not vhost.startswith('www') %}
     ServerAlias www.{{ vhost }}
   {% endif %}
-  {% for include in vhost_include %}
+{% if include is defined %}
+  {% for include in include %}
     Include {{ include }}
-  {% endif %}
+  {% endfor %}
+{% endif %}
 
     DocumentRoot {{ docroot }}
     <Directory {{ docroot }}/>
-        Options {{ docroot_options }}
-      {% if local_only %}
-        Order deny,allow
-        Deny from all
-        Allow from 127.0.0.1
-      {% else %}
+        Options {{ docroot_options|default('-Indexes -MultiViews') }}
         AllowOverride All
         Order allow,deny
         allow from all
-      {% end}
     </Directory>
 
     # @TODO optional separation of logs.
@@ -31,14 +27,14 @@
     ErrorLog ${APACHE_LOG_DIR}/error.log
 
     # Uncomment to enable XhProf profiling (if installed).
-    # To inspect results: https://{{ hostname }}/xhprof
+    # To inspect results: https://{{ ansible_fqdn }}/xhprof
     #
     # php_value auto_prepend_file /opt/xhprof/header.php
     # php_value auto_append_file /opt/xhprof/footer.php
 
     # Uncomment to enable XDebug profiling (if installed). Alternatively you
     # can also profile by appending the query parameter: ?XDEBUG_PROFILE
-    # To inspect the results: https://{{ hostname }}/webgrind
+    # To inspect the results: https://{{ ansible_fqdn }}/webgrind
     #
     # php_flag xdebug.remote_enable on
 
@@ -50,11 +46,11 @@
     # </IfModule>
 </VirtualHost>
 {% else %}
-<VirtualHost *:{{ port.http }}>
+<VirtualHost *:{{ apache.port.http }}>
     ServerName {{ vhost }}
-  {% if vhost.startswith('www') %}
-    ServerAlias {{ vhost_server_alias }}
-  {% else %}
+  {% if server_alias is defined %}
+    ServerAlias {{ server_alias }}
+  {% elif not vhost.startswith('www') %}
     ServerAlias www.{{ vhost }}
   {% endif %}
     # Force SSL
@@ -62,28 +58,22 @@
 </VirtualHost>
 {% endif %}
 
-{% if ssl.enabled %}
-<VirtualHost *:{{ port.https }}>
+{% if ssl.enabled|default(false) %}
+<VirtualHost *:{{ apache.port.https }}>
     ServerName {{ vhost }}
-    ServerAdmin {{ admin }}
-  {% if vhost.startswith('www') %}
-    ServerAlias {{ vhost_server_alias }}
-  {% else %}
+    ServerAdmin {{ apache.admin }}
+  {% if server_alias is defined %}
+    ServerAlias {{ server_alias }}
+  {% elif not vhost.startswith('www') %}
     ServerAlias www.{{ vhost }}
   {% endif %}
 
     DocumentRoot {{ docroot }}
     <Directory {{ docroot }}/>
-        Options {{ docroot_options }}
-      {% if local_only %}
-        Order deny,allow
-        Deny from all
-        Allow from 127.0.0.1
-      {% else %}
-        AllowOverride All
-        Order allow,deny
-        allow from all
-      {% end}
+      Options {{ docroot_options|default('-Indexes -MultiViews') }}
+      AllowOverride All
+      Order allow,deny
+      allow from all
     </Directory>
 
     # @TODO optional separation of logs.
@@ -91,17 +81,9 @@
     ErrorLog ${APACHE_LOG_DIR}/error.log
 
     SSLEngine On
-  {% if ssl.certificate_file %}
     SSLCertificateFile {{ ssl.certificate_file }}
-  {% else %}
-    SSLCertificateFile {{ snakeoil.certificate }}
-  {% endif %}
-  {% if ssl.certificate_key_file %}
     SSLCertificateFile {{ ssl.certificate_key_file }}
-  {% else %}
-    SSLCertificateFile {{ snakeoil.key }}
-  {% endif %}
-  {% if ssl.certificate_chain_file %}
+  {% if ssl.certificate_chain_file|default(false)|bool %}
     SSLCertificateChainFile {{ ssl.certificate_chain_file }}
   {% endif %}
 
@@ -131,7 +113,7 @@
     # o OptRenegotiate:
     #   This enables optimized SSL connection renegotiation handling when SSL
     #   directives are used in per-directory context.
-    SSLOptions {{ ssl.options }}
+    SSLOptions {{ ssl.options|default('+FakeBasicAuth +StrictRequire') }}
 
     # SSL Protocol Adjustments:
     # The safe and default but still SSL/TLS standard compliant shutdown

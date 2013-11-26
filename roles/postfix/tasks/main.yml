@@ -1,0 +1,89 @@
+---
+# Part: Postfix
+#
+# Description: Setup a local and null postfix client
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+# - /etc/postfix/main.cf
+#
+###############################################################################
+
+- name: config | Copy debconf selections so that Postfix can configure itself non-interactively
+  template:
+    src=postfix_selections.j2
+    dest=/tmp/postfix_selections
+    mode=0600
+  tags:
+    - config
+
+- name: config | Set up Postfix to handle mail directly using SMTP
+  command: debconf-set-selections /tmp/postfix_selections
+  changed_when: false
+  tags:
+    - config
+
+# Conflict http://goo.gl/DrTw48
+- name: clean | Remove sendmail if installed
+  apt:
+    pkg=sendmail
+    state=absent
+  tags:
+    - clean
+    - install
+
+- name: install | Install required mail packages
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - postfix
+    - mailutils
+    - ca-certificates
+    - ssl-cert
+  tags:
+    - install
+
+- name: "config | Set up Postfix to be a null client, only sending mail: /etc/postfix/main.cf"
+  template:
+    src=postfix-main.cf.j2
+    dest=/etc/postfix/main.cf
+  notify: reload postfix
+  tags:
+    - config
+
+# General management
+###
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: postfix
+    enabled: '{{ postfix.enabled }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: postfix
+    enabled: '{{ postfix.enabled }}'
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: postfix
+    logs: '{{ postfix.log.file }}'
+    special: weekly
+    owner: postfix
+    maxage: 30
+    enabled: '{{ postfix.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: mail
+    mode: facility
+    facility: mail.*
+    enabled: '{{ postfix.enabled }}'
+    output: '{{ postfix.log.file }}'
+    stop_processing: true

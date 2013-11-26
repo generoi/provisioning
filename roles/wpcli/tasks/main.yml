@@ -6,7 +6,6 @@
 # @TODO permissions?
 #
 # Parameters:
-# - dir: Location to install wp-cli (default: /usr/local/lib/wp)
 #
 # Dependencies:
 #
@@ -18,32 +17,41 @@
 # File modifications:
 #
 ###############################################################################
-- name: WP-CLI | Download install script: /tmp/wpcli-install.sh
+- name: install | Check if version is current
+  shell: wp --version | grep 'WP-CLI {{ wpcli_install.version }}'
+  register: wp_uptodate
+  changed_when: wp_uptodate.rc != 0
+  ignore_errors: true
+
+- name: "install | Download install script /tmp/wpcli-install.sh"
   get_url:
-    url={{ install_script }}
-    sha256sum={{ sha256sum }}
+    url={{ wpcli_install.script }}
+    sha256sum={{ wpcli_install.sha256sum }}
     dest=/tmp/wpcli-install.sh
     mode=0700
+  when: wp_uptodate|failed
   tags:
     - install
 
-- name: WP-CLI | Install WP-CLI: {{ dir }}
+- name: "install | Run install script"
   shell:
-    INSTALL_DIR={{ dir }} /tmp/wpcli-install.sh
-    creates={{ dir }}
+    INSTALL_DIR={{ wpcli.dir }} /tmp/wpcli-install.sh
+    creates={{ wpcli.dir }}/bin/wp
+  when: wp_uptodate|failed
   tags:
     - install
 
-- name: WP-CLI | Remove install script: /tmp/wpcli-install.sh
+- name: "install | Remove install script: /tmp/wpcli-install.sh"
   file:
     path=/tmp/wpcli-install.sh
     state=absent
   tags:
     - clean
+    - install
 
-- name: WP-CLI | Create symlink to binary: /usr/bin/wp -> {{ dir }}/bin/wp
+- name: "install | Create symlink to binary: /usr/bin/wp"
   file:
-    src={{ dir }}/bin/wp
+    src={{ wpcli.dir }}/bin/wp
     dest=/usr/bin/wp
     state=link
   tags:
@@ -52,6 +60,3 @@
 - include: wp-cli_completion.yml
   vars:
     bash_completion_dir: /etc/bash_completion.d
-  tags:
-    - config
-    - shell

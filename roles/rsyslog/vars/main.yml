@@ -1,0 +1,5 @@
+loggly_install:
+  cert: https://logdog.loggly.com/media/loggly.com.crt
+  cert_sha256sum: 977a8403c714bfda4fd7350132f0ae7c8ca61374de165884002898d815c27ce1
+  intermediary: https://certs.starfieldtech.com/repository/sf_bundle.crt
+  intermediary_sha256sum: 87d171b3333ca95a98aa02603fdb6508939c63f69e14c8587bd66c4f4df65032

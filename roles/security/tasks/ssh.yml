@@ -4,16 +4,7 @@
 # Description: Secures SSH on the server
 # @see https://help.ubuntu.com/community/StricterDefaults#SSH_Settings
 #
-# @TODO Possibly set value to: PermitRootLogin forced-commands-only
-#
 # Parameters:
-# - ssh.disallow_root (default: true)
-# - ssh.prevent_dos (default: true)
-# - ssh.force_sftp (default: true)
-# - ssh.limit_group: Limit ssh access to group in $ssh_access_group
-#   (default: true)
-# - ssh.access_group: Space delimited list of groups with ssh access
-#   (default: 'admin sshlogin')
 #
 # Dependencies:
 #
@@ -24,51 +15,50 @@
 #
 ###############################################################################
 
-- name: SSH | Disallow root SSH access: /etc/ssh/sshd_config
+- name: "ssh | Disallow root SSH access: /etc/ssh/sshd_config"
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^PermitRootLogin"
     line="PermitRootLogin no"
     state=present
-  when: ssh.disallow_root
-  notify: restart sshd
+  when: security.ssh.disallow_root
+  notify: restart ssh
   tags:
-    - ssh
-    - config
+    - ssh-security
+    - security
 
-- name: SSH | Prevent DoS of SSH daemon: /etc/ssh/sshd_config
+- name: "ssh | Prevent DoS of SSH daemon: /etc/ssh/sshd_config"
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^LoginGraceTime"
     line="LoginGraceTime 20"
     state=present
-  when: ssh.prevent_dos
-  notify: restart sshd
+  when: security.ssh.prevent_dos
+  notify: restart ssh
   tags:
-    - ssh
-    - config
+    - ssh-security
+    - security
 
-- name: SSH | Force SFTP: /etc/ssh/sshd_config
+- name: "ssh | Force SFTP: /etc/ssh/sshd_config"
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^Subsystem sftp"
     line="Subsystem sftp internal-sftp"
     state=present
-  when: ssh.force_sftp
-  notify: restart sshd
+  when: security.ssh.force_sftp
+  notify: restart ssh
   tags:
-    - ssh
-    - config
+    - ssh-security
+    - security
 
-- name: SSH | Only allow users from admin or sshlogin groups: /etc/ssh/sshd_config
+- name: "ssh | Only allow users from admin or sshlogin groups: /etc/ssh/sshd_config"
   lineinfile:
     dest=/etc/ssh/sshd_config
     regexp="^AllowGroups"
-    line="AllowGroups {{ ssh.access_group }}"
+    line="AllowGroups {{ security.ssh.access_group }}"
     state=present
-  notify: restart sshd
-  when: ssh.access_group|bool
+  notify: restart ssh
+  when: security.ssh.access_group
   tags:
+    - ssh-security
     - security
-    - ssh
-    - config

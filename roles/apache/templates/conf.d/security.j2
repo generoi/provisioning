@@ -16,7 +16,7 @@
 </Directory>
 
 <FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(|~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\..*|Entries.*|Repository|Root|Tag|Template|\.git/.*)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
-  Order Allow, Deny
+  Order Allow,Deny
   Deny from all
 </FilesMatch>
 
@@ -62,6 +62,3 @@ ServerSignature Off
 #
 TraceEnable Off
 #TraceEnable On
-
-Header unset ETag
-FileETag None

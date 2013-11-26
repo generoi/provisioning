@@ -1,0 +1,5 @@
+---
+postfix:
+  enabled: true
+  log:
+    file: '/var/log/mail.log'

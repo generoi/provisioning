@@ -1,5 +1,3 @@
 ---
-install_script: http://wp-cli.org/installer.sh
-sha256sum: ec7c1074868d0ff2da53663fa6790abcd387e08790413005e6f7b35edb551bd2
-
-dir: /usr/local/lib/wp
+wpcli:
+  dir: /usr/local/lib/wp

@@ -1,0 +1,8 @@
+<?php
+
+$aliases['live'] = array(
+  'parent' => '@live',
+  'root' => '{{ item.root|default("/var/www/" + item.name) }}',
+  'remote-host' => '{{ item.name }}',
+  'remote-user' => '{{ item.remote_user }}',
+);

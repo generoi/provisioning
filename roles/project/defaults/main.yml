@@ -1,0 +1,16 @@
+project:
+  permissions:
+    php_clean: true
+    file: true
+    dir: true
+    uploads: true
+
+  drush_aliases: true
+
+  shared:
+    path: /var/www/shared
+    files:
+      owner: www-data
+      group: www-data
+
+  projects: []

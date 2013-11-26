@@ -1,0 +1,49 @@
+---
+# Part: Rsyslog
+#
+# Description: Adds an entry to /etc/rsyslog.d/
+#
+# Parameters:
+# - enabled (default: true)
+# - name
+# - mode: facility|programname|filemonitor|contains
+# - facility: If facility mode is specified watch this facility.
+#   * filemonitor:
+#     - logfile: Watch this file.
+#   * contains:
+#     - contains: Look for this string.
+# - stop_processing: Stop further rsyslog monitors from processing this (default: false)
+# - output: Output log file (optional)
+# - severity (default: info)
+# - loggly (default: true)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/rsyslog.d/00-{{ name }}.conf
+#
+# File modifications:
+#
+###############################################################################
+
+- name: "rsyslog | Add a rsyslog entry for {{ name }}: /etc/rsyslog.d/00-{{ name }}.conf"
+  template:
+    src=entry.conf.j2
+    dest=/etc/rsyslog.d/00-{{ name }}.conf
+  notify: restart rsyslog
+  when: enabled|default(true)
+
+- name: "rsyslog | Make sure log file is owned by the rsyslog user"
+  file:
+    path=/etc/rsyslog.d/00-{{ name }}.conf
+    state=file
+    owner={{ rsyslog.owner }} group={{ rsyslog.group }}
+  notify: restart rsyslog
+  when: enabled|default(true)
+
+- name: "rsyslog | Remove rsyslog entry for {{ name }}: /etc/rsyslog.d/00-{{ name }}.conf"
+  file:
+    path=/etc/rsyslog.d/00-{{ name }}.conf
+    state=absent
+  notify: restart rsyslog
+  when: not enabled|default(true)

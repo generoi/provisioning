@@ -4,4 +4,4 @@
   rkhunter --versioncheck
   rkhunter --update
   rkhunter --cronjob --report-warnings-only
-) | mail -s 'rkhunter Weekly Run ({{ hostname }})' {{ rootkit.notify_email }}
+) | mail -s 'rkhunter Weekly Run ({{ hostname }})' {{ security.rootkit.notify_email }}

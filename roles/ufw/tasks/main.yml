@@ -1,0 +1,134 @@
+---
+# Part: UFW
+#
+# Description: Configure the firewall
+# @see https://help.ubuntu.com/12.04/serverguide/firewall.html
+#
+# Parameters:
+#
+# Dependencies:
+# - tasks:ufw-allow
+#
+# Creates:
+#
+# File modifications:
+# - /etc/ufw/ufw.conf
+#
+###############################################################################
+
+# Always enable ssh.
+- include: entry.yml
+  vars:
+    name: '22'
+
+- name: config | Register current firewall status
+  command: ufw status verbose
+  changed_when: false
+  register: result
+  tags:
+    - config
+
+- name: config | Turn on logging
+  command: ufw logging on
+  notify: restart ufw
+  when: "ufw.enabled and 'Logging: on' not in result.stdout"
+  tags:
+    - ufw
+    - config
+
+- name: config | Allow portforwarding when a VM is used
+  lineinfile:
+    dest=/etc/default/ufw
+    regexp="^DEFAULT_FORWARD_POLICY"
+    line="DEFAULT_FORWARD_POLICY=\"ACCEPT\""
+    state=present
+  when: ufw.enabled and vm|default(false)
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: config | Disable ipv6
+  lineinfile:
+    dest=/etc/default/ufw
+    regexp="^IPV6="
+    line="IPV6=no"
+    state=present
+  when: ansible_virtualization_type == 'openvz' or not ufw.ipv6.enable
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: config | Enable ipv6
+  lineinfile:
+    dest=/etc/default/ufw
+    regexp="^IPV6="
+    line="IPV6=yes"
+    state=present
+  # OpenVZ does not have the kernel features required for ipv6
+  when: not ansible_virtualization_type == 'openvz' and ufw.ipv6.enable
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+# OpenVZ Kernel doesnt support various rules/modules
+- include: openvz.yml
+  when: ansible_virtualization_type == 'openvz'
+
+- name: service | Enable firewall
+  command: ufw --force enable
+  when: "ufw.enabled and 'Status: inactive' in result.stdout"
+  tags:
+    - ufw
+    - service
+
+- name: "config | Enable ufw on startup: /etc/ufw/ufw.conf"
+  lineinfile:
+    dest=/etc/ufw/ufw.conf
+    regexp="^ENABLED"
+    line="ENABLED=yes"
+    state=present
+  when: ufw.enabled
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: "config | Disable ufw on startup: /etc/ufw/ufw.conf"
+  lineinfile:
+    dest=/etc/ufw/ufw.conf
+    regexp="^ENABLED"
+    line="ENABLED=no"
+    state=present
+  when: not ufw.enabled
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+# General management
+###
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: ufw
+    logs: '{{ ufw.log.file }}'
+    size: 100M
+    maxage: 30
+    enabled: '{{ ufw.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: ufw
+    mode: contains
+    contains: '[UFW'
+    output: '{{ ufw.log.file }}'
+    stop_processing: true # ufw has its own entry
+    enabled: '{{ ufw.enabled }}'

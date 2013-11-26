@@ -1,0 +1,35 @@
+---
+# Job: Setup
+#
+# Description: Manages all development servers
+#
+###############################################################################
+
+- hosts: development
+  sudo: true
+  connection: '{{ connection|default("ssh") }}'
+  vars:
+    hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_venet0_0.ipv4.address }}'
+    notify_email: ['public@oxy.fi', 'christoffer.bjorkskog@genero.fi']
+
+  roles:
+    # Make sure admin users exist
+    - { role: common }
+    - { role: user }
+    - { role: ufw }
+    - { role: monit }
+    - { role: rsyslog }
+    - { role: postfix }
+    - { role: apache }
+    - { role: development }
+    - { role: php }
+    - { role: mariadb }
+    - { role: drush }
+    - { role: wpcli }
+    - { role: varnish }
+    - { role: pound }
+    - { role: vnstat }
+    - { role: security }
+    - { role: newrelic }
+    - { role: project }

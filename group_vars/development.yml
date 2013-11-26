@@ -1,2 +1,642 @@
 ---
-development: true
+
+# Users
+#####################
+
+user_accounts:
+  # admins:
+  #   groups: ['admin', 'sshlogin', 'sudo', 'staging']
+  #   active: []
+  #   departed: []
+  # regular:
+  #   groups: ['sshlogin']
+  #   active: []
+  #   departed: []
+  managed:
+    - username: genero
+      fullname: Genero
+      email: oskar.scholdstrom@gmail.com
+      groups: ['admin', 'sshlogin', 'sudo']
+
+# Mariadb users
+###################
+
+# mariadb_users:
+#   active: []
+#   departed: []
+
+# Projects
+###################
+
+projects:
+  drupal:
+    - name: mushbarf.com
+      alias: mushbarf
+      remote_user: musch
+      checkout: false
+      sync: true
+      db:
+        name: mushbarf
+        username: musch
+        privileges: "mushbarf.*:ALL"
+    - name: snellman.fi
+      alias: snellman
+      remote_user: snellman
+      checkout: false
+      sync: true
+      db:
+        name: snellman
+        username: snellman
+        privileges: "snellman.*:ALL"
+    - name: woolspire.com
+      alias: woolspire
+      remote_user: woolspire
+      checkout: false
+      sync: true
+      db:
+        name: woolspire
+        privileges: "woolspire.*:ALL"
+        username: woolspire
+  wordpress: []
+  other: []
+
+# Apache
+###############################################################################
+
+# apache:
+#   # main.yml
+#   ###
+#
+#   enabled: true
+#   mods_enabled: ['rewrite', 'vhost_alias', 'ssl', 'deflate', 'expires', 'headers', 'mime']
+#   mods_disabled: []
+#
+#   # Global values used across other roles.
+#   ###
+#
+#   user: www-data
+#   group: www-data
+#   admin: admin@localhost
+#
+#   log:
+#     error_file: '/var/log/apache2/error.log'
+#     access_file: '/var/log/apache2/access.log'
+#
+#   port:
+#     http: 80
+#     https: 443
+#
+#   # Setup wildcard subdomains.
+#   wildcard_subdomains: true
+#
+#   # apache2.conf
+#   ###
+#
+#   config:
+#     timeout: 300
+#     keepalive:
+#       enabled: On
+#       requests: 100
+#       timeout: 2
+#
+#     mpm:
+#       mpm_start_servers:       2
+#       min_spare_threads:      25
+#       spare_threads:          25
+#       max_spare_threads:      75
+#       thread_limit:           64
+#       threads_per_child:      25
+#       max_clients:           150
+#       max_requests_per_child:  0
+#
+#   # Used for creating the default virtual host of the server.
+#   ###
+#
+#   ssl:
+#     enabled: true
+#     certificate_file: '{{ snakeoil.certificate }}'
+#     certificate_key_file: '{{ snakeoil.key }}'
+#     certificate_chain_file: false
+
+# Common
+###############################################################################
+
+# common:
+#   # main.yml
+#   ###
+#
+#   motd:
+#     enabled: true
+#
+#   known_hosts:
+#     enabled: true
+#     hosts: []
+#
+#   hosts_allow: []
+#
+#   ipv6:
+#     enable: false
+#
+#   terminfo:
+#     - { file: rxvt-unicode-256color, dir: r }
+#
+#   packages:
+#     - build-essential
+#     - libpcre3-dev
+#     - curl
+#     - unzip
+#     - nmap
+#     - git
+#     - htop
+#     - imagemagick
+#     - ca-certificates
+#     - pwgen
+#     - ntp
+
+# Development
+###############################################################################
+
+# development:
+#   vim:
+#     install: true
+#
+#   nodejs:
+#     install: true
+#     packages:
+#       - grunt-cli
+#       - yslow
+#       - bower
+#       - browserstack-cli
+#       - jshint
+#       - marked
+#       - yo
+#       - generator-webapp
+#       - phantomjs
+#
+#   ruby:
+#     install: true
+#     gems:
+#       - compass
+
+# Drush
+###############################################################################
+
+# drush:
+#   # Also required by package.yml
+#   dir: /etc/drush
+#
+#   dev:
+#     install: true
+#     modules:
+#       - cacheaudit
+#       - drush-hosts
+#       - clean_missing_modules
+#       - module_builder
+#       - coder
+#       - registry_rebuild
+#
+#   config:
+#     dump_dir: '/etc/drush/dump'
+#     alias_dir: '/etc/drush/aliases'
+#
+#   # alias.yml
+#   staging:
+#     path: /var/www/staging
+
+# Logrotate
+###############################################################################
+
+# MariaDB
+###############################################################################
+
+# main.yml
+###
+# mariadb:
+#   enabled: true
+#
+#   log:
+#     file: '/var/log/mysql.err'
+#
+#   # Should ansible manage root
+#   manage_root: true
+#
+#   # Changes if logging is enabled
+#   development: false
+#
+#   # Hosts to add users to
+#   hosts: ['localhost']
+#
+#   # my.cnf
+#   ###
+#
+#   config:
+#     port: 3306
+#     socket: /var/run/mysqld/mysqld.sock
+#     pid_file: /var/run/mysqld/mysqld.pid
+#     datadir: /var/lib/mysql
+#     tmpdir: /tmp
+#     basedir: /usr
+#
+#     # password: Set this securely
+#
+#     # MyISAM
+#     key_buffer_size: 32M
+#
+#     # Safety
+#     max_allowed_packet: 16M
+#
+#     # Caches and limits
+#     tmp_table_size: 32M
+#     max_heap_table_size: 32M
+#     query_cache_type: 1
+#     query_cache_size: 4M
+#     query_cache_limit: 256K
+#     query_cache_min_res_unit: 1K
+#     max_connections: 128
+#     thread_cache_size: 128
+#
+#     # InnoDB
+#     innodb_buffer_pool_size: 512M
+#     innodb_flush_log_at_trx_commit: 0
+#
+#     # Logging
+#     long_query_time: true
+#     slow_query_log: true
+#     slow_query_log_file: /var/log/mysql/mysql-slow.log
+#
+#     # Buffers
+#     join_buffer_size: 8M
+#     read_buffer_size: 2M
+#     sort_buffer_size: 3M
+#     read_rnd_buffer_size: 4M
+#
+#   # PHPMyAdmin
+#   ###
+#
+#   pma:
+#     enabled: true
+#     install: true
+#     version: 4.0.9
+#     local_only: true
+
+# Monit
+###############################################################################
+
+# monit:
+#   enabled: true
+#
+#   config:
+#     daemon: 120
+#     daemon_delay: 120
+#
+#   log:
+#     file: '/var/log/monit.log'
+#     facility: local5
+#
+#   # Webinterface settings
+#   webinterface:
+#     install: true
+#     enabled: true
+#     port: 2812
+#     addr: localhost
+#     rw_group: sudo
+#     r_group: admin
+#
+#   ssl:
+#     certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+#     private_key: /etc/ssl/private/ssl-cert-snakeoil.key
+#     combined_cert: /etc/ssl/combined/monit.pem
+#
+#   # Email notifications
+#   mail:
+#     install: false
+#     enabled: false
+#     alerts: '{{ notify_email }}'
+#     timeouts: '{{ notify_email }}'
+
+# Newrelic
+###############################################################################
+
+# newrelic:
+#   sysmond:
+#     enabled: true
+#     install: true
+#     loglevel: 'info'
+#     logfile: '/var/log/newrelic/nrsysmond.log'
+#
+#   php:
+#     enabled: true
+#     install: true
+#     loglevel: 'info'
+#     logfile: '/var/log/newrelic/php_agent.log'
+#     daemon_logfile: '/var/log/newrelic/newrelic-daemon.log'
+#     daemon_loglevel: 'info'
+#
+#     browser_monitoring_auto_instrument: true
+#     drupal_modules: true
+#     error_collector:
+#       record_database_errors: true
+#       include_notices: true
+#     analytics_events: true
+
+# PHP
+###############################################################################
+
+php:
+  # Enables logging amongst other things
+  development: true
+
+  # PHP configurations
+  ###
+  config:
+    max_execution_time: 30
+    memory_limit: 256M
+    max_size: 8M
+    upload_max_filesize: 10M
+    max_file_uploads: 20
+    post_max_size: 10M
+    syslog: true
+
+  pecl:
+    install_dir: /usr/share/php
+
+  phpqatools:
+    install: true
+
+  composer:
+    install: true
+    dir: /usr/local/bin
+
+  # XDebug
+  ###
+  xdebug:
+    install: true
+    enabled: true
+
+  # XHprof configurations
+  ###
+  xhprof:
+    install: true
+    enabled: true
+    # Referenced in templates/xhprof/footer.php.j2
+    url: https://localhost.{{ ansible_fqdn }}/xhprof
+    # Where xhprof analysis data is placed, we dont use /tmp as it's cleared on
+    # boot, instead we use cron to clean up.
+    output_dir: /opt/xhprof/output
+
+  # APC configurations
+  ###
+  apc:
+    install: true
+    enabled: false # default to 1
+    frontend_archive: /usr/share/php/apc.php
+    shm_segments: 1
+    shm_size: 256M
+    num_files_hint: 3000
+    ttl: 0
+    user_ttl: 7200
+    gc_ttl: 3600
+    cache_by_default: 1
+    filters: '/opt/apc/index.php,/opt' # Comma separated list of files to filter (read apc.ini)
+    mmap_file_mask: '/tmp/apc.XXXXXX'
+    max_file_size: 8M
+    write_lock: 1
+    report_autofilter: 1
+    include_once_override: 1
+
+# Postfix
+###############################################################################
+
+# postfix:
+#   enabled: true
+#   log:
+#     file: '/var/log/mail.log'
+
+# Pound
+###############################################################################
+
+pound:
+  enabled: false # Default true
+
+  ssl:
+    certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+    private_key: /etc/ssl/private/ssl-cert-snakeoil.key
+    combined_cert: /etc/ssl/combined/ssl-cert-snakeoil.pem
+
+  # Whether to join $pound_certificate and $pound_private_key into the finald $pound_key
+  join_cert_key: true
+
+  user: www-data
+  group: www-data
+
+  alive_check: 30
+  port: 443
+  ip: '{{ ip }}'
+
+  # Should be set to varnish
+  backend:
+    addr: 127.0.0.1
+    port: 80
+
+  log:
+    level: 3
+    facility: local6 # @see http://en.wikipedia.org/wiki/Syslog
+    file: /var/log/pound.log
+
+# Project
+###############################################################################
+
+# project:
+#   permissions:
+#     php_clean: true
+#     file: true
+#     dir: true
+#     uploads: true
+#
+#   drush_aliases: true
+#
+#   shared:
+#     path: /var/www/shared
+#     files:
+#       owner: www-data
+#       group: www-data
+#
+#   projects: []
+
+# Rsyslog
+###############################################################################
+
+# rsyslog:
+#   poll_interval: 10
+#
+#   owner: syslog
+#   group: adm
+#
+#   reception:
+#     udp:
+#       enabled: true
+#       port: 514
+#     tcp:
+#       enabled: false
+#       port: 514
+#
+#   loggly:
+#     enabled: true
+#     udp_logger: logs-01.loggly.com:514
+#     ssl:
+#       ca: /etc/ssl/combined/loggly.crt
+#       cert: /etc/ssl/certs/ssl-cert-snakeoil.pem
+#       key: /etc/ssl/private/ssl-cert-snakeoil.pem
+#     token: '{{ loggly_token }}'
+#     id: '{{ loggly_id }}'
+
+# Security
+###############################################################################
+
+# security:
+#   common:
+#     install: true
+#     tiger: false # disabled until tested
+#     ipspoof: true
+#     limit_su: true
+#     unattended_upgrades: true
+#     secure_shm: false
+#
+#   sysctl:
+#     install: true
+#     ipspoof: true
+#     ignore_icmp_broadcasts: true
+#     disable_source_routing: true
+#     ignore_send_redirects: true
+#     synattack: true
+#     ignore_icmp_redirects: true
+#     ignore_directed_ping: true
+#     log_martians: true
+#
+#   ssh:
+#     install: true
+#     disallow_root: true
+#     prevent_dos: true
+#     force_sftp: true
+#     limit_group: true
+#     access_group: 'admin sshlogin'
+#
+#   denyhosts:
+#     install: true
+#     enabled: true
+#     purge: 1w
+#     purge_threshold: 2
+#     deny_threshold_invalid: 2
+#     deny_threshold_valid: 3
+#     deny_threshold_root: 1
+#     deny_threshold_restricted: 1
+#     notify_email: ''
+#     syslog: YES
+#     age_reset_valid: 1h
+#     age_reset_root: 30d
+#     age_reset_restricted: 30d
+#     age_reset_invalid: 10d
+#     reset_on_success: yes
+#     daemon_sleep: 20s
+#     daemon_purge: 1h
+#     mail:
+#       enabled: false
+#       notify_email:
+#     log:
+#       enabled: true
+#       file: '/var/log/denyhosts-denies.log'
+#
+#   rootkit:
+#     install: true
+#     enabled: true
+#     notify_email: false
+
+# UFW
+###############################################################################
+
+# ufw:
+#   enabled: true
+#   log:
+#     file: '/var/log/ufw.log'
+#
+#   ipv6:
+#     enable: false
+
+# User
+###############################################################################
+
+# user:
+#   # Known hosts preconfigured for users
+#   known_hosts:
+#     - host: github.com
+#       line: 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
+
+# Varnish
+###############################################################################
+
+varnish:
+  enabled: false # Default to true
+  https_enabled: true
+
+  # Set to 80 for live usage
+  port: 6081
+  admin_port: 6082
+  vcl_conf: /etc/varnish/drupal.vcl
+
+  # Backend to grab content from
+  backend:
+    addr: 127.0.0.1
+    port: 8080
+
+  config:
+    # Memory size
+    malloc_size: 1G
+
+    # Advanced
+    # Based on http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
+    thread_pool_add_delay: 2
+    thread_pools: '{{ cpu_cores.stdout|int }}'
+    thread_pool_min: '{{ 800 // cpu_cores.stdout|int }}'
+    thread_pool_max: 4000
+    session_linger: 50
+    sess_workspace: 262144
+
+  log:
+    # Enables syslog logging in vcl. Logs to local4
+    enabled: true
+    facility: local4 # Hardcoded into vcl files.
+    file: /var/log/varnish.log
+
+# vnStat
+###############################################################################
+
+# vnstat:
+#   enabled: true
+#
+#   interface: '{{ ansible_default_ipv4.interface }}'
+#   pid: /var/run/vnstat.pid
+#
+#   log:
+#     file: /var/log/vnstat.log
+#
+#   config:
+#     sampletime: 5
+#     query_mode: 0
+#     check_disk_space: 1
+#     rate_unit: 1
+#     unit_mode: 0
+#
+#     # vnstatd
+#     ###
+#
+#     update_interval: 30
+#     poll_interval: 5
+#     save_interval: 5
+#     offline_save_interval: 30
+#     use_logging: 2 # syslog
+
+# WP-cli
+###############################################################################
+
+# wpcli:
+#   dir: /usr/local/lib/wp

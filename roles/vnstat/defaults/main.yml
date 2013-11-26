@@ -1,0 +1,25 @@
+---
+vnstat:
+  enabled: true
+
+  interface: '{{ ansible_default_ipv4.interface }}'
+  pid: /var/run/vnstat.pid
+
+  log:
+    file: /var/log/vnstat.log
+
+  config:
+    sampletime: 5
+    query_mode: 0
+    check_disk_space: 1
+    rate_unit: 1
+    unit_mode: 0
+
+    # vnstatd
+    ###
+
+    update_interval: 30
+    poll_interval: 5
+    save_interval: 5
+    offline_save_interval: 30
+    use_logging: 2 # syslog

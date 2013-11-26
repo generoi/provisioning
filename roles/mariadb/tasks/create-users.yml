@@ -4,13 +4,9 @@
 # Description: Creates a set of MariaDB users with randomly generated passwords.
 #
 # Parameters:
-# - accounts: List of account dictionaries, each with the keys:
+# - users: List of account dictionaries, each with the keys:
 #   username and privileges
-# - login.user: User to log in as when creating (default: root)
-# - login.password: Optional password to sign in with. If not present
-#   login.password_file is used, and preferred (default: false)
-# - login.password_file: File with encrypted password
-#   (default: credentials/{{ hostname }}/root/mariadb_password length=15)
+# - user: User to log in with (default: root)
 #
 # Dependencies:
 # - tasks:main
@@ -21,42 +17,23 @@
 #
 ###############################################################################
 
-- name: MariaDB | Start the service
+- name: service | Start the service
   service:
     name=mysql
     state=started
+  tags:
+    - service
 
-# Add all user to each host. Login password is specified as a plain text string.
-# Consider using the login.password_file parameter.
-- name: MariaDB | Create users
+- name: user | Create users
   mysql_user:
-    login_user={{ login.user }}
-    login_password={{ login.password }}
-    # User information
-    name={{ item[0]['username'] }}
-    host={{ item[1] }}
-    # Store the password in plain text
-    password={{ lookup('password', 'credentials/' + hostname + '/' + user + '/mariadb_password length=15') }}
-    priv={{ item[0]['privileges'] }}
+    login_user=root
+    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    name={{ item.username }}
+    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + item.username + '/mariadb_password length=15') }}
+    priv={{ item.privileges }}
     state=present
-  when: login.password|bool
-  with_nested:
-    - accounts
-    - hosts
-
-# Alternative, add all users to each host.
-- name: MariaDB | Create users
-  mysql_user:
-    # Login information for the remote host
-    login_user={{ login.user }}
-    login_password={{ lookup('password', login.password_file) }} # Fetch password from file
-    name={{ item[0]['username'] }}
-    host={{ item[1] }}
-    # Store the password in plain text
-    password={{ lookup('password', 'credentials/' + hostname + '/' + user + '/mariadb_password length=15') }}
-    priv={{ item[0]['privileges'] }}
-    state=present
-  when: not login.password|bool
-  with_nested:
-    - accounts
-    - hosts
+  when: password is not defined
+  with_items: users
+  tags:
+    - user
+    - enable

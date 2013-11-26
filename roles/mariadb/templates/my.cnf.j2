@@ -4,11 +4,31 @@
 # Based on discussions in: https://groups.drupal.org/node/289613
 
 [client]
-port = {{ config.port }}
-socket = {{ config.socket }}
+default-character-set = utf8
+port            = {{ mariadb.config.port }}
+socket          = {{ mariadb.config.socket }}
+
+[mysqld_safe]
+socket          = {{ mariadb.config.socket }}
+nice            = 0
 
 [mysqld]
-datadir = {{ config.db_datadir }}
+user            = mysql
+port            = 
+socket          = {{ mariadb.config.socket }}
+pid-file        = {{ mariadb.config.pid_file }}
+datadir         = {{ mariadb.config.datadir }}
+tmpdir          = {{ mariadb.config.tmpdir }}
+basedir         = {{ mariadb.config.basedir }}
+lc_messages_dir = /usr/share/mysql
+lc_messages     = en_US
+
+bind-address    = 127.0.0.1
+
+# If you run multiple servers that use the same database directory (not
+# recommended), each server must have external locking enabled.
+skip-external-locking
+
 default_storage_engine = InnoDB
 
 # MyISAM
@@ -17,7 +37,7 @@ default_storage_engine = InnoDB
 # Index blocks for MyISAM tables are buffered and are shared by all threads.
 # key_buffer_size is the size of the buffer used for index blocks. The key
 # buffer is also known as the key cache.
-key_buffer_size = {{ config.key_buffer_size }}
+key_buffer_size = {{ mariadb.config.key_buffer_size }}
 
 myisam_recover = FORCE,BACKUP
 
@@ -35,7 +55,7 @@ concurrent_insert = 2
 # This value by default is small, to catch large (possibly incorrect) packets.
 # You must increase this value if you are using large BLOB columns or long strings. It
 # should be as big as the largest BLOB you want to use
-max_allowed_packet = {{ config.max_allowed_packet }}
+max_allowed_packet = {{ mariadb.config.max_allowed_packet }}
 
 # Prevent password brute force attack. Can cause “Host Blocked” error messages.
 # Percona suggests should probably be set as large as your platform allows 1000000.
@@ -49,12 +69,12 @@ max_connect_errors = 1000000
 # Maximum size for internal (in-memory) temporary tables. If a table grows
 # larger than this value, it is automatically converted to disk based table
 # This limitation is for a single table. There can be many of them.
-tmp_table_size = {{ config.tmp_table_size }}
-max_heap_table_size = {{ config.max_heap_table_size }}
+tmp_table_size = {{ mariadb.config.tmp_table_size }}
+max_heap_table_size = {{ mariadb.config.max_heap_table_size }}
 
 # 1 = default on, 0 = no query_chache, 2 = use SQL_CACHE switch in
 # SQL-statement
-query_cache_type = {{ config.query_cache_type }}
+query_cache_type = {{ mariadb.config.query_cache_type }}
 
 # This is the total available space for query_cache.
 # Query cache is used to cache SELECT results and later return them without
@@ -69,35 +89,37 @@ query_cache_type = {{ config.query_cache_type }}
 # To view QC performance: SHOW GLOBAL STATUS LIKE 'Qc%'; then compute the read
 # hit rate: Qcache_hits / Qcache_inserts If it is over, say, 5, the QC might be
 # worth keeping.
-query_cache_size = {{ config.query_cache_size }}
+query_cache_size = {{ mariadb.config.query_cache_size }}
 
 # Only cache result sets that are smaller than this limit. This is to protect
 # the query cache of a very large result set overwriting all other query
 # results.
-query_cache_limit = {{ config.query_cache_limit }}
+query_cache_limit = {{ mariadb.config.query_cache_limit }}
 
 # "until you get 80% cache filled after mysql server has been running for 24h+.
 # If this is a dedicated database server you can go nuts with this up to 70% of
 # RAM, but if there is no queries to be cached this will be pretty useless.
 # Better stay under 512M and use rest for memcached".
-query_cache_min_res_unit = {{ config.query_cache_min_res_unit }}
+query_cache_min_res_unit = {{ mariadb.config.query_cache_min_res_unit }}
 
 # max_connections is how many connections your server will tolerate at once,
 # while thread_cache_size is how many of these your server will cache. There is
 # no reason not to set these to be an equal number
-max_connections = {{ config.max_connections }}
-thread_cache_size = {{ config.thread_cache_size }}
+max_connections = {{ mariadb.config.max_connections }}
+thread_cache_size = {{ mariadb.config.thread_cache_size }}
 
 # MyISAM tables require up to 2 file handlers. Each connection is file handler
 # too
 open_files_limit = 65535
+
+connect_timeout = 5
 
 # InnoDB
 ###
 
 # In theory, you want this to encompass your entire database. In
 # practice, you only have so much RAM available
-innodb_buffer_pool_size = {{ config.innodb_buffer_pool_size }}
+innodb_buffer_pool_size = {{ mariadb.config.innodb_buffer_pool_size }}
 
 # Reduce contention. Set to 4+ in MySQL 5.5+
 innodb_buffer_pool_instances = 4
@@ -116,12 +138,12 @@ innodb_flush_method = O_DIRECT
 # Supposedly, smaller is better because it makes recovery faster, even
 # if larger means slightly better performance. I have no idea what the
 # logic of this is - if @Vekseid has a crash, downtime is expected
-innodb_log_files_in_group = 2
+# innodb_log_files_in_group = 2
 
 # Size of redo log file. Larger logs better performance but longer recovery.
 # The size in bytes of each log file in a log group. The combined size of log
 # files must be less than 4GB.
-innodb_log_file_size = 256M
+# innodb_log_file_size = 256M
 
 # Buffer for log files not only reduce writes but help contention.
 # No reason to make the buffers too large, 4M is good for most cases
@@ -133,7 +155,7 @@ innodb_additional_mem_pool_size = 4M
 # 1=flush and sync; 2=flush; 0=neither
 # Setting innodb_flush_log_at_trx_commit to 0 causes InnoDB to only flush to
 # disk once per second, improving performance considerably.
-innodb_flush_log_at_trx_commit = {{ config.innodb_flush_log_at_trx_commit }}
+innodb_flush_log_at_trx_commit = {{ mariadb.config.innodb_flush_log_at_trx_commit|int }}
 
 # How long to wait for row level locks before bailing out.
 innodb_lock_wait_timeout = 180
@@ -144,19 +166,24 @@ skip-name-resolve
 
 # Logging
 ###
+# errors goes to syslog due to /etc/mysql/conf.d/mysqld_safe_syslog.cnf
 
-log_error= {{ config.log_error }}
+log_warnings        = 2
 
 # You can set this to non-integer numbers now. One second is rare enough for me
 # that @vekseid consider it 'long'.
-long_query_time = {{ config.long_query_time }}
+long_query_time     = {{ mariadb.config.long_query_time|int }}
+# @TODO setting this causes mariadb not to start
+# log_slow_verbosity  = query_plain
 
-{% if development %}
-slow_query_log = 1
-slow_query_log_file = {{ config.slow_query_log_file }}
-{% else %}
-slow_query_log = 0
-{% endif %}
+slow_query_log      = {{ mariadb.config.slow_query_log|int }}
+slow_query_log_file = {{ mariadb.config.slow_query_log_file }}
+
+# Replay backup logs
+log_bin             = /var/log/mysql/mariadb-bin
+log_bin_index       = /var/log/mysql/mariadb-bin.index
+expire_logs_days    = 10
+max_binlog_size     = 100M
 
 # Buffers
 ###
@@ -173,15 +200,15 @@ myisam_sort_buffer_size  = 64M
 # This buffer is used for the optimization of full JOINs (JOINs without
 # indexes). Such JOINs are very bad for performance in most cases anyway, but
 # setting this variable to a large value reduces the performance impact.
-join_buffer_size = {{ config.join_buffer_size }}
+join_buffer_size = {{ mariadb.config.join_buffer_size }}
 
 # http://www.mysqlperformanceblog.com/2007/09/17/mysql-what-read_buffer_size-value-is-optimal/
-read_buffer_size = {{ config.read_buffer_size }}
-sort_buffer_size = {{ config.sort_buffer_size }}
+read_buffer_size = {{ mariadb.config.read_buffer_size }}
+sort_buffer_size = {{ mariadb.config.sort_buffer_size }}
 
 # Buffer for reading rows in sorted offer, specifies Maximum Value.
 # A rule-of-thumb is to allocate 1KB for each 1MB of memory on the server
-read_rnd_buffer_size = {{ config.read_rnd_buffer_size }}
+read_rnd_buffer_size = {{ mariadb.config.read_rnd_buffer_size }}
 
 # The number of open tables for all threads. Increasing this value increases
 # the number of file descriptors that mysqld requires.
@@ -232,11 +259,12 @@ skip-show-database
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links=0
 
-[mysqld_safe]
-pid-file={{ config.pid_file }}
-open-files-lconfig.imit = 4096
-
 [mysqldump]
 quick
 quote-names
 max_allowed_packet = 16M
+
+[isamchk]
+key_buffer         = 16M
+
+!includedir /etc/mysql/conf.d/

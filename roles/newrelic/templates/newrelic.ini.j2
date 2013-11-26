@@ -1,24 +1,25 @@
-# {{ ansible_managed }}
-# https://docs.newrelic.com/docs/php/php-agent-phpini-settings
-newrelic.enabled={{ php.enabled }}
-newrelic.license={{ license  }}
-newrelic.appname={{ hostname }}
-newrelic.loglevel={{ php.loglevel }}
-newrelic.logfile={{ php.logfile }}
-newrelic.daemon.logfile={{ php.daemon_logfile }}
+; {{ ansible_managed }}
+; https://docs.newrelic.com/docs/php/php-agent-phpini-settings
+newrelic.enabled={{ newrelic.php.enabled|int }}
+newrelic.license="{{ newrelic_license  }}"
+newrelic.appname="{{ hostname }}"
+newrelic.loglevel={{ newrelic.php.loglevel }}
+newrelic.logfile="{{ newrelic.php.logfile }}"
+newrelic.daemon.logfile="{{ newrelic.php.daemon_logfile }}"
+newrelic.daemon.loglevel={{ newrelic.php.daemon_loglevel }}
 
-# This enables auto-insertion of the JavaScript fragments for browser
-# monitoring
-# @see https://docs.newrelic.com/docs/php/real-user-monitoring-in-php
-newrelic.browser_monitoring.auto_instrument={{ php.browser_monitoring_auto_instrument }}
+; This enables auto-insertion of the JavaScript fragments for browser
+; monitoring
+; @see https://docs.newrelic.com/docs/php/real-user-monitoring-in-php
+newrelic.browser_monitoring.auto_instrument={{ newrelic.php.browser_monitoring_auto_instrument|int }}
 
-newrelic.framework.drupal.modules={{ php.drupal_modules }}
+newrelic.framework.drupal.modules={{ newrelic.php.drupal_modules|int }}
 
-# transaction_tracer and error_collector not available for free edition
-newrelic.error_collector.record_database_errors={{ php.error_collector_record_database_errors }}
-newrelic.error_collector.include_notices={{ php.error_collector_include_notices }}
+; transaction_tracer and error_collector not available for free edition
+newrelic.error_collector.record_database_errors={{ newrelic.php.error_collector.record_database_errors|int }}
+newrelic.error_collector.include_notices={{ newrelic.php.error_collector.include_notices|int }}
 
-# When set to true, the agent will collect and report analytics event data.
-# Event data allows the New Relic UI to show additional information such as
-# histograms and percentiles.
-newrelic.analytics_events.enabled={{ php.analytics_events }}
+; When set to true, the agent will collect and report analytics event data.
+; Event data allows the New Relic UI to show additional information such as
+; histograms and percentiles.
+newrelic.analytics_events.enabled={{ newrelic.php.analytics_events|int }}

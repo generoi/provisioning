@@ -11,5 +11,5 @@
    * Output the GUI link
    */
   $ua = urlencode($app);
-  $profiler_url = "{{ xhprof.url }}/index.php?run=$id&source=$ua";
+  $profiler_url = "{{ php.xhprof.url }}/index.php?run=$id&source=$ua";
   echo '<a href="'. $profiler_url .'" target="_blank">Profiler output</a>';

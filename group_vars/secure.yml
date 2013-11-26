@@ -1,0 +1,14 @@
+web:
+  user: www-data
+  group: www-data
+
+sites: []
+
+secure:
+  permissions:
+    dir: true
+    file: true
+    uploads: true
+  exploits: true
+  php_clean:
+    uploads: true

@@ -4,12 +4,8 @@
 # Description: Sets up drush with extra modules and global config defaults.
 #
 # Parameters:
-# - dev.install: Whether to install drush development modules (default: false).
-# - dir: Directory of drush configurations (default: /usr/local/etc/drush).
-# - dump_dir: Directory of drush sql dumps (default: {{ drush_dir }}/dump).
 #
 # Dependencies:
-# - php:tasks:main
 # - php:tasks:pear
 #
 # Creates:
@@ -23,31 +19,46 @@
 
 - include: ../../php/tasks/pear.yml
   vars:
-    package: drush
-    version: stable
-  tags:
-    - install
+    package: pear.drush.org/drush
 
-- name: Drush | Run drush once so it downloads it's dependencies
+- name: install | Run drush once so it downloads it's dependencies
   command: drush
   ignore_errors: yes
+  changed_when: false
   tags:
     - install
 
-- name: Drush | Ensure global drush directory {{ dir }} is present
+- name: config | Ensure global drush directory is present
   file:
-    path={{ dir }}
+    path={{ drush.dir }}
     state=directory
+  tags:
+    - config
+
+- name: config | Ensure dump drush directory is present
+  file:
+    path={{ drush.config.dump_dir }}
+    state=directory
+  tags:
+    - config
+
+- name: config | Add global drushrc.php
+  template:
+    src=drushrc.php.j2
+    dest={{ drush.dir }}/drushrc.php
+    owner=root group=admin mode=0664
+  tags:
+    - config
+
+- name: config | Add global drushrc.local.php
+  copy:
+    src=drushrc.local.php
+    dest={{ drush.dir }}/drushrc.local.php
+    owner=root group=admin mode=0664
+    force=no
   tags:
     - config
 
 # Install drush development modules
 - include: drush-dev.yml
-  when: dev.install
-
-- name: Drush | Add global {{ dir }}/drushrc.php
-  template:
-    src=drushrc.php.j2
-    dest={{ dir }}/drushrc.php
-  tags:
-    - config
+  when: drush.dev.install

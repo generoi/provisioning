@@ -1,0 +1,68 @@
+---
+# Part: vnStat
+#
+# Description: Sets up vnStat
+#
+# Parameters:
+#
+# Dependencies:
+# - ufw:tasks:entry
+# - rsyslog:tasks:entry
+# - logrotate:tasks:entry
+# - monit:tasks:entry
+# - common:tasks:service
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: install | Install vnstat packages
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - vnstat
+  tags:
+    - install
+
+- name: "config | Configure: /etc/vnstat.conf"
+  template:
+    src=vnstat.conf.j2
+    dest=/etc/vnstat.conf
+    owner=root group=root
+  notify: restart vnstat
+  tags:
+    - config
+
+- name: config | Ininitalize vnstat
+  command: vnstat -u -i {{ vnstat.interface }}
+  changed_when: false
+  tags:
+    - config
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: vnstat
+    enabled: '{{ vnstat.enabled }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: vnstat
+    enabled: '{{ vnstat.enabled }}'
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: vnstat
+    logs: '{{ vnstat.log.file }}'
+    special: weekly
+    maxage: 30
+    enabled: '{{ vnstat.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: vnstat
+    mode: programname
+    output: '{{ vnstat.log.file }}'
+    enabled: '{{ vnstat.enabled }}'

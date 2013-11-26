@@ -1,0 +1,35 @@
+---
+# Part: MariaDB
+#
+# Description: Creates a set of MariaDB databases
+#
+# Parameters:
+# - databases: List of db dictionaries, each with the keys:
+#   - name
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: service | Start the service
+  service:
+    name=mysql
+    state=started
+  tags:
+    - service
+
+- name: database | Create database
+  mysql_db:
+    login_user=root
+    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    name={{ item.name }}
+    state=present
+  with_items: databases
+  tags:
+    - user
+    - enable

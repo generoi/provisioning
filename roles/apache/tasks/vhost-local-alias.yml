@@ -7,66 +7,81 @@
 # Parameters:
 # - alias: The alias to add, eg. /apc
 # - docroot: The destination docroot, eg. /opt/apc
-# - remove: Whether to remove the alias (default: false)
+# - enabled (default: true)
 #
 # Dependencies:
 # - tasks:main
-# - tasks:create-vhost
 #
 # Creates:
-# - /etc/apache2/sites-available/localhost.{{ hostname }}
-# - /etc/apache2/sites-enabled/localhost.{{ hostname }}
-# - {{ vhost_local.url }}: Localhost only accessable virtual host
+# - /etc/apache2/sites-available/{{ local_vhost.vhost }}
+# - /etc/apache2/sites-enabled/{{ local_vhost.vhost }}
+# - {{ local_vhost.url }}: Localhost only accessable virtual host
 #
 # File modifications:
-# - /etc/apache2/vhosts.d/localhost.{{ hostname }}
+# - /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf
 #
 ###############################################################################
 
-- name: Apache | Create a vhost specific config /etc/apache2/vhosts.d/{{ vhost_local.vhost  }}
+- name: "local vhost | Create local vhost docroot"
   file:
-    path=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
-    state=present
+    path={{ local_vhost.docroot }}
+    state=directory
+    owner=root group=root
   tags:
     - vhost
     - vhost-local
+    - config
 
-- include: create-vhost.yml
-  vars:
-    create_docroot: true
-    docroot: vhost_local.docroot
-    # We want to list folder contents of this vhost.
-    docroot_options: -Multiviews
-    local_only: true
-    vhost: vhost_local.vhost
-    ssl:
-      enabled: true
-      only: true
-    vhost_include: ['/etc/apache2/vhosts.d/{{ vhost_local.vhost }}']
+- name: "local vhost | config | Create a vhost specific config: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
+  copy:
+    src=per-vhost.conf
+    dest=/etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf
+    owner=root group=root
+    force=no
+  tags:
+    - vhost-local
+    - vhost
+    - config
+
+- name: "local vhost | config | Add virtual host configuration for {{ local_vhost.vhost }}: /etc/apache2/sites-available/{{ local_vhost.vhost }}"
+  template:
+    src=virtualhost-local.j2
+    dest=/etc/apache2/sites-available/{{ local_vhost.vhost }}
+    owner=root group=root
   tags:
     - vhost
     - vhost-local
+    - config
 
-- name: Apache | Local | Add an alias for {{ alias }} to {{ docroot }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+- name: "local vhost | enable | Add an alias for {{ alias }} to {{ docroot }}: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
   lineinfile:
-    dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+    dest=/etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf
     regexp="^Alias {{ alias }}"
     line="Alias {{ alias }} {{ docroot }}"
-  when: not remove
+  when: enabled|default(true)|bool
   notify: restart apache
   tags:
     - vhost
     - vhost-local
     - enable
 
-- name: Apache | Local | Remove alias for {{ alias }}: /etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+- name: "local vhost | disable | Remove alias for {{ alias }}: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
   lineinfile:
-    dest=/etc/apache2/vhosts.d/{{ vhost_local.vhost }}
+    dest=/etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf
     regexp="^Alias {{ alias }}"
     state=absent
-  when: remove
+  when: not enabled|default(true)|bool
   notify: restart apache
   tags:
     - vhost
     - vhost-local
     - disable
+
+- name: "local vhost | enable | Activate virtual host {{ local_vhost.vhost }}: /etc/apache2/sites-enabled/{{ local_vhost.vhost }}"
+  command:
+    a2ensite {{ local_vhost.vhost }}
+    creates=/etc/apache2/sites-enabled/{{ local_vhost.vhost }}
+  notify: reload apache
+  tags:
+    - vhost
+    - enable

@@ -1,21 +1,28 @@
 ---
-enabled: true
+pound:
+  enabled: true
 
-certificate: /etc/ssl/private/ssl-cert-snakeoil.pem
-private_key: /etc/ssl/private/ssl-cert-snakeoil.key
-combined_cert: /etc/ssl/private/ssl-cert-snakeoil-pound.pem
-# Whether to join $pound_certificate and $pound_private_key into the finald $pound_key
-join_cert_key: true
+  ssl:
+    certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+    private_key: /etc/ssl/private/ssl-cert-snakeoil.key
+    combined_cert: /etc/ssl/combined/ssl-cert-snakeoil.pem
 
-user: www-data
-group: www-data
+  # Whether to join $pound_certificate and $pound_private_key into the finald $pound_key
+  join_cert_key: true
 
-alive_check: 30
-port: 443
+  user: www-data
+  group: www-data
 
-# Should be set to varnish
-backend_addr: 127.0.0.1
-backend_port: 80
+  alive_check: 30
+  port: 443
+  ip: '{{ ip }}'
 
-loglevel: 3
-logfacility: local6 # @see http://en.wikipedia.org/wiki/Syslog
+  # Should be set to varnish
+  backend:
+    addr: 127.0.0.1
+    port: 80
+
+  log:
+    level: 3
+    facility: local6 # @see http://en.wikipedia.org/wiki/Syslog
+    file: /var/log/pound.log

@@ -7,19 +7,20 @@
 ######################################################################
 ## global options:
 
-User        "{{ user }}"
-Group       "{{ group }}"
+User        "{{ pound.user }}"
+Group       "{{ pound.group }}"
 
 ## Logging: (goes to syslog by default)
 ##        0        no logging
 ##        1        normal
 ##        2        extended
 ##        3        Apache-style (common log format)
-LogLevel    {{ loglevel }}
-LogFacility {{ logfacility }}
+LogLevel    {{ pound.log.level }}
+## Logs to /var/log/messags by default, we want to use syslog instead.
+LogFacility {{ pound.log.facility }}
 
 ## check backend every X secs:
-Alive       {{ alive_check }}
+Alive       {{ pound.alive_check }}
 
 ## use hardware-accelleration card supported by openssl(1):
 #SSLEngine        "<hw>"
@@ -33,11 +34,11 @@ Control     "/var/run/pound/poundctl.socket"
 ## redirect all requests on port 8080 ("ListenHTTP") to the local webserver (see "Service" below):
 ListenHTTPS
   ## Public IP
-  Address         {{ ip }}
-  Port            {{ port }}
+  Address         {{ pound.ip }}
+  Port            {{ pound.port }}
   # Pound requires the certificate and the private key to be in one
   # concatenated file.
-  Cert            "{{ combined_cert }}"
+  Cert            "{{ pound.ssl.combined_cert }}"
   # Pass on https usage to varnish.
   AddHeader       "X-Forwarded-Proto: https"
   HeadRemove      "X-Forwarded-Proto"
@@ -45,8 +46,8 @@ ListenHTTPS
   Service
     ## Varnish
     BackEnd
-      Address     {{ backend_addr }}
-      Port        {{ backend_port }}
+      Address     {{ pound.backend.addr }}
+      Port        {{ pound.backend.port }}
     End
   End
 End

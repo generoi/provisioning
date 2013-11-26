@@ -77,7 +77,8 @@
 # $options['shell-aliases']['pulldb'] = '!git pull && drush updatedb';
 $options['shell-aliases']['noncore'] = 'pm-list --no-core';
 $options['shell-aliases']['wipe'] = 'cache-clear all';
-# $options['shell-aliases']['unsuck'] = 'pm-disable -y overlay,dashboard';
+$options['shell-aliases']['env-live'] = '!drush dis -y devel && !drush vset -y preprocess_css 1 && !drush vset -y preprocess_js 1';
+$options['shell-aliases']['env-dev'] = '!drush en -y devel && !drush vset -y preprocess_css 0 && !drush vset -y preprocess_js 0';
 $options['shell-aliases']['offline'] = 'variable-set -y --always-set maintenance_mode 1';
 $options['shell-aliases']['online'] = 'variable-delete -y --exact maintenance_mode';
 $options['shell-aliases']['dis-all'] = '!drush -y dis `drush pml --status=enabled --type=module --no-core --pipe`';
@@ -144,7 +145,7 @@ $options['include'] = array('/usr/local', '/etc/drush');
  * line, paths may be separated by a colon (:) on Unix-based systems or a
  * semi-colon (;) on Windows.
  */
-$options['alias-path'] = array('{{ dir }}/aliases');
+$options['alias-path'] = array('{{ drush.config.alias_dir }}');
 
 /**
  * Specify the folder where 'sql-sync' should store persistent dump files.
@@ -152,7 +153,7 @@ $options['alias-path'] = array('{{ dir }}/aliases');
  * database is rsync'ed to a remote system.  If a dump directory is not
  * specified, then 'sql-sync' will store dumps in temporary files.
  */
-$options['dump-dir'] = '{{ dump_dir }}';
+$options['dump-dir'] = '{{ drush.config.dump_dir }}';
 
 /**
  * Specify the filename and path where 'sql-dump' should store backups of
@@ -291,6 +292,11 @@ $options['skip-tables']['common'] = array('migration_*');
 
 // Ensure all rsync commands use verbose output.
 # $command_specific['rsync'] = array('verbose' => TRUE);
+// Exclude some drupal generated files from rsync
+$command_specific['rsync'] = array(
+  'verbose' => TRUE,
+  'exclude-paths' => 'sites/default/files' . implode(':sites/default/files/', array('js', 'css', 'xmlsitemap', 'ctools', 'languages')),
+);
 
 // Prevent drush ssh command from adding a cd to Drupal root before provided command.
 # $command_specific['ssh'] = array('cd' => FALSE);
@@ -300,11 +306,16 @@ $options['skip-tables']['common'] = array('migration_*');
 # $command_specific['script']['script-path'] = 'sites/all/scripts:profiles/myprofile/scripts';
 
 // Always show release notes when running pm-update or pm-updatecode.
+// This does not work with older drush versions as Drupal 7.17 changed their 
+// URLs.
 # $command_specific['pm-update'] = array('notes' => TRUE);
-$command_specific['pm-updatecode'] = array('notes' => TRUE);
 
 // Set a predetermined username and password when using site-install.
 # $command_specific['site-install'] = array('account-name' => 'alice', 'account-pass' => 'secret');
+
+// Set correct download directories
+$command_specific['dl'] = array('destination' => 'sites/all/modules/contrib');
+$command_specific['fe'] = array('destination' => 'sites/all/modules/features');
 
 /**
  * Load a drushrc file from the 'drush' folder at the root of the current
@@ -317,4 +328,37 @@ if (!empty($output)) {
   $options['config'][] = $repo . '/drush/drushrc.php';
   $options['include'][] = $repo . '/drush/commands';
   $options['alias-path'][] = $repo . '/drush/aliases';
+}
+
+/**
+ * Prevent patched modules from being updated.
+ */
+$root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
+if ($root && is_dir($root . '/sites/all/modules/patched')) {
+  $locked = array();
+  foreach (scandir($root . '/sites/all/modules/patched') as $module) {
+    // Make sure it's a valid directory
+    if (is_dir($root . '/sites/all/modules/patched/' . $module) && !in_array($module, array('.', '..'))) {
+      $locked[] = $module;
+    }
+  }
+  $command_specific['pm-update'] = array('lock' => implode(',', $locked));
+}
+
+/**
+ * If the default apache wildcard subdomain virtualhost is used, set the URI
+ * correctly so that caches can be cleared as the apache user.
+ */
+if (preg_match('#/var/www/u/([^/]*)/([^/]*)#', getenv('PWD'), $matches)) {
+  $subdomain_user = $matches[1];
+  $subdomain_project= $matches[2];
+  $options['uri'] = "http://$subdomain_project.$subdomain_user.{{ ansible_fqdn }}";
+}
+
+/**
+ * Include a local drushrc which is not managed by ansible, so that we can add
+ * local specific configurations.
+ */
+if (file_exists(__DIR__ . '/drushrc.local.php')) {
+  require_once __DIR__ . '/drushrc.local.php';
 }

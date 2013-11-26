@@ -1,53 +1,55 @@
-# deflate expires headers mime setenvif substitute
-enabled: true
-mods_enabled: ['rewrite', 'vhost_alias', 'ssl']
-mods_disabled: []
-root: /var/www
+---
+apache:
+  # main.yml
+  ###
 
-user: www-data
-group: www-data
-admin: admin@localhost
+  enabled: true
+  mods_enabled: ['rewrite', 'vhost_alias', 'ssl', 'deflate', 'expires', 'headers', 'mime']
+  mods_disabled: []
 
-port:
-  http: 80
-  https: 443
+  # Global values used across other roles.
+  ###
 
-config:
-  timeout: 300
-  keepalive:
-    enabled: 'On'
-    keepalive_requests: '100'
-    keepalive_timeout: '2'
+  user: www-data
+  group: www-data
+  admin: admin@localhost
 
-  mpm.mpm_start_servers:       2
-  mpm.min_spare_threads:      25
-  mpm.spare_threads:          25
-  mpm.max_spare_threads:      75
-  mpm.thread_limit:           64
-  mpm.threads_per_child:      25
-  mpm.max_clients:           150
-  mpm.max_requests_per_child:  0
+  log:
+    error_file: '/var/log/apache2/error.log'
+    access_file: '/var/log/apache2/access.log'
 
-# Create virtual hosts
-###
+  port:
+    http: 80
+    https: 443
 
-# Disable listing of directory content and searching for files on
-# incorrect filenames
-docroot_options: '-Indexes -MultiViews'
-create_docroot: true
-remove_docroot: false
-local_only: false
-ssl:
-  enabled: false
-  only: false
-  certificate_file: false
-  certificate_key_file: false
-  certificate_chain_file: false
-  options: '+FakeBasicAuth +StrictRequire'
-vhost_server_alias: false
-vhost_include: []
+  # Setup wildcard subdomains.
+  wildcard_subdomains: true
 
-# Default snakeoil certificate from ssl-cert package.
-snakeoil:
-  certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
-  key: /etc/ssl/private/ssl-cert-snakeoil.key
+  # apache2.conf
+  ###
+
+  config:
+    timeout: 300
+    keepalive:
+      enabled: On
+      requests: 100
+      timeout: 2
+
+    mpm:
+      mpm_start_servers:       2
+      min_spare_threads:      25
+      spare_threads:          25
+      max_spare_threads:      75
+      thread_limit:           64
+      threads_per_child:      25
+      max_clients:           150
+      max_requests_per_child:  0
+
+  # Used for creating the default virtual host of the server.
+  ###
+
+  ssl:
+    enabled: true
+    certificate_file: '{{ snakeoil.certificate }}'
+    certificate_key_file: '{{ snakeoil.key }}'
+    certificate_chain_file: false

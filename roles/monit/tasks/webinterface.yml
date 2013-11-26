@@ -4,11 +4,6 @@
 # Description: Set up monit webinterface
 #
 # Parameters:
-# - webinterface.enabled: Enable the webinterface for monit (default: false)
-# - webinterface.rw_group: A user group which has read and write access (default: sudo)
-# - webinterface.r_group: A user group which has read only access (default: admin)
-# - webinterface.port: Port for webinterface to listen to (default: 2812)
-# - webinterface.bind: Address to bind to (default: 0.0.0.0)
 #
 # Dependencies:
 # - tasks:main
@@ -20,36 +15,44 @@
 #
 ###############################################################################
 
-- name: monit | Setup Webinterface: /etc/monit/conf.d/webinterface
+- name: "webinterface | Configure: /etc/monit/conf.d/webinterface"
   template:
     src=webinterface.j2
     dest=/etc/monit/conf.d/webinterface
+    owner=root group=root
   notify: restart monit
-  when: webinterface.enabled
+  when: monit.webinterface.enabled
   tags:
-    - config
-    - enable
+    - webinterface
+    - monit
 
-- name: monit | Disable webinterface: delete /etc/monit/conf.d/webinterface
+- name: "webinterface | Disable webinterface: /etc/monit/conf.d/webinterface"
   file:
     path=/etc/monit/conf.d/webinterface
     state=absent
   notify: restart monit
-  when: not webinterface.enabled
+  when: not monit.webinterface.enabled
   tags:
-    - config
-    - disable
+    - webinterface
+    - monit
 
-- name: Monit | Add RW Group: {{ webinterface.rw_group }}
+- name: webinterface | Add groups
   group:
-    name={{ webinterface.rw_group }}
+    name={{ item }}
     state=present
+  with_items:
+    - monit.webinterface.rw_group
+    - monit.webinterface.r_group
   tags:
-    - acl
+    - webinterface
+    - monit
 
-- name: Monit | Add R Group: {{ webinterface.r_group }}
-  group:
-    name={{ webinterface.r_group }}
-    state=present
+- include: ../../pound/tasks/join-cert-key.yml
+  vars:
+    certificate: '{{ monit.ssl.certificate }}'
+    private_key: '{{ monit.ssl.private_key }}'
+    output: '{{ monit.ssl.combined_cert }}'
+  when: monit.webinterface.enabled
   tags:
-    - acl
+    - webinterface
+    - monit

@@ -1,0 +1,15 @@
+<?php
+
+$databases = array(
+  'default' => array(
+    'default' => array(
+      'database' => '{{ item.db.name }}',
+      'username' => '{{ item.db.username }}',
+      'password' => '{{ lookup("password", inventory_dir + "/credentials/" + ansible_hostname + "/" + item.db.username + "/mariadb_password") }}',
+      'host' => 'localhost',
+      'port' => '',
+      'driver' => 'mysql',
+      'prefix' => '',
+    ),
+  ),
+);

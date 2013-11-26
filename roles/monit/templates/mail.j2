@@ -51,9 +51,9 @@
 # set alert sysadm@foo.bar                       # receive all alerts
 # set alert manager@foo.bar only on { timeout }  # receive just service-
 #                                                # timeout alert
-{% for mail in mail.alerts %}
+{% for mail in monit.mail.alerts %}
   set alert {{ mail }}
 {% endfor %}
-{% for mail in mail.timeouts %}
+{% for mail in monit.mail.timeouts %}
   set alert {{ mail }} only on { timeout }
 {% endfor %}

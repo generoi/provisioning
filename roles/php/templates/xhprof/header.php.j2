@@ -2,7 +2,7 @@
  /*
   * Taken from: http://talks.php.net/show/confoo10/11
   */
-    include '{{ pecl_install_dir }}/xhprof_lib/utils/xhprof_lib.php';
-    include '{{ pecl_install_dir }}/xhprof_lib/utils/xhprof_runs.php';
+    include '{{ php.pecl.install_dir }}/xhprof_lib/utils/xhprof_lib.php';
+    include '{{ php.pecl.install_dir }}/xhprof_lib/utils/xhprof_runs.php';
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 

@@ -8,7 +8,10 @@
     name=denyhosts
     state=restarted
 
-- name: restart sshd
+- name: restart ssh
   service:
-    name=sshd
+    name=ssh
     state=restarted
+
+- name: reload sysctl
+  command: sysctl -p

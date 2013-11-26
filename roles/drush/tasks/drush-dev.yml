@@ -11,10 +11,6 @@
 # - https://drupal.org/project/coder
 #
 # Parameters:
-# - dir: Directory of drush configurations (default: /var/local/etc/drush).
-# - modules: Modules to install globally
-#   (default: cacheaudit, drush-hosts, clean_missing_modules, module_builder,
-#   coder)
 #
 # Dependencies:
 # - tasks:main
@@ -28,44 +24,37 @@
 #
 ###############################################################################
 
-
-- name: Drush | Development | Install modules to {{ dir }}
-  command:
-    drush dl -y {{ item }} --destination={{ dir }}/
-    creates={{ dir }}/{{ item }}
-  with_items: dev.modules
-  notify: cache-clear drush
-  tags:
-    - drush-dev
-    - install
+- include: package.yml
+  vars:
+    packages: '{{ drush.dev.modules }}'
+    dir: '{{ drush.dir }}'
 
 # Module Builder
 ###
-- name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
+
+- name: "module builder | config | Set to write code by default: drushrc.php"
   lineinfile:
-    dest={{ dir }}/drushrc.php
-    regexp="^\$command_specific\['mb-build'\]\['write'\]"
-    line="\$command_specific['mb-build']['write'] = TRUE;" # @TODO interpolation?
+    dest={{ drush.dir }}/drushrc.local.php
+    line="\$command_specific['mb-build']['write'] = TRUE;"
     state=present
   tags:
     - drush-dev
     - module_builder
     - config
 
-- name: Drush | Module Builder | Check if hook directory is present: {{ dir }}/hooks
+- name: "module builder | config | Check if hook directory is present: {{ drush.dir }}/hooks"
   file:
-    path={{ dir }}/hooks
+    path={{ drush.dir }}/hooks
     state=directory
   tags:
     - drush-dev
     - module_builder
     - config
 
-- name: Drush | Module Builder | Add hooks data directory to {{ dir }}/drushrc.php
+- name: "module builder | config | Add hooks data directory: drushrc.php"
   lineinfile:
-    dest={{ dir }}/drushrc.php
-    regexp="^\$options\['data'\]"
-    line="\$options['data'] = {{ dir }}/hooks;" #@TODO interpolation?
+    dest={{ drush.dir }}/drushrc.local.php
+    line="\$options['data'] = \"{{ drush.dir }}/hooks;\""
     state=present
   tags:
     - drush-dev
@@ -74,18 +63,19 @@
 
 # Coder
 ###
-- name: Drush | Coder | Find out pear php_dir
+- name: coder | Find out pear php_dir
   command: pear config-get php_dir
+  changed_when: false
   register: php_dir
   tags:
     - drush-dev
     - coder
     - config
 
-- name: Drush | Coder | Symlink Drupal CoderSniffer standard to PHPCS standards: {{ src }}/coder/code_sniffer/Drupal -> {{ php_dir.output }}/PHP/CodeSniffer/Standards/Drupal
+- name: coder | config | Symlink Drupal CoderSniffer standard to PHPCS standards
   file:
-    src={{ dir }}/coder/coder_sniffer/Drupal
-    dest={{ php_dir.output }}/PHP/CodeSniffer/Standards/Drupal
+    src={{ drush.dir }}/coder/coder_sniffer/Drupal
+    dest={{ php_dir.stdout }}/PHP/CodeSniffer/Standards/Drupal
     state=link
   tags:
     - drush-dev

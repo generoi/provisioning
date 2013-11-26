@@ -1,0 +1,36 @@
+---
+# Part: UFW
+#
+# Description: Allow a service for the firewall
+#
+# Parameters:
+# - name: service/port to allow
+# - enabled (default: true)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: "ufw | Allow services/ports: {{ name }}"
+  command: ufw allow {{ name }}
+  when: enabled|default(true)
+  register: result
+  changed_when: "'Skipping' not in result.stdout"
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: "ufw | Disallow services/ports: {{ name }}"
+  command: ufw delete allow {{ name }}
+  register: result
+  changed_when: "'Could not delete non-existent rule' not in result.stdout"
+  when: not enabled|default(true)
+  tags:
+    - ufw
+    - config
+    - enable

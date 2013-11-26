@@ -6,7 +6,7 @@ check process apache2 with pidfile /var/run/apache2.pid
   stop program = "/etc/init.d/apache2 stop"
 
   if children > 250 then restart
-  if failed host {{ ansible_host }} port {{ apache.port }} protocol http and request "/" then restart
+  # if failed host {{ ansible_fqdn }} port {{ port|default('80') }} protocol http and request "/" then restart
   if cpu > 60% for 2 cycles then alert
   if cpu > 80% for 5 cycles then restart
   if loadavg(5min) greater than 10 for 8 cycles then stop

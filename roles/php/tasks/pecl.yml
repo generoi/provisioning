@@ -6,6 +6,7 @@
 # Parameters:
 # - package
 # - version: string, beta, alpha
+# - stdin
 #
 # Dependencies:
 #
@@ -15,9 +16,8 @@
 # File modifications:
 #
 ###############################################################################
----
 
-- name: PHP | PECL | Ensure PHP development packages are installed: php5-dev, php-pear, make
+- name: pecl | Ensure PHP development packages are installed
   apt:
     pkg={{ item }}
     state=present
@@ -26,30 +26,35 @@
     - php-pear
     - make
 
-- name: PHP | PECL | Test for previous {{ package }} install
+- name: "pecl | Test for previous {{ package }} install"
   shell:  pecl list | grep -i '{{ package }}'
   register: php_package_exists
-  ignore_errors: yes
+  changed_when: php_package_exists.rc != 0
+  ignore_errors: true
 
-- name: PHP | PECL | Install {{ package }}-{{ version }}
-  command: pecl install {{ package }}-{{ version }}
+- name: "pecl | Install {{ package }}-{{ version }}"
+  shell:
+    printf "{{ stdin|default('\n') }}" | pecl install {{ package }}-{{ version }}
+  register: result
   when: php_package_exists|failed
 
-- name: PHP | PECL | Set {{ package }} config (Ubuntu == 12.04)
+- name: "pecl | Set {{ package }} config (Ubuntu == 12.04)"
   template:
-    src={{ package }}.ini.j2
+    src=conf.d/{{ package }}.ini.j2
     dest=/etc/php5/conf.d/{{ package }}.ini
+    owner=root group=root
   when: ansible_lsb.release == "12.04"
   notify: restart php
 
-- name: PHP | PECL | Set {{ package }} config (Ubuntu > 12.04)
+- name: "pecl | Set {{ package }} config (Ubuntu > 12.04)"
   template:
-    src={{ package }}.ini.j2
+    src=conf.d/{{ package }}.ini.j2
     dest=/etc/php5/mods-available/{{ package }}.ini
+    owner=root group=root
   when: ansible_lsb.release != "12.04"
   notify: restart php
 
-- name: PHP | PECL | Set symbolic link to {{ package }} config (Ubuntu > 12.04)
+- name: "pecl | Set symbolic link to {{ package }} config (Ubuntu > 12.04)"
   file:
     src=/etc/php5/mods-available/{{ package }}.ini
     dest=/etc/php5/conf.d/20-{{ package }}.ini

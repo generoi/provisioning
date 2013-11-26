@@ -1,29 +1,9 @@
 ---
 # Part: Monit
 #
-# Description: Set up monit and specified monitoring services.
-#
-# Supported monitors:
-# - apache
-# - cron
-# - mysql
-# - postfix
-# - sshd
-# - rsyslogd
-# - varnish
-# - newrelic-sysmond
-# - pound
-# - ntp
+# Description: Set up monit
 #
 # Parameters:
-# - enabled (default: true)
-# - services: List of service names to monitor (default: [])
-# - webinterface.install (default: false)
-# - mail.install (default: false)
-#
-# - config.daemon (default: 120)
-# - config.daemon_delay (default: 120)
-# - config.log_facility (default: log_local5)
 #
 # Dependencies:
 #
@@ -36,63 +16,53 @@
 #
 ###############################################################################
 
-- name: Monit | Install required packages.
+- name: install | Install monit package
   apt:
     pkg=monit
     state=present
   tags:
     - install
 
-- name: Monit | Configure monit to start: /etc/default/monit
-  lineinfile:
-    dest=/etc/default/monit
-    regexp="^startup"
-    line="statup={{ enabled }}"
-  tags:
-    - config
-
-- name: Monit | Confiugre monit: /etc/monitrc
+- name: "config | Configure monit: /etc/monitrc"
   template:
     src=monitrc.j2
-    dest=/etc/monitrc
+    dest=/etc/monit/monitrc
+    owner=root group=root
   notify: restart monit
   tags:
     - config
 
 - include: webinterface.yml
-  when: webinterface.install
+  when: monit.webinterface.install
 
 - include: mail.yml
-  when: mail.install
-
-- name: Monit | Create monitors
-  template:
-    src=monitors/{{ item }}.j2
-    dest=/etc/monit/conf.d/{{ item }}
-  with_items: services
-  notify: restart monit
-  tags:
-    - config
-
-- name: Monit | Start monit service and enable autostart
-  service:
-    name=monit
-    state=started
-    enabled=yes
-  when: enabled
-  tags:
-    - service
-    - enable
-
-- name: Monit | Shutdown monit service and disable autostart
-  service:
-    name=monit
-    state=stopped
-    enabled=no
-  when: not enabled
-  tags:
-    - service
-    - disable
+  when: monit.mail.install
 
 - name: Monit | Verify configurations are valid
   command: monit -t
+  changed_when: false
+
+# General management
+###
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: monit
+    enabled: "{{ monit.enabled }}"
+    set_default: true
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: monit
+    logs: '{{ monit.log.file }}'
+    special: weekly
+    maxage: 30
+    enabled: "{{ monit.enabled }}"
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: monit
+    mode: facility
+    facility: '{{ monit.log.facility }}.*'
+    output: '{{ monit.log.file }}'
+    enabled: "{{ monit.enabled }}"

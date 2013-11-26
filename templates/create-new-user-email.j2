@@ -1,0 +1,105 @@
+{% if account_type == 'admin' %}
+Howdy {{ fullname }}, welcome to Genero.
+
+Your temporary password is: {{ password.stdout }}
+You should change this asap, both for you server account and your mysql account.
+
+SERVER
+======
+
+Host: {{ ansible_fqdn }}
+IP:   {{ ip  }}
+SFTP: {{ ansible_fqdn }} (You have to connect using sftp, regular ftp is disabled)
+
+
+PASSWORDLESS LOGIN
+==================
+
+The following should be run on your own computer.
+
+To activate passwordless login begin by creating your key pair (you can skip
+this if you already have a key pair):
+$ ssh-keygen -t rsa -N ''
+
+Now transfer the key to {{ hostname }} by running (Linux):
+$ ssh-copy-id {{ username }}@{{ ansible_fqdn }}
+Or Mac:
+$ cat ~/.ssh/id_rsa.pub | ssh {{ username }}@{{ ansible_fqdn }} \"cat >> ~/.ssh/authorized_keys\"
+
+And finally, to be able to simply run \"ssh {{ hostname }}\" run the following:
+$ echo -e \"\n\nHost {{ hostname }}\n  HostName {{ ansible_fqdn }}\n  User {{ username }}\" >> ~/.ssh/config
+
+Henceforth everything should be run while signed on to {{ hostname }}.
+
+
+SERVER PASSWORD
+===============
+
+To change your server password sign in and issue the command:
+$ passwd
+
+To change your mysql password run the following command (NOTE THE EXTRA SPACE
+before the command, without it your password will be stored in .bash_history):
+$  mysql -u {{ username }} -p{{ password.stdout }} <<<\"SET PASSWORD FOR '{{ username }}'@'localhost' = PASSWORD('YOUR_NEW_PASSWORD');\"
+
+
+GITHUB ACCESS
+=============
+
+We've automatically added your github account information to your bash files,
+however you need to upload your generated public key from
+/home/{{ username }}/.ssh/id_rsa.pub to github.
+
+Copy the public key which you can see using:
+$ cat ~/.ssh/id_rsa.pub
+
+Paste this string, \"ssh-rsa ............ = {{ username }}@...\", in at
+https://github.com/settings/ssh
+
+
+YOUR WEB SPACE
+==============
+
+We have created a directory for you at /var/www/u/{{ username }}/, once you create a
+folder within it, say /var/www/u/{{ username }}/mywebsite, it will be visible to
+everyone at http://mywebsite.{{ username }}.{{ ansible_fqdn }}
+
+
+DOTFILES
+========
+
+Your shell has been set up with some sane defaults. To learn more about what's
+different take a look at the repository README at:
+https://github.com/generoi/dotfiles#functions-and-aliases
+
+
+ACCESSING OUR INTERNAL SITES
+============================
+
+For security reasons accessing interfaces such as PHPMyAdmin, APC, Webgrind and
+xdebug is only allowed for localhost itself. To access these you must therefore
+use ssh tunneling (port forwarding) and forward one of your local ports to to
+the development server.
+
+Run the following on your own computer:
+$ ssh -L4545:localhost:443 localhost.{{ ansible_fqdn }} -N
+Point your browser to `https://localhost:4545` and there you go (Note HTTPS!).
+
+As this same setup is used accross many of our managed server you might
+consider adding the following bash function (and bash completion) to your
+shell path: https://gist.github.com/7708658
+
+// If you have any questions poke Oskar och Christoffer
+// Genero
+{% else %}
+Hello {{ fullname }}, welcome to {{ ansible_fqdn }}.
+
+Your temporary password is: {{ password.stdout }}
+You should change this as soon as possible by signing in and issuing the
+command: passwd
+
+Host: {{ ansible_fqdn }}
+IP:   {{ ip }}
+
+// Genero
+{% endif %}

@@ -5,7 +5,7 @@
 #
 # Parameters:
 # - users: A list of user dictionaries, each with the properties:
-#   username, fullname, groups
+#   username, fullname, groups, email
 #
 # Dependencies:
 # - tasks:main
@@ -16,14 +16,23 @@
 #
 ###############################################################################
 
-- name: User | Managed | Create user accounts
+- name: Managed users | Create user groups
+  group:
+    name={{ item[1] }}
+    state=present
+  with_subelements:
+    - users
+    - groups
+
+- name: Managed users | Create user accounts
   user:
-    name={{ item.username }}
-    comment={{ item.fullname }}
-    groups={{ item.groups }}
-    password={{ lookup('password', 'credentials/' + hostname + '/' + item.username + '/user_password length=15 encrypt=sha512_crypt') }}
+    name="{{ item.username }}"
+    comment="{{ item.fullname }}"
+    groups="{{ item.groups|join(',') }}"
+    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + item.username + '/user_password length=15 encrypt=sha512_crypt') }}
     generate_ssh_key=yes
-    ssh_key_bits=2048
+    ssh_key_comment={{ item.email }}
+    update_password=always
     state=present
   with_items: users
 

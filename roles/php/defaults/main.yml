@@ -1,65 +1,62 @@
 ---
-# Enables logging amongst other things
-development: false
-
-# PHP configurations
-###
 php:
-  max_execution_time: 30
-  memory_limit: 256M
-  max_size: 8M
-  upload_max_filesize: 10M
-  max_file_uploads: 20
-  post_max_size: 10M
+  # Enables logging amongst other things
+  development: true
 
-pecl:
-  install_dir: /usr/share/php
+  # PHP configurations
+  ###
+  config:
+    max_execution_time: 30
+    memory_limit: 256M
+    max_size: 8M
+    upload_max_filesize: 10M
+    max_file_uploads: 20
+    post_max_size: 10M
+    syslog: true
 
-pear:
-  install: true
+  pecl:
+    install_dir: /usr/share/php
 
-phpqatools:
-  install: true
+  phpqatools:
+    install: true
 
-composer:
-  install: true
+  composer:
+    install: true
+    dir: /usr/local/bin
 
-# XDebug
-###
-xdebug:
-  install: true
-  enable: true
-  webgrind:
-    tarball: https://github.com/jokkedk/webgrind/archive/master.tar.gz
-    sha256sum: f4d73d0b4e327280b43ea6b96f8f64418b28a3d4ea7fcdef1a9759c64845cd58
+  # XDebug
+  ###
+  xdebug:
+    install: true
+    enabled: true
 
-# XHprof configurations
-###
-xhprof:
-  install: true
-  enabled: true
-  # Referenced in templates/xhprof/footer.php.j2
-  url: https://localhost.{{ hostname }}/xhprof
-  # Where xhprof analysis data is placed, we dont use /tmp as it's cleared on
-  # boot, instead we use cron to clean up.
-  output_dir: /opt/xhprof/output
+  # XHprof configurations
+  ###
+  xhprof:
+    install: true
+    enabled: true
+    # Referenced in templates/xhprof/footer.php.j2
+    url: https://localhost.{{ ansible_fqdn }}/xhprof
+    # Where xhprof analysis data is placed, we dont use /tmp as it's cleared on
+    # boot, instead we use cron to clean up.
+    output_dir: /opt/xhprof/output
 
-# APC configurations
-###
-apc:
-  install: true
-  enabled: 1
-  frontend_archive: /usr/share/doc/php-apc/apc.php.gz
-  shm_segments: 1
-  shm_size: 256M
-  num_files_hint: 3000
-  ttl: 0
-  user_ttl: 7200
-  gc_ttl: 3600
-  cache_by_default: 1
-  filters: '/opt/apc/index.php,/opt' # Comma separated list of files to filter (read apc.ini)
-  mmap_file_mask: '/tmp/apc.XXXXXX'
-  max_file_size: 8M
-  write_lock: 1
-  report_autofilter: 1
-  include_once_override: 1
+  # APC configurations
+  ###
+  apc:
+    install: true
+    enabled: true
+    frontend_archive: /usr/share/php/apc.php
+    shm_segments: 1
+    shm_size: 256M
+    num_files_hint: 3000
+    ttl: 0
+    user_ttl: 7200
+    gc_ttl: 3600
+    cache_by_default: 1
+    filters: '/opt/apc/index.php,/opt' # Comma separated list of files to filter (read apc.ini)
+    mmap_file_mask: '/tmp/apc.XXXXXX'
+    max_file_size: 8M
+    write_lock: 1
+    report_autofilter: 1
+    include_once_override: 1

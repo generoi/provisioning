@@ -1,0 +1,27 @@
+# {{ ansible_managed }}
+# {{ name }}
+{{ logs }} {
+{% if size is defined %}
+  size {{ size }}
+{% endif %}
+{% if special is defined %}
+  {{ special }}
+{% endif %}
+  maxage {{ maxage|default('30') }}
+
+  missingok
+  compress
+  delay compress
+  notifempty
+  create 664 {{ owner|default(rsyslog.owner) }} {{ group|default(rsyslog.group) }}
+  sharedscripts
+
+  # timestamped filenaming
+  dateext
+
+{% if postrotate is defined %}
+  postrotate
+    {{ postrotate }}
+  endscript
+{% endif %}
+}

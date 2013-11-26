@@ -4,9 +4,6 @@
 # Description: Install common packages used for development servers
 #
 # Parameters:
-# - nodejs.install (default: true)
-# - ruby.install (default: true)
-# - common.install (default: true)
 #
 # Dependencies:
 #
@@ -15,9 +12,20 @@
 # File modifications:
 #
 ###############################################################################
+
 - include: common.yml
-  when: common.install
+
+- include: vim.yml
+  when: development.vim.install
+
 - include: ruby.yml
-  when: ruby.install
+  vars:
+    packages: '{{ development.ruby.gems }}'
+    global: true
+  when: development.ruby.install
+
 - include: nodejs.yml
-  when: nodejs.install
+  vars:
+    packages: '{{ development.nodejs.packages }}'
+    global: true
+  when: development.nodejs.install

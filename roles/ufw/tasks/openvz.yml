@@ -1,0 +1,68 @@
+---
+- name: config | Disable ipv6
+  lineinfile:
+    dest=/etc/default/ufw
+    regexp="^IPV6="
+    line="IPV6=no"
+    state=present
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - enable
+
+- name: config | Disable modules OpenVZ doesnt support
+  lineinfile:
+    dest=/etc/default/ufw
+    regexp="^IPT_MODULES="
+    line="IPT_MODULES=\"\""
+    state=present
+  notify: restart ufw
+  tags:
+    - ufw
+    - config
+    - disable
+
+- name: config | Disable ufw after.rules not supported by OpenVZ kernel
+  lineinfile:
+    dest=/etc/ufw/after.rules
+    regexp="^#?{{ item }}"
+    line="#{{ item }}"
+    state=present
+  notify: restart ufw
+  with_items:
+    - "-A ufw-after-input -m addrtype --dst-type BROADCAST -j ufw-skip-to-policy-input"
+  tags:
+    - ufw
+    - config
+    - disable
+
+- name: config | Disable ufw before.rules not supported by OpenVZ kernel
+  lineinfile:
+    dest=/etc/ufw/before.rules
+    regexp="^#?{{ item }}"
+    line="#{{ item }}"
+    state=present
+  notify: restart ufw
+  with_items:
+    - "-A ufw-not-local -m addrtype --dst-type LOCAL -j RETURN"
+    - "-A ufw-not-local -m addrtype --dst-type MULTICAST -j RETURN"
+    - "-A ufw-not-local -m addrtype --dst-type BROADCAST -j RETURN"
+    - "-A ufw-not-local -m limit --limit 3/min --limit-burst 10 -j ufw-logging-deny"
+    - "-A ufw-not-local -j DROP"
+  tags:
+    - ufw
+    - config
+
+- name: config | OpenVZ has issues the "-m comment" args that ufw adds, so do this manually
+  lineinfile:
+    dest=/etc/ufw/before.rules
+    line="{{ item }}"
+    state=present
+    insertbefore="COMMIT"
+  notify: restart ufw
+  with_items:
+    - "-A ufw-before-input -p tcp --dport 22 -j ACCEPT"
+  tags:
+    - ufw
+    - config

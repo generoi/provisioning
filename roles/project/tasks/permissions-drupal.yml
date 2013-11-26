@@ -1,0 +1,34 @@
+- name: drupal | permissions | Set general directory permissions
+  raw: >
+    file {{ item.docroot }} -type d ! -perm 755 \
+      ! -iwholename '*sites/*/files*' \
+      -exec chmod 755 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  when: project.permissions.dir
+  with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+
+- name: drupal | permissions | Set general file permissions
+  raw: >
+    file {{ item.docroot }} -type f ! -perm 644 \
+      ! -iwholename '*sites/*/files*' \
+      -exec chmod 644 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  when: project.permissions.file
+  with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+
+- name: drupal | permissions | Set directory permissions of files directory
+  raw: >
+    file {{ item.docroot }}/sites/default/files -type d ! -perm 775 \
+      -exec chmod 775 {} \; \
+      -exec chown {{ web.owner }}:{{ web.group }} {} \;
+  when: project.permissions.uploads
+  with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+
+- name: drupal | permissions | Set file permissions of files directory
+  raw: >
+    file {{ item.docroot }}/sites/default/files -type f ! -perm 664 \
+      -exec chmod 664 {} \; \
+      -exec chown {{ web.owner }}:{{ web.group }} {} \;
+  when: project.permissions.uploads
+  with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+

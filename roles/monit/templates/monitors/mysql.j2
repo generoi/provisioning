@@ -5,7 +5,7 @@ check process mysql with pidfile /var/run/mysqld/mysqld.pid
   start program = "/etc/init.d/mysql start"
   stop program = "/etc/init.d/mysql stop"
 
-  if failed host 127.0.0.1 port {{ mysql.port }} then restart
+  if failed host 127.0.0.1 port {{ port|default('3306') }} then restart
   if failed unix "/var/run/mysqld/mysqld.sock" then restart
   if cpu > 60% for 2 cycles then alert
   if cpu > 80% for 5 cycles then restart

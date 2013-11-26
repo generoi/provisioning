@@ -1,0 +1,24 @@
+- hosts: secure:&wordpress
+  vars:
+    hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_eth0.ipv4.address }}'
+
+  tasks:
+    - include: tasks/permissions-wordpress.yml
+
+    - name: Security | Check for possible exploits
+      script: files/detect-exploits.sh "{{ item.docroot }}" wordpress
+      with_items: sites
+      when: secure.exploits
+
+- hosts: secure:&drupal
+  vars:
+    hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_eth0.ipv4.address }}'
+  tasks:
+    - include: tasks/permissions-drupal.yml
+
+    - name: Security | Check for possible exploits
+      script: files/detect-exploits.sh "{{ item.docroot }}" drupal
+      with_items: sites
+      when: secure.exploits

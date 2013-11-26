@@ -4,16 +4,6 @@
 # Description: Sets up the PHP agent for New Relic
 #
 # Parameters:
-# - license
-# - php.enabled: Whether to enable the service or not (default: true)
-# - php.loglevel (default: info)
-# - php.logfile (default: /var/log/newrelic/php_agent.log)
-# - php.daemon_logfile (default: /var/log/newrelic/php_daemon.log)
-# - php.browser_monitoring_auto_instrument (default: 1)
-# - php.drupal_modules (default: 1)
-# - php.error_collector_record_database_error (default: 1)
-# - php.error_collector_include_notices (default: 1)
-# - php.analytics_events (default: 1)
 #
 # Dependencies:
 # - tasks:main
@@ -25,7 +15,7 @@
 #
 ###############################################################################
 
-- name: New Relic | PHP | Install agent
+- name: php | Install agent
   apt:
     pkg=newrelic-php5
     state=present
@@ -33,12 +23,40 @@
     - install
     - php
 
-- name: New Relic | PHP | Configure: /etc/php5/conf.d/newrelic.ini
+- name: "php | Configure: /etc/php5/conf.d/newrelic.ini"
   template:
     src=newrelic.ini.j2
     dest=/etc/php5/conf.d/newrelic.ini
-    owner=root group=newrelic mode=0644
+    owner=root group=newrelic
   notify: restart apache
   tags:
     - config
     - php
+
+# General management
+###
+
+# @TODO monit?
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: newrelic
+    size: 10M
+    special: weekly
+    maxage: 30
+    logs: '{{ newrelic.php.logfile }} {{ newrelic.php.daemon_logfile }}'
+    enabled: '{{ newrelic.php.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: newrelic-php-agent
+    mode: filemonitor
+    logfile: '{{ newrelic.php.logfile }}'
+    enabled: '{{ newrelic.php.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: newrelic-php-daemon
+    mode: filemonitor
+    logfile: '{{ newrelic.php.daemon_logfile }}'
+    enabled: '{{ newrelic.php.enabled }}'

@@ -1,0 +1,5 @@
+---
+mariadb_apt_key: http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xcbcb082a1bb943db
+pma_install:
+  tarball: http://files.directadmin.com/services/all/phpMyAdmin/phpMyAdmin-4.0.9-all-languages.tar.gz
+  sha256sum: e7d22f3af3e0e363a6330f464a5f1cdd76f20bc5bcf0f980585d517c1ea4a80d

@@ -1,0 +1,62 @@
+---
+# Part: User
+#
+# Description: Install/update dotfiles for user accounts
+#
+# Parameters:
+# - users: A list of user dictionaries, each with the properties:
+#   username, fullname
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+# - /home/{{ username }}/.dotfiles
+# - /home/{{ username }}/.*
+#
+# File modifications:
+#
+###############################################################################
+
+- name: "dotfiles | Get dotfiles for user: ~/.dotfiles"
+  git:
+    repo={{ dotfiles_repository }}
+    dest=/home/{{ item.username }}/.dotfiles
+    force=no
+  ignore_errors: true
+  register: fetched_dotfiles
+  with_items: users
+
+- name: dotfiles | Install dotfiles
+  shell: >
+    if [ -f "bootstrap.sh" ]; then sudo sudo su {{ item.username }} ./bootstrap.sh; fi
+    chdir=/home/{{ item.username }}/.dotfiles
+  changed_when: false
+  when: fetched_dotfiles|success and fetched_dotfiles|changed
+  with_items: users
+
+- name: "dotfiles | Make sure ~/.bash exists"
+  file:
+    path=/home/{{ item.username }}/.bash
+    state=directory
+    owner={{ item.username }} group={{ item.username }}
+  when: fetched_dotfiles|success
+  with_items: users
+
+- name: "dotfiles | Set user information: ~/.bash/local.sh"
+  template:
+    src=local.sh.j2
+    dest=/home/{{ item.username }}/.bash/local.sh
+    force=no
+  when: fetched_dotfiles|success
+  with_items: users
+
+- name: "dotfiles | Change owner of dotfiles"
+  file:
+    path=/home/{{ item[0].username }}/{{ item[1] }}
+    recurse=yes
+    owner={{ item[0].username }} group={{ item[0].username }}
+  when: fetched_dotfiles|success
+  with_nested:
+    - users
+    - ['.dotfiles', '.bash/local.sh']

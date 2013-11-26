@@ -13,10 +13,10 @@
 #
 ###############################################################################
 
-- name: User | Delete user accounts
+- name: Delete user accounts
   user:
     name={{ item.username }}
-    remove={{ remove_home }}
+    remove={{ remove_home|default('yes') }}
     state=absent
   with_items: users
   tags:

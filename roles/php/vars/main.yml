@@ -1,0 +1,8 @@
+---
+composer_install:
+  script: https://getcomposer.org/installer
+  sha256sum: f12d2f54bad96e72605f16d36b833beb013ddafc6f7dc45e0485af74b34bcd05
+
+webgrind_install:
+  tarball: https://github.com/jokkedk/webgrind/archive/master.tar.gz
+  sha256sum: f4d73d0b4e327280b43ea6b96f8f64418b28a3d4ea7fcdef1a9759c64845cd58

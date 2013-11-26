@@ -1,27 +1,13 @@
 ---
 # Part: Pound
 #
-# Description: Concatenate a certificate file and a private key file into a
-# combined certificate as required by pound.
+# Description:
 #
 # Parameters:
-# - enabled: true
-# - certificate: Pound certificate (default: snakeoil)
-# - private_key: Pound private key (default: snakeoil)
-# - combined_cert: The combined output certificate. If this exists from before
-#   the other parameters in this set should be set to false.
-# - join_cert_key: Join the $certificate with the
-#   $private_key and output to $combined_cert (default: true).
-#
-# - user: User for pound (default: www-data).
-# - group: User group for pound (default: www-data).
-# - alive_check: How often to check if backend is alive (default: 30)
-# - port: The port to listen to (default: 443)
-# - backend_addr: The backend address (default: 127.0.0.1)
-# - backend_port: The backend port (default: 80)
 #
 # Dependencies:
 # - tasks:join-cert-key
+# - ufw:tasks:entry
 #
 # Creates:
 #
@@ -30,44 +16,66 @@
 #
 ###############################################################################
 
-- name: Pound | Install package: pound
+- name: install | Install package pound
   apt:
-    pkg=pound
+    pkg={{ item }}
     state=present
+  with_items:
+    - ssl-cert
+    - pound
   tags:
     - install
 
 - include: join-cert-key.yml
   vars:
-    certificate: certificate
-    private_key: private_key
-    output: combined_cert
-  when: join_cert_key
+    certificate: '{{ pound.ssl.certificate }}'
+    private_key: '{{ pound.ssl.private_key }}'
+    output: '{{ pound.ssl.combined_cert }}'
+  when: pound.join_cert_key
+  tags:
+    - config
 
-- name: Pound | Configure Pound: /usr/local/etc/pound.cfg
+- name: "config | Configure Pound: /usr/local/etc/pound.cfg"
   template:
     src=pound.cfg.j2
-    dest=/usr/local/etc/pound.cfg
+    dest=/etc/pound/pound.cfg
+    owner=root group=root
   notify: restart pound
   tags:
     - config
 
-- name: Pound | Start service and enable autostart
-  service:
-    name=pound
-    state=started
-    enabled=yes
-  when: enabled
-  tags:
-    - service
-    - enable
+# General management
+###
 
-- name: Pound | Shutdown service and disable autostart
-  service:
-    name=pound
-    state=stopped
-    enabled=no
-  when: not enabled
-  tags:
-    - service
-    - disable
+- include: ../../common/tasks/service.yml
+  vars:
+    name: pound
+    enabled: '{{ pound.enabled }}'
+    set_default: true
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: pound
+    port: '{{ pound.port }}'
+    enabled: '{{ pound.enabled }}'
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: pound
+    logs: '{{ pound.log.file }}'
+    size: 100M
+    maxage: 30
+    enabled: '{{ pound.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: pound
+    mode: facility
+    facility: local6.*
+    enabled: '{{ pound.enabled }}'
+    output: '{{ pound.log.file }}'
+
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: '{{ pound.port }}'
+    enabled: '{{ pound.enabled }}'

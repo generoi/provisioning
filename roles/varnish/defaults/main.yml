@@ -1,24 +1,33 @@
 ---
-enabled: true
-https_enabled: true
+varnish:
+  enabled: true
+  https_enabled: true
 
-# Set to 80 for live usage
-port: 6081
-admin_port: 6082
-vcl_conf: /etc/varnish/drupal.vcl
+  # Set to 80 for live usage
+  port: 6081
+  admin_port: 6082
+  vcl_conf: /etc/varnish/drupal.vcl
 
-# Backend to grab content from
-backend_addr: 127.0.0.1
-backend_port: 8080
+  # Backend to grab content from
+  backend:
+    addr: 127.0.0.1
+    port: 8080
 
-# Memory size
-malloc_size: 1G
+  config:
+    # Memory size
+    malloc_size: 1G
 
-# Advanced
-# Based on http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
-thread_pool_add_delay: 2
-thread_pools: {{ cpu_cores.output }}
-thread_pool_min: {{ 800 // varnish_thread_pools }}
-thread_pool_max: 4000
-session_linger: 50
-sess_workspace: 262144
+    # Advanced
+    # Based on http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
+    thread_pool_add_delay: 2
+    thread_pools: '{{ cpu_cores.stdout|int }}'
+    thread_pool_min: '{{ 800 // cpu_cores.stdout|int }}'
+    thread_pool_max: 4000
+    session_linger: 50
+    sess_workspace: 262144
+
+  log:
+    # Enables syslog logging in vcl. Logs to local4
+    enabled: true
+    facility: local4 # Hardcoded into vcl files.
+    file: /var/log/varnish.log

@@ -1,38 +1,32 @@
 ---
-enabled: true
+monit:
+  enabled: true
 
-config:
-  daemon: 120
-  daemon_delay: 120
-  log_facility: log_local5
+  config:
+    daemon: 120
+    daemon_delay: 120
 
-mysql:
-  port: 3306
+  log:
+    file: '/var/log/monit.log'
+    facility: local5
 
-apache:
-  port: 80
+  # Webinterface settings
+  webinterface:
+    install: true
+    enabled: true
+    port: 2812
+    addr: localhost
+    rw_group: sudo
+    r_group: admin
 
-varnish:
-  port: 6081
+  ssl:
+    certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+    private_key: /etc/ssl/private/ssl-cert-snakeoil.key
+    combined_cert: /etc/ssl/combined/monit.pem
 
-pound:
-  port: 443
-
-# Services to monitor
-services: []
-
-# Webinterface settings
-webinterface:
-  install: false
-  enabled: false
-  port: 2812
-  bind: 0.0.0.0
-  rw_group: sudo
-  r_group: admin
-
-# Email notifications
-mail:
-  install: false
-  enabled: false
-  alerts: []
-  timeouts: []
+  # Email notifications
+  mail:
+    install: false
+    enabled: false
+    alerts: '{{ notify_email }}'
+    timeouts: '{{ notify_email }}'

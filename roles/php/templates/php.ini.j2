@@ -383,7 +383,7 @@ expose_php = On
 ; Maximum execution time of each script, in seconds
 ; http://php.net/max-execution-time
 ; Note: This directive is hardcoded to 0 for the CLI SAPI
-max_execution_time = {{ php.max_execution_time }}
+max_execution_time = {{ php.config.max_execution_time }}
 
 ; Maximum amount of time each script may spend parsing request data. It's a good
 ; idea to limit this time on productions servers in order to eliminate unexpectedly
@@ -404,7 +404,7 @@ max_input_time = 60
 
 ; Maximum amount of memory a script may consume (128MB)
 ; http://php.net/memory-limit
-memory_limit = {{ php.memory_limit }}
+memory_limit = {{ php.config.memory_limit }}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Error handling and logging ;
@@ -460,7 +460,7 @@ memory_limit = {{ php.memory_limit }}
 ; Development Value: E_ALL
 ; Production Value: E_ALL & ~E_DEPRECATED & ~E_STRICT
 ; http://php.net/error-reporting
-{% if development %}
+{% if php.development %}
 error_reporting = E_ALL
 {% else %}
 error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
@@ -481,7 +481,7 @@ error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
 ; Development Value: On
 ; Production Value: Off
 ; http://php.net/display-errors
-{% if development %}
+{% if php.development %}
 display_errors = On
 {% else %}
 display_errors = Off
@@ -496,7 +496,7 @@ display_errors = Off
 ; Development Value: On
 ; Production Value: Off
 ; http://php.net/display-startup-errors
-{% if development %}
+{% if php.development %}
 display_startup_errors = On
 {% else %}
 display_startup_errors = Off
@@ -544,7 +544,7 @@ report_memleaks = On
 ; Development Value: On
 ; Production Value: Off
 ; http://php.net/track-errors
-{% if development %}
+{% if php.development %}
 track_errors = On
 {% else %}
 track_errors = Off
@@ -601,7 +601,9 @@ html_errors = On
 ; Example:
 ;error_log = php_errors.log
 ; Log errors to syslog (Event Log on NT, not valid in Windows 95).
-;error_log = syslog
+{% if php.config.syslog %}
+error_log = syslog
+{% endif %}
 
 ;windows.show_crt_warning
 ; Default value: 0
@@ -687,7 +689,7 @@ auto_globals_jit = On
 ; Its value may be 0 to disable the limit. It is ignored if POST data reading
 ; is disabled through enable_post_data_reading.
 ; http://php.net/post-max-size
-post_max_size = {{ php.post_max_size }}
+post_max_size = {{ php.config.post_max_size }}
 
 ; Automatically add files before PHP document.
 ; http://php.net/auto-prepend-file
@@ -815,10 +817,10 @@ file_uploads = On
 
 ; Maximum allowed size for uploaded files.
 ; http://php.net/upload-max-filesize
-upload_max_filesize = {{ php.upload_max_filesize }}
+upload_max_filesize = {{ php.config.upload_max_filesize }}
 
 ; Maximum number of files that can be uploaded via a single request
-max_file_uploads = {{ php.max_file_uploads }}
+max_file_uploads = {{ php.config.max_file_uploads }}
 
 ;;;;;;;;;;;;;;;;;;
 ; Fopen wrappers ;
@@ -1238,7 +1240,7 @@ mysqlnd.collect_statistics = On
 ; Enable / Disable collection of memory usage statistics by mysqlnd which can be
 ; used to tune and monitor MySQL operations.
 ; http://php.net/mysqlnd.collect_memory_statistics
-{% if development %}
+{% if php.development %}
 mysqlnd.collect_memory_statistics = On
 {% else %}
 mysqlnd.collect_memory_statistics = Off
@@ -1511,7 +1513,7 @@ session.gc_maxlifetime = 1440
 ; Development Value: On
 ; Production Value: Off
 ; http://php.net/session.bug-compat-42
-{% if development %}
+{% if php.development %}
 session.bug_compat_42 = On
 {% else %}
 session.bug_compat_42 = Off
@@ -1524,7 +1526,7 @@ session.bug_compat_42 = Off
 ; Development Value: On
 ; Production Value: Off
 ; http://php.net/session.bug-compat-warn
-{% if development %}
+{% if php.development %}
 session.bug_compat_warn = On
 {% else %}
 session.bug_compat_warn = Off

@@ -1,0 +1,7 @@
+---
+ufw:
+  enabled: true
+  log:
+    file: '/var/log/ufw.log'
+  ipv6:
+    enable: false

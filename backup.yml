@@ -1,0 +1,90 @@
+- hosts: backup
+  vars:
+    hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_eth0.ipv4.address }}'
+    # Global flag for apache, mariadb, php
+    development: true
+    notify_email: public@oxy.fi
+    backup:
+      mariadb: /backup/mariadb
+      docroot: /backup/docroot
+  tasks:
+    # Database
+    # - daily backups stored for 7 days
+    # - weekly backups stored for 3 weeks
+    # - monthly backups stored for 12 months
+    # - yearly backups stored for 10 years
+    ###
+    - include: tasks/backup-mysql.yml
+      vars:
+        rotation: 'daily'
+        keep_count: '{{ backup.db.daily }}'
+      when: backup.db.daily is defined
+      tags:
+        - db
+        - daily
+
+    - include: tasks/backup-mysql.yml
+      vars:
+        rotation: 'weekly'
+        keep_count: '{{ backup.db.weekly }}'
+      when: backup.db.weekly is defined
+      tags:
+        - db
+        - weekly
+
+    - include: tasks/backup-mysql.yml
+      vars:
+        rotation: 'monthly'
+        keep_count: '{{ backup.db.monthly }}'
+      when: backup.db.monthly is defined
+      tags:
+        - db
+        - monthly
+
+    - include: tasks/backup-mysql.yml
+      vars:
+        rotation: 'yearly'
+        keep_count: '{{ backup.db.yearly }}'
+      when: backup.db.yearly is defined
+      tags:
+        - db
+        - yearly
+
+    # Docroot
+    ###
+    - include: tasks/backup-docroot.yml
+      vars:
+        rotation: 'daily'
+        keep_count: '{{ backup.docroot.daily }}'
+      when: backup.docroot.daily is defined
+      tags:
+        - docroot
+        - daily
+
+    - include: tasks/backup-docroot.yml
+      vars:
+        rotation: 'weekly'
+        keep_count: '{{ backup.docroot.weekly }}'
+      when: backup.docroot.weekly is defined
+      tags:
+        - docroot
+        - weekly
+
+    - include: tasks/backup-docroot.yml
+      vars:
+        rotation: 'monthly'
+        keep_count: '{{ backup.docroot.monthly }}'
+      when: backup.docroot.monthly is defined
+      tags:
+        - docroot
+        - monthly
+
+    - include: tasks/backup-docroot.yml
+      vars:
+        rotation: 'yearly'
+        keep_count: '{{ backup.docroot.yearly }}'
+      when: backup.docroot.yearly is defined
+      tags:
+        - docroot
+        - yearly

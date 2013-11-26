@@ -5,8 +5,6 @@
 # virtual host
 #
 # Parameters:
-# - pma.enabled (default: true)
-# - pma.version (default: 4.0.9)
 #
 # Dependencies:
 # - apache:tasks:main
@@ -20,74 +18,66 @@
 # - /etc/phpmyadmin/config.inc.php
 #
 ###############################################################################
-- name: MariaDB | PMA | Install dependencies
+- name: pma | Install dependencies
   apt:
     pkg={{ item }}
     state=present
   with_items:
-    - php_mcrypt
+    - php5-mcrypt
   tags:
     - phpmyadmin
     - install
 
-- name: MariaDB | PMA | Download source tarball to /tmp/phpmyadmin.tar.gz
-  get_url:
-    url={{ pma.tarball }}
-    sha256sum={{ pma.sha256sum }}
-    dest=/tmp/phpmyadmin.tar.gz
-    mode=0440
-  tags:
-    - phpmyadmin
-    - install
-
-- name: MariaDB | PMA | Create /opt/phpmyadmin
-  file:
-    path=/opt/phpmyadmin
-    state=directory
-  tags:
-    - phpmyadmin
-    - install
-
-- name: MariaDB | PMA | Extract source to /opt/phpmyadmin
-  command:
-    # Strip first directory and extract its content
-    tar -xzf /tmp/phpmyadmin.tar.gz --strip 1 -C /opt/phpmyadmin/
-    creates=/opt/phpmyadmin/index.php
-  tags:
-    - phpmyadmin
-    - install
-
-- name: MariaDB | PMA | Delete tarball /tmp/phpmyadmin.tar.gz
-  file:
-    path=/tmp/phpmyadmin.tar.gz
-    state=absent
-  tags:
-    - phpmyadmin
-    - clean
+- include: ../../common/tasks/source-install.yml
+  vars:
+    tarball: '{{ pma_install.tarball }}'
+    sha256sum: '{{ pma_install.sha256sum }}'
+    strip: 1
+    name: phpmyadmin
+    destination: /opt
+    creates: index.php
+    update: false
 
 # Manage local vhost alias /pma
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
     docroot: /opt/phpmyadmin
     alias: /pma
-    # Trigger alias deletion if disabled
-    remove: not pma.enabled
-  tags:
-    - phpmyadmin
-    - config
+    enabled: '{{ mariadb.pma.enabled }}'
 
 # Used in /etc/phpmyadmin/config.inc.php
-- name: MariaDB | PMA | Generate random blowfish secret
-  command: openssl passwd -1 -in /dev/urandom | head -1 | cut -c 20-
+- name: pma | Generate random blowfish secret
+  shell: openssl passwd -1 -in /dev/urandom | head -1 | cut -c 20-
   register: pma_blowfish_secret
+  changed_when: false
   tags:
     - phpmyadmin
     - config
 
-- name: MariaDB | PMA | Configure /etc/phpmyadmin/config.inc.php
+# This will continuasly trigger change event as secret changes.
+- name: "pma | Create: /etc/phpmyadmin"
+  file:
+    path=/etc/phpmyadmin
+    state=directory
+  tags:
+    - phpmyadmin
+    - config
+
+- name: "pma | Configure: /etc/phpmyadmin/config.inc.php"
   template:
     src=phpmyadmin/config.inc.php.j2
     dest=/etc/phpmyadmin/config.inc.php
+    owner=root group=root
+  tags:
+    - phpmyadmin
+    - config
+
+- name: "pma | Update blowfish secret: /etc/phpmyadmin/secret.inc.php"
+  template:
+    src=phpmyadmin/secret.inc.php.j2
+    dest=/etc/phpmyadmin/secret.inc.php
+    owner=root group=root
+  changed_when: false
   tags:
     - phpmyadmin
     - config

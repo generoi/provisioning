@@ -5,13 +5,6 @@
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
 #
 # Parameters:
-# - sysctl.ipspoof (default: true)
-# - sysctl.ignore_icmp_broadcasts (default: true)
-# - sysctl.disable_source_routing (default: true)
-# - sysctl.ignore_send_redirects (default: true)
-# - sysctl.synattack (default: true)
-# - sysctl.ignore_icmp_redirects (default: true)
-# - sysctl.ignore_directed_ping (default: true)
 #
 # Dependencies:
 #
@@ -21,7 +14,7 @@
 #
 ###############################################################################
 
-- name: sysctl | IP Spoofing protection
+- name: sysctl | IP Spoofing protection (enables RFC-reccomended source validation)
   sysctl:
     name={{ item }}
     value=1
@@ -29,21 +22,36 @@
   with_items:
     - net.ipv4.conf.all.rp_filter
     - net.ipv4.conf.default.rp_filter
-  when: sysctl.ipspoof
+  when: security.sysctl.ipspoof
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
-    - ipspoofing
+    - security
 
-- name: sysctl | Ignore ICMP broadcast requests
+- name: sysctl | Log suspcicious packets, such as spoofed, source-routed, and redirect
+  sysctl:
+    name={{ item }}
+    value=1
+    state=present
+  with_items:
+    - net.ipv4.conf.all.log_martians
+    - net.ipv4.conf.default.log_martians
+  when: security.sysctl.log_martians
+  notify: reload sysctl
+  tags:
+    - sysctl
+    - security
+
+- name: sysctl | Protect ICMP attacks
   sysctl:
     name=net.ipv4.icmp_echo_ignore_broadcasts
     value=1
     state=present
-  when: sysctl.ignore_icmp_broadcasts
+  when: security.sysctl.ignore_icmp_broadcasts
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
+    - security
 
 - name: sysctl | Disable source packet routing
   sysctl:
@@ -55,12 +63,13 @@
     - net.ipv6.conf.all.accept_source_route
     - net.ipv4.conf.default.accept_source_route
     - net.ipv6.conf.default.accept_source_route
-  when: sysctl.disable_source_routing
+  when: security.sysctl.disable_source_routing
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
+    - security
 
-- name: sysctl | Ignore send redirects
+- name: sysctl | Make sure no one can alter the routing tables
   sysctl:
     name={{ item }}
     value=0
@@ -68,48 +77,40 @@
   with_items:
     - net.ipv4.conf.all.send_redirects
     - net.ipv4.conf.default.send_redirects
-  when: sysctl.ignore_send_redirects
+  when: security.sysctl.ignore_send_redirects
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
+    - security
 
 # http://en.wikipedia.org/wiki/SYN_flood
 - name: sysctl | Block SYN attacks
   sysctl:
-    name={{ item[0] }}
-    value={{ item[1] }}
+    name={{ item.name }}
+    value={{ item.value }}
     state=present
   with_items:
-    - ['net.ipv4.tcp_syncookies', 1]
-    - ['net.ipv4.tcp_max_syn_backlog', 2048]
-    - ['net.ipv4.tcp_synack_retries', 2]
-    - ['net.ipv4.tcp_syn_retries', 5]
-  when: sysctl.synattack
+    - { name: 'net.ipv4.tcp_syncookies', value: 1 }
+  when: security.sysctl.synattack
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
+    - security
 
-- name: sysctl | Ignore ICMP redirects
+- name: sysctl | 
   sysctl:
     name={{ item }}
     value=0
     state=present
   with_items:
     - net.ipv4.conf.all.accept_redirects
+    - net.ipv4.conf.all.secure_redirects
     - net.ipv6.conf.all.accept_redirects
     - net.ipv4.conf.default.accept_redirects
+    - net.ipv4.conf.default.secure_redirects
     - net.ipv6.conf.default.accept_redirects
-  when: sysctl.ignore_icmp_redirects
+  when: security.sysctl.ignore_icmp_redirects
+  notify: reload sysctl
   tags:
     - sysctl
-    - config
-
-- name: sysctl | Ignore directed pings
-  sysctl:
-    name=net.ipv4.icmp_echo_ignore_all
-    value=1
-    state=present
-  when: sysctl.ignore_directed_ping
-  tags:
-    - sysctl
-    - config
+    - security

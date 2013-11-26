@@ -65,26 +65,26 @@ PidFile ${APACHE_PID_FILE}
 #
 # Timeout: The number of seconds before receives and sends time out.
 #
-Timeout {{ config.timeout }}
+Timeout {{ apache.config.timeout }}
 
 #
 # KeepAlive: Whether or not to allow persistent connections (more than
 # one request per connection). Set to "Off" to deactivate.
 #
-KeepAlive {{ config.keepalive.enabled }}
+KeepAlive {{ apache.config.keepalive.enabled }}
 
 #
 # MaxKeepAliveRequests: The maximum number of requests to allow
 # during a persistent connection. Set to 0 to allow an unlimited amount.
 # We recommend you leave this number high, for maximum performance.
 #
-MaxKeepAliveRequests {{ config.keepalive.requests }}
+MaxKeepAliveRequests {{ apache.config.keepalive.requests }}
 
 #
 # KeepAliveTimeout: Number of seconds to wait for the next request from the
 # same client on the same connection.
 #
-KeepAliveTimeout {{ config.keepalive.timeout }}
+KeepAliveTimeout {{ apache.config.keepalive.timeout }}
 
 ##
 ## Server-Pool Size Regulation (MPM specific)
@@ -115,13 +115,13 @@ KeepAliveTimeout {{ config.keepalive.timeout }}
 # MaxClients: maximum number of simultaneous client connections
 # MaxRequestsPerChild: maximum number of requests a server process serves
 <IfModule mpm_worker_module>
-    StartServers         {{ config.mpm.mpm_start_servers }}
-    MinSpareThreads      {{ config.mpm.min_spare_threads }}
-    MaxSpareThreads      {{ config.mpm.max_spare_threads }}
-    ThreadLimit          {{ config.mpm.thread_limit }}
-    ThreadsPerChild      {{ config.mpm.threads_per_child }}
-    MaxClients           {{ config.mpm.max_clients }}
-    MaxRequestsPerChild  {{ config.mpm.max_requests_per_child }}
+    StartServers         {{ apache.config.mpm.mpm_start_servers }}
+    MinSpareThreads      {{ apache.config.mpm.min_spare_threads }}
+    MaxSpareThreads      {{ apache.config.mpm.max_spare_threads }}
+    ThreadLimit          {{ apache.config.mpm.thread_limit }}
+    ThreadsPerChild      {{ apache.config.mpm.threads_per_child }}
+    MaxClients           {{ apache.config.mpm.max_clients }}
+    MaxRequestsPerChild  {{ apache.config.mpm.max_requests_per_child }}
 </IfModule>
 
 # event MPM
@@ -217,16 +217,22 @@ Include httpd.conf
 # Include ports listing
 Include ports.conf
 
-#
 # The following directives define some format nicknames for use with
 # a CustomLog directive (see below).
 # If you are behind a reverse proxy, you might want to change %h into %{X-Forwarded-For}i
-#
 LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
 LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%h %l %u %t \"%r\" %>s %O" common
 LogFormat "%{Referer}i -> %U" referer
 LogFormat "%{User-agent}i" agent
+
+ServerName localhost
+
+# By removing INode from the hash used to generate ETags, you've solve the
+# multiple server problem. Because this is a common misconfiguration, Apache
+# saw fit to change this to the new default in Apache 2.4 and higher. You only
+# need to make this change if you're running Apache 2.2 or older
+FileETag MTime Size
 
 # Include of directories ignores editors' and dpkg's backup files,
 # see README.Debian for details.

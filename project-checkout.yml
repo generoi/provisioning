@@ -1,0 +1,92 @@
+---
+# Job: Create Project
+#
+# Description: Create a new project.
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- hosts: localhost
+  connection: local
+  sudo: no
+  vars:
+    ip: '{{ ansible_eth0.ipv4.address }}'
+    hostname: '{{ ansible_hostname }}'
+
+    checkout:
+      path: /var/www/u/{{ ansible_user_id }}
+
+  vars_prompt:
+    - name: 'verify'
+      prompt: 'This will checkout the project at {{ checkout.path }}. Continue (yes, no)?'
+      default: 'yes'
+    - name: 'name'
+      prompt: 'Name of the checkout'
+    - name: 'repository'
+      prompt: 'Repository path'
+    - name: 'version'
+      prompt: 'Version to checkout'
+      default: 'HEAD'
+
+  tasks:
+    - include_vars: roles/projects/defaults/main.yml
+
+    - name: check verification
+      shell: '[ "yes" == "{{ verify }}" ]'
+
+    - name: checkout repository
+      git:
+        dest={{ checkout.path }}/{{ name }}
+        force=no
+        repo={{ repository }}
+        update=yes
+        version={{ version }}
+
+    - name: create settings.local.php
+      sudo: yes
+      template:
+        src=templates/settings.local.php.j2
+        dest={{ checkout.path }}/{{ name }}/sites/default/settings.local.php
+        owner={{ ansible_env.SUDO_USER }} group={{ ansible_env.SUDO_USER }}
+        force=no
+
+    - name: symlink files folder
+      file:
+        src={{ checkout.path }}/{{ name }}/sites/default/files
+        dest={{ project.shared.path }}/{{ name }}/files
+        state=link
+
+    - name: create database
+      sudo: yes
+      mysql_db:
+        login_user={{ ansible_env.SUDO_USER }}
+        login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + ansible_env.SUDO_USER + '/mariadb_password') }}
+        name={{ name }}
+        state=present
+      register: db_create
+
+    - name: fetch remote database
+      command:
+        drush sql-sync --create-db @{{ name }}.live @self
+        chdir={{ checkout.path }}/{{ name }}
+      when: db_create|changed
+
+    - include: roles/project/tasks/permissions-drupal.yml
+      vars:
+        project:
+          permissions:
+            php_clean: true
+            file: true
+            dir: true
+            uploads: false
+        projects:
+          - docroot: '{{ checkout.path }}/{{ name }}'
+            owner: '{{ ansible_user_id }}'
+            group: '{{ ansible_user_id }}'

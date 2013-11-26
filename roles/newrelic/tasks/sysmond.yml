@@ -4,10 +4,6 @@
 # Description: Sets up the system monitor agent for New Relic
 #
 # Parameters:
-# - license
-# - sysmond.enabled: Whether to enable the service or not (default: true)
-# - sysmond.loglevel (default: info)
-# - sysmond.logfile (default: /var/log/newrelic/nrsysmond.log)
 #
 # Dependencies:
 # - tasks:main
@@ -19,7 +15,7 @@
 #
 ###############################################################################
 
-- name: New Relic | Sysmond | Install agent
+- name: sysmond | Install agent
   apt:
     pkg=newrelic-sysmond
     state=present
@@ -27,7 +23,7 @@
     - install
     - sysmond
 
-- name: New Relic | Sysmond | Configure: /etc/newrelic/nrsysmond.cfg
+- name: "sysmond | Configure: /etc/newrelic/nrsysmond.cfg"
   template:
     src=nrsysmond.cfg.j2
     dest=/etc/newrelic/nrsysmond.cfg
@@ -37,24 +33,30 @@
     - sysmond
     - config
 
-- name: New Relic | Sysmond | Enable service and activate autostart
-  service:
-    name=newrelic-sysmond
-    state=started
-    enabled=yes
-  when: sysmond.enabled
-  tags:
-    - sysmond
-    - service
-    - enable
+# General management
+###
 
-- name: New Relic | Sysmond | Shutdown service and disable autostat
-  service:
-    name=newrelic-sysmond
-    state=stopped
-    enabled=no
-  when: not sysmond.enabled
-  tags:
-    - sysmond
-    - service
-    - disable
+# @TODO change
+- include: ../../common/tasks/service.yml
+  vars:
+    name: newrelic-sysmond
+    enabled: '{{ newrelic.sysmond.enabled and newrelic_license|default(false) }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: newrelic-sysmond
+    enabled: '{{ newrelic.sysmond.enabled }}'
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: newrelic-sysmond
+    special: weekly
+    logs: '{{ newrelic.sysmond.logfile }}'
+    enabled: '{{ newrelic.sysmond.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: newrelic-sysmond
+    mode: filemonitor
+    logfile: '{{ newrelic.sysmond.logfile }}'
+    enabled: '{{ newrelic.sysmond.enabled }}'

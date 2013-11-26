@@ -1,0 +1,92 @@
+---
+# Part: Project
+#
+# Description: Sets up a drupal project with a shared environment and a unique
+# database user.
+#
+# Parameters:
+# - projects: A dictionary of projects with the keys:
+#   - name
+#   - alias
+#   - remote_user
+#   - checkout
+#   - username
+#   - privileges
+#   - root (default: /var/www/{{ name }})
+#   - sync (default: false)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: drupal | shared | Create shared directory
+  file:
+    path={{ project.shared.path }}/{{ item.name }}
+    state=directory
+    owner=root group=root mode=0755
+  with_items: projects.drupal
+
+- name: drupal | shared | Create shared files directory
+  file:
+    path={{ project.shared.path }}/{{ item.name }}/files
+    state=directory
+    owner={{ project.shared.files.owner }} group={{ project.shared.files.group }} mode=0775
+  with_items: projects.drupal
+
+- name: drupal | shared | Create settings.local.php
+  template:
+    src=settings.local.php.j2
+    dest={{ project.shared.path }}/{{ item.name }}/settings.local.php
+    owner=root group=root mode=0644
+    force=no
+  with_items: projects.drupal
+
+- name: drupal | shared | Symlink files directory
+  file:
+    src={{ item.docroot }}/sites/default/files
+    dest={{ project.shared.path }}/{{ item.name }}/files
+    state=link
+  with_items:
+    - '{{ projects.drupal|selectattr("checkout")|list }}'
+
+- include: ../../mariadb/tasks/create-databases.yml
+  vars:
+    databases: '{{ projects.drupal|map(attribute="db")|list }}'
+
+- include: ../../mariadb/tasks/create-users.yml
+  vars:
+    users: '{{ projects.drupal|map(attribute="db")|list }}'
+
+- name: drupal | shared | Symlink settings.local.php
+  file:
+    src={{ item.docroot }}/sites/default/settings.local.php
+    dest={{ project.shared.path }}/{{ item.name }}/settings.local.php
+    state=link
+  with_items:
+    - '{{ projects.drupal|selectattr("checkout")|list }}'
+
+
+- include: permissions-drupal.yml
+  vars:
+    web:
+      owner: '{{ project.shared.files.owner }}'
+      group: '{{ project.shared.files.group }}'
+
+- include: ../../drush/tasks/alias.yml
+  vars:
+    items: '{{ projects.drupal }}'
+  when: project.drush_aliases
+
+- name: drush | Synchronize files from remote to local
+  command:
+    drush core-rsync @{{ alias }}.live:%files @self:%files
+    chdir={{ item.docroot }}
+  ignore_errors: true
+  changed_when: false
+  with_items:
+    - '{{ projects.drupal|selectattr("checkout")|selectattr("sync")|list }}'

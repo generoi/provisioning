@@ -1,0 +1,33 @@
+- name: Security | Set general directory permissions
+  raw: >
+    file {{ item.docroot }} -type d ! -perm 755 \
+      ! -iwholename '*sites/*/files*' \
+      -exec chmod 755 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  with_items: sites
+  when: secure.permissions.dir
+
+- name: Security | Set general file permissions
+  raw: >
+    file {{ item.docroot }} -type f ! -perm 644 \
+      ! -iwholename '*sites/*/files*' \
+      -exec chmod 644 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  with_items: sites
+  when: secure.permissions.file
+
+- name: Security | Set directory permissions of files directory
+  raw: >
+    file {{ item.docroot }}/sites/default/files -type d ! -perm 775 \
+      -exec chmod 775 {} \; \
+      -exec chown {{ item.owner }}:{{ web.group }} {} \;
+  with_items: sites
+  when: secure.permissions.uploads
+
+- name: Security | Set file permissions of files directory
+  raw: >
+    file {{ item.docroot }}/sites/default/files -type f ! -perm 664 \
+      -exec chmod 664 {} \; \
+      -exec chown {{ item.owner }}:{{ web.group }} {} \;
+  with_items: sites
+  when: secure.permissions.uploads

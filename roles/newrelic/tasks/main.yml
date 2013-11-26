@@ -4,11 +4,6 @@
 # Description: Sets up New Relic
 #
 # Parameters:
-# - php.install: Enable the php agent (default: true).
-# - sysmond.install: Install the php agent (default: true).
-# - php.*: See php.yml
-# - sysmond.*: See symond.yml
-# - license_key: The license key used
 #
 # Dependencies:
 #
@@ -19,20 +14,20 @@
 #
 ###############################################################################
 
-- name: New Relic | Add New Relic key:https://download.newrelic.com/548C16BF.gpg
+- name: install | Add New Relic key
   apt_key:
-    url=https://download.newrelic.com/548C16BF.gpg
+    url={{ newrelic_apt_key }}
     state=present
   tags:
     - install
 
-- name: New Relic | Add New Relic repository
+- name: install | Add New Relic repository
   apt_repository:
-    repo="http://apt.newrelic.com/debian/ newrelic non-free"
+    repo="{{ newrelic_repository }}"
   tags:
     - install
 
-- name: New Relic | Create newrelic group: newrelic
+- name: config | Create newrelic group newrelic
   group:
     name=newrelic
     state=present
@@ -41,7 +36,7 @@
     - acl
 
 - include: php.yml
-  when: php.install
+  when: newrelic.php.install
 
 - include: sysmond.yml
-  when: sysmond.install
+  when: newrelic.sysmond.install

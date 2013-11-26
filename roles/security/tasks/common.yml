@@ -4,11 +4,6 @@
 # Description: Secures a server
 #
 # Parameters:
-# - common.tiger: set up tiger auditing (default: false)
-# - common.ipspoof: prevent ip spoofing (default: true)
-# - common.limit_su: Limit su to only admin group (default: true)
-# - common.untattended_upgrades: Enable unattended upgrades (default: true)
-# - common.secure_shm: Secure shared memory (default: false)
 #
 # Dependencies:
 #
@@ -22,76 +17,85 @@
 #
 ###############################################################################
 
----
-- name: Security | Install uttanded-upgrades
+- name: common | Install uttanded-upgrades and dependencies
   apt:
-    pkg=unattended-upgrades
+    pkg={{ item }}
     state=present
-  when: common.unattended_upgrades
+  with_items:
+    - python-software-properties
+    - unattended-upgrades
+  when: security.common.unattended_upgrades
   tags:
     - unattended-upgrades
     - install
 
-- name: Security | Adjust APT update intervals: /etc/apt/apt.conf.d/10periodic
+- name: "common | Adjust APT update intervals: /etc/apt/apt.conf.d/10periodic"
   copy:
     src=apt_periodic
     dest=/etc/apt/apt.conf.d/10periodic
-  when: common.unattended_upgrades
+    owner=root group=root
+  when: security.common.unattended_upgrades
   tags:
     - unattended-upgrades
     - config
 
+- name: common | Check if su command is overriden
+  shell: dpkg-statoverride --list | grep '/bin/su'
+  register: su_is_overriden
+  ignore_errors: true
+  changed_when: false
+
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
-- name: Security | Limit su access to only admin group.
+- name: common | Limit su access to only admin group.
   command: dpkg-statoverride --update --add root admin 4750 /bin/su
-  when: common.limit_su
+  when: security.common.limit_su and su_is_overriden|failed
   tags:
     - su
     - config
 
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
-- name: Security | Prevent IP spoofing: /etc/host.conf
+- name: "common | Prevent IP spoofing: /etc/host.conf"
   lineinfile:
     dest=/etc/host.conf
-    regexp="{{ item[0] }}"
-    line="{{ item[1] }}"
+    regexp="^{{ item.key }}"
+    line="{{ item.line }}"
     state=present
   with_items:
-    - ['^order',    'order bind,hosts']
-    - ['^nospoof',  'nospoof on']
-  when: common.ipspoof
+    - { key: 'order', line: 'order bind,hosts' }
+    - { key: 'nospoof', line: 'nospoof on' }
+  when: security.common.ipspoof
   tags:
     - ipspoofing
     - config
 
-- name: Security | Install tiger security auditing system
+- name: common | Install tiger security auditing system
   apt:
     pkg=tiger
     state=present
-  when: common.tiger
+  when: security.common.tiger
   tags:
     - tiger
     - install
 
-- name: Tiger | Run auditing at 2am on the 1st of every month: /etc/cron.d/tiger-audit
+- name: "common | Tiger | Run auditing at 2am on the 1st of every month: /etc/cron.d/tiger-audit"
   cron:
     name="tiger audit"
     cron_file=tiger-audit
-    min=0 hour=2 day=1 # Monday at 2am
+    min=0 hour=2 day=1
     job="/usr/sbin/tiger > /dev/null"
     user=root
     state=present
-  when: common.tiger
+  when: security.common.tiger
   tags:
     - tiger
     - cron
     - disable
 
-- name: Tiger | Disable cron: /etc/cron.d/tiger-audit
+- name: "common | Tiger | Disable cron: /etc/cron.d/tiger-audit"
   cron:
     cron_file=tiger-audit
     state=absent
-  when: not common.tiger
+  when: not security.common.tiger
   tags:
     - tiger
     - cron
@@ -101,14 +105,14 @@
 # change UID of running processes.
 # @see https://help.ubuntu.com/community/StricterDefaults#Shared_Memory
 ###
-- name: Security | Secure shared memory: /dev/shm
+- name: "common | Secure shared memory: /dev/shm"
   mount:
     name=/dev/shm
     fstype=tmpfs
     opts=defaults,noexec,nosuid
     state=present
   notify: reload fstab
-  when: common.secure_shm
+  when: security.common.secure_shm
   tags:
     - shm
     - config

@@ -1,0 +1,39 @@
+---
+# Part: Drush
+#
+# Description: Set up a drush alias
+#
+# Parameters:
+# - items: Dictionary of aliases to create with the keys:
+#   - alias: Alias name (default: name string before first dot)
+#   - name: Hostname
+#   - remote_user: Remote user
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: alias | Create alias directory
+  file:
+    path={{ drush.config.alias_dir }}
+    state=directory
+    owner=root group=root mode=0755
+
+- name: alias | Create global development alias file
+  template:
+    src=aliases.drushrc.php.j2
+    dest={{ drush.config.alias_dir }}/aliases.drushrc.php
+    owner=root group=root mode=0644
+  notify: cache-clear drush
+
+- name: alias | Create drush alias file
+  template:
+    src=alias.drushrc.php.j2
+    dest={{ drush.config.alias_dir }}/{{ item.alias|default(item.name.split('.')[0]) }}.aliases.drushrc.php
+    owner=root group=root mode=0644
+  notify: cache-clear drush
+  with_items: items

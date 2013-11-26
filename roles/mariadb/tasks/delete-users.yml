@@ -4,12 +4,10 @@
 # Description: Deletes MariaDB users set as absent
 #
 # Parameters:
-# - accounts: List of account dictionaries, each with the keys: username
-# - login.user: User to log in as when creating (default: root)
-# - login.password: Optional password to sign in with. If not present
-#   login.password_file is used, and preferred (default: false)
-# - login.password_file: File with encrypted password
-#   (default: credentials/{{ hostname }}/root/mariadb_password length=15)
+# - users: List of account dictionaries, each with the keys: username
+# - user: User to log in with (default: root)
+# - password: Login password as plain text (optional and not
+#   recommended). By default a password lookup will be done.
 #
 # Dependencies:
 # - tasks:main
@@ -20,39 +18,34 @@
 #
 ###############################################################################
 
-- name: MariaDB | Start the service
+- name: service | Start the service
   service:
     name=mysql
     state=started
   tags:
     - service
 
-# Remove each user from each host. Use a plain text password for remote login (not recommended)
-- name: MariaDB | Delete users
+# Remove each user. Use a plain text password for remote login (not recommended)
+- name: user | Delete users
   mysql_user:
-    login_user={{ login.user }}
-    login_password={{ login.password }}
-    name={{ item[0]['username'] }}
-    host={{ item[1] }}
+    login_user={{ user|default('root') }}
+    login_password={{ password }}
+    name={{ item.username }}
     state=absent
-  when: login.password|bool
-  with_nested:
-    - accounts
-    - hosts
+  when: password is defined
+  with_items: users
   tags:
     - disable
+    - user
 
-# Alternative, Use a login_password_file (thats the spirit)
-- name: MariaDB | Delete users
+- name: user | Delete users
   mysql_user:
-    login_user={{ login.user }}
-    login_password={{ lookup('password', login.password_file) }} # Fetch password from file
-    name={{ item[0]['username'] }}
-    host={{ item[1] }}
+    login_user={{ user|default('root') }}
+    login_password="{{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + user|default('root') + '/mariadb_password length=15') }}"
+    name={{ item.username }}
     state=absent
-  when: not login.password|bool
-  with_nested:
-    - accounts
-    - hosts
+  when: password is not defined
+  with_items: users
   tags:
     - disable
+    - user

@@ -1,19 +1,6 @@
-- Set tags properly
-  - services: service, enable|disable DONE
-  - apt, git, npm, gem: install
-  - cron: cron, enable|disable
-  - user, group: acl
-  - dev packages: development
-  - configurations: config
-  - web ui: web
-  - security tuning: security
-  - more...
-- logwatch: mysql, slow_queries
-- validations
-  - user exists
-- syslogd: rsyslogd?
-  - varnish
-  - php
+- syslogd
   - denyhosts
   - tiger?
-  - newrelic
+
+- rkhunter:
+  - syslog -> authpriv.notice

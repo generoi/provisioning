@@ -1,0 +1,37 @@
+---
+# Part: Drush
+#
+# Description: Installs a drush package.
+#
+# Parameters:
+# - packages: List of packages to install
+# - dir: parent directory where package will be installed
+# - remove (default: false)
+#
+# Dependencies:
+# - tasks:main
+#
+# Creates:
+# - /usr/local/etc/drush/{{ item }}
+#
+###############################################################################
+
+- name: install | Install drush modules
+  command:
+    drush dl -y {{ item }} --destination={{ dir }}/
+    creates={{ dir }}/{{ item }}
+  with_items: packages
+  when: not remove|default(false)
+  notify: cache-clear drush
+  tags:
+    - install
+
+- name: clean | Remove modules from
+  file:
+    path={{ dir }}/{{ item }}
+    state=absent
+  with_items: packages
+  when: remove|default(false)
+  notify: cache-clear drush
+  tags:
+    - clean

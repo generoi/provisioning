@@ -4,22 +4,6 @@
 # Description: Set up and configure rsyslog
 #
 # Parameters:
-# - poll_interval (default: 10)
-# - reception.udp.enabled (default: true)
-# - reception.udp.port (default: 514)
-# - reception.tcp.enabled (default: false)
-# - reception.tcp.port (default: 514)
-#
-# - loggly.enabled (default: true)
-# - loggly.udp_logger (default: true)
-# - loggly.key
-#
-# - logs.mysql_slow_query (default: /var/log/mysqld_slow_query.log)
-# - logs.mysql_error (default: /var/log/mysqld_error.log)
-# - logs.apache_error (default: /var/log/apache2/error.log)
-# - logs.apache_access (default: /var/log/apache2/access.log)
-# - logs.pound_log (default: /var/log/pound.log)
-# - logs.monit_log (default: /var/log/monit.log)
 #
 # Dependencies:
 #
@@ -30,31 +14,49 @@
 # - /var/spool/rsyslog
 #
 ###############################################################################
-- name: Rsyslog | Install package
+
+- name: install | Install rsyslog package
   apt:
     pkg=rsyslog
     state=present
   tags:
     - install
 
-- name: Rsyslog | Configure: /etc/rsyslog.conf
+- name: "config | Configure: /etc/rsyslog.conf"
   template:
     src=rsyslog.conf.j2
     dest=/etc/rsyslog.conf
+    owner=root group=root
   notify: restart rsyslog
   tags:
     - config
 
-- name: Rsyslog | Set owner of /var/spool/rsyslog to syslog
+- name: "config | Set owner to syslog: /var/spool/rsyslog"
   file:
     path=/var/spool/rsyslog
-    owner=syslog
+    owner={{ rsyslog.owner }} group={{ rsyslog.group }}
   notify: restart rsyslog
   tags:
-    - install
+    - config
     - bug
 
-- name: Rsyslog | Verify configuration
+- include: loggly.yml
+  when: rsyslog.loggly.enabled
+
+- name: lint | Verify configuration
   command: rsyslogd -N1
+  changed_when: false
   tags:
     - lint
+
+# General management
+###
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: rsyslog
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: rsyslog
+    enabled: '{{ rsyslog.enabled }}'

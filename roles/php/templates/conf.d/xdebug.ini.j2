@@ -1,0 +1,11 @@
+; {{ ansible_managed }}
+
+zend_extension = {{ php_extension_dir.stdout }}/xdebug.so
+
+xdebug.profiler_enable_trigger = {{ php.xdebug.enabled }}
+xdebug.profiler_output_dir = /tmp
+xdebug.profiler_output_name = cachegrind.out.%t.%p
+xdebug.max_nesting_level = 150
+xdebug.dump_once = 1
+xdebug.dump_globals = 1
+xdebug.var_display_max_depth = 100

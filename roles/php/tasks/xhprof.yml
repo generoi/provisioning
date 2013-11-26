@@ -5,8 +5,6 @@
 # host for the xhprof_html interface, only accessable to localhost.
 #
 # Parameters:
-# - xhprof.enable (default: true)
-# - xhprof.output_dir (default: /opt/xhprof/output)
 #
 # Dependencies:
 # - tasks:setup
@@ -27,12 +25,9 @@
 - include: pecl.yml
   vars:
     package: xhprof
-    version: stable
-  tags:
-    - xhrpof
-    - install
+    version: beta
 
-- name: PHP | XhProf | Create xhprof cheatsheet directory: /opt/xhprof
+- name: "xhprof | Create xhprof cheatsheet directory: /opt/xhprof"
   file:
     path=/opt/xhprof
     state=directory
@@ -40,7 +35,7 @@
     - xhprof
     - config
 
-- name: PHP | XhProf | Put xhprof quick loading header and footer + usage instructions in /opt/xhprof
+- name: "xhprof | Put xhprof quick loading header and footer + usage instructions in: /opt/xhprof"
   template:
     src=xhprof/{{ item }}.j2
     dest=/opt/xhprof/{{ item }}
@@ -52,7 +47,7 @@
     - xhrpof
     - config
 
-- name: PHP | XhProf | Install graphviz for execution flow plotting by XhProf
+- name: "xhprof | Install graphviz for execution flow plotting by XhProf"
   apt:
     pkg=graphviz
     state=installed
@@ -60,10 +55,10 @@
     - xhrpof
     - install
 
-- name: PHP | XhProf | Create xhprof output directory: {{ xhprof.output_dir }}
+- name: "xhprof | Create xhprof output directory {{ php.xhprof.output_dir }}"
   # @TODO www-data?
   file:
-    path={{ xhprof.output_dir }}
+    path={{ php.xhprof.output_dir }}
     state=directory
   tags:
     - xhprof
@@ -72,23 +67,6 @@
 # Manage local vhost alias for /xhprof
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
-    docroot: {{ pecl.install_dir }}/xhprof_html
+    docroot: '{{ php.pecl.install_dir }}/xhprof_html'
     alias: /xhprof
-    remove: not xhprof.enabled
-  tags:
-    - xhprof
-    - config
-
-- name: PHP | XhProf | Configure, /etc/php5/conf.d/xhprof.ini
-  lineinfile:
-    dest=/etc/php5/conf.d/xhprof.ini
-    regexp="^{{ item[0] }}"
-    line="{{ item[0] }} = {{ item[1] }}"
-  with_items:
-    ['extension', 'xhprof.so']
-    ['xhprof.output.dir', {{ xhprof.output_dir }}]
-  notify: restart php
-  tags:
-    - php-dev
-    - xdebug
-    - config
+    enabled: '{{ php.xhprof.enabled }}'

@@ -4,13 +4,6 @@
 # Description: Install PHP and related packages
 #
 # Parameters:
-# - development: Install PHP development packages (default: false)
-# - pear.install (default: true)
-# - xhprof.install (default: true)
-# - apc.install (default: true)
-# - xdebug.install (default: true)
-# - phpqatools.install (default: true)
-# - composer.install (default: true)
 #
 # Dependencies:
 #
@@ -22,12 +15,8 @@
 
 - include: setup.yml
 
-# Drush is installed on remote machines and requires PEAR.
-- include: pear.yml
-  when: pear.install
-
 - include: apc.yml
-  when: apc.install
+  when: php.apc.install
 
 - include: php-dev.yml
-  when: development
+  when: php.development

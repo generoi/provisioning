@@ -5,17 +5,7 @@
 # should most likely be included twice, once for administrative users and once
 # for regular users.
 #
-# @TODO use list instead of comma separated list?
-#
 # Parameters:
-# - active: A list of user dictionaries, each with the properties:
-#   username, fullname
-# - departed: A list of departed user dictionaries with the property:
-#   username
-# - managed: A list of completely managed user dictionaries, each with the
-#   properties: username, fullname, groups
-# - user_groups: A comma delimited list of default groups to add the users to.
-# - remove_home: Remove home for absent users.
 #
 # Dependencies:
 #
@@ -25,26 +15,58 @@
 #
 ###############################################################################
 
-- name: User | Create user groups: {{ user_groups  }}
-  group:
-    name={{ item }}
-    state=present
-  with_items: user_groups.split(',')
-  when: user_groups|bool
+- name: Set default shell to /bin/bash
+  command: useradd -D -s /bin/bash
+  changed_when: false
+  tags:
+    - config
 
+# Admins
+###
 - include: create-users.yml
   vars:
-    users: active
-    user_groups: user_groups
-  when: active|bool
+    users: '{{ user_accounts.admins.active }}'
+    user_groups: '{{ user_accounts.admins.groups }}'
+  when: user_accounts.admins.active is defined
 
-- include: create-managed-users.yml
+- include: dotfiles.yml
   vars:
-    users: managed
-  when: managed|bool
+    users: '{{ user_accounts.admins.active }}'
+  when: user_accounts.admins.active is defined
 
 - include: delete-users.yml
   vars:
-    users: departed
-    user_groups: user_groups
-  when: depared|bool
+    users: '{{ user_accounts.admins.departed }}'
+  when: user_accounts.admins.departed is defined
+
+# Regular
+###
+
+- include: create-users.yml
+  vars:
+    users: '{{ user_accounts.regular.active }}'
+    user_groups: '{{ user_accounts.regular.groups }}'
+  when: user_accounts.regular.active is defined
+
+- include: dotfiles.yml
+  vars:
+    users: '{{ user_accounts.regular.active }}'
+  when: user_accounts.regular.active is defined
+
+- include: delete-users.yml
+  vars:
+    users: '{{ user_accounts.regular.departed }}'
+  when: user_accounts.regular.departed is defined
+
+# Managed
+###
+
+- include: create-managed-users.yml
+  vars:
+    users: '{{ user_accounts.managed }}'
+  when: user_accounts.managed is defined
+
+- include: dotfiles.yml
+  vars:
+    users: '{{ user_accounts.managed }}'
+  when: user_accounts.managed is defined

@@ -1,8 +1,16 @@
+---
 # These should not be changed
 
 # Create a localhost only accessable virtual host
-vhost_local:
-  create_local_access_vhost: false
+local_vhost:
   docroot: /opt/localhost
-  vhost: localhost.{{ hostname }}
-  url: https://{{ vhost_local.vhost }}
+  vhost: localhost.{{ ansible_fqdn }}
+  url: https://localhost.{{ ansible_fqdn }}
+  ssl:
+    certificate_file: '{{ snakeoil.certificate }}'
+    certificate_key_file: '{{ snakeoil.key }}'
+
+# Default snakeoil certificate from ssl-cert package.
+snakeoil:
+  certificate: /etc/ssl/certs/ssl-cert-snakeoil.pem
+  key: /etc/ssl/private/ssl-cert-snakeoil.key

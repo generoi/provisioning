@@ -4,88 +4,163 @@
 # Description: Install common packages used for every server
 #
 # Parameters:
-# - motd.enabled (default: true)
-# - packages (default: [build-essental, libpcre3-dev, curl, sendmail, unzip,
-#   python-software-properties, nmap, git, htop, imagemagick, ca-certificates])
-# - known_hosts.enabled: setup some default known_hosts (default: true)
 #
 # Dependencies:
+# - ufw:tasks:entry
+# - tasks:service
 #
 # Creates:
 # - /etc/update-mord.d/95-ansible
 #
 # File modifications:
-# - /etc/logrotate.conf
+# - /home/{{ ansible_ssh_user }}/.ssh/known_hosts
+# - /etc/hosts.allow
 #
 ###############################################################################
----
-- name: Common | Update APT package list cache
-  apt: update-cache=yes
-  task:
+
+- name: update | Update APT package list cache
+  apt:
+    update-cache=yes
+    cache_valid_time=3600
+  tags:
     - update
 
-- name: Common | Upgrade APT packages
-  apt: upgrade=yes
-  task:
+- name: update | Upgrade APT packages
+  apt:
+    upgrade=yes
+  tags:
     - update
 
-- name: Common | Install required packages
+- name: install | Ansible dependencies
   apt:
     pkg={{ item }}
     state=present
-  with_items: packages
+  with_items:
+    - python-pycurl
   tags:
     - install
 
-- name: Common | Compress logrotate logs by default: /etc/logrotate.conf
-  lineinfile:
-    dest=/etc/logrotate.conf
-    regexp="^#?compress"
-    line="compress"
+- name: install | Add git repository for version 1.8
+  apt_repository:
+    repo="ppa:git-core/ppa"
     state=present
   tags:
-    - config
-    - logrotate
+    - install
 
-- name: Common | Message of the day explaining server is under Ansible control: /etc/update-motd.d/95-ansible
+- name: install | Common packages for every environment
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items: common.packages
+  tags:
+    - install
+
+- include: terminfo.yml
+
+- name: "motd | enable | MOTD explaining server is under Ansible control: /etc/update-motd.d/95-ansible"
   template:
     src=motd
     dest=/etc/update-motd.d/95-ansible
     mode=0755
-  when: motd.enabled
+  when: common.motd.enabled
   tags:
     - config
     - motd
     - enable
 
-- name: Common | Disable MOTD: /etc/update-motd.d/95-ansible
+- name: "motd | disable | Disable MOTD: /etc/update-motd.d/95-ansible"
   file:
     path=/etc/update-motd.d/95-ansible
     state=absent
-  when: not motd.enabled
+  when: not common.motd.enabled
   tags:
     - config
     - motd
     - disable
 
-- name: Common | Start and enable ntp service
-  service:
-    name=ntp
-    state=started
-    enabled=yes
-  tags:
-    - service
-    - enable
-    - ntp
-
-- name: Common | Add known hosts to /home/{{ ansible_ssh_user }}/.ssh/known_hosts
+- name: "config | known hosts | Add known hosts: /home/{{ ansible_ssh_user }}/.ssh/known_hosts"
   lineinfile:
     dest=/home/{{ ansible_ssh_user }}/.ssh/known_hosts
     regexp="^{{ item.host }}"
     line="{{ item.line }}"
     state=present
-  with: known_hosts.hosts
-  when: known_hosts.enabled
+  with_items: common.known_hosts.hosts
+  when: common.known_hosts.enabled
   tags:
     - config
     - known_hosts
+
+- name: "config | hosts | Prevent hosts from being locked out of ssh: /etc/hosts.allow"
+  lineinfile:
+    dest=/etc/hosts.allow
+    regexp="^sshd{{':'}} {{ item }}"
+    line="sshd{{':'}} {{ item }}"
+    state=present
+  with_items: common.hosts_allow
+  tags:
+    - config
+    - hosts
+
+- name: "config | ufw | Prevent hosts from being blocked by ufw"
+  command: ufw allow from {{ item }}
+  with_items: common.hosts_allow
+  register: result
+  changed_when: "'Skipping' not in result.stdout"
+  tags:
+    - config
+    - ufw
+    - hosts
+
+- name: "config | ipv6 | Disable IPv6"
+  command: ufw allow from {{ item }}
+  with_items: common.hosts_allow
+  register: result
+  changed_when: "'Skipping' not in result.stdout"
+  tags:
+    - config
+    - ufw
+    - hosts
+
+- name: config | ipv6 | Disable IPv6
+  sysctl:
+    name={{ item }}
+    value=1
+    state=present
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+    - net.ipv6.conf.lo.disable_ipv6
+  # OpenVZ does not have the kernel features required for ipv6
+  when: ansible_virtualization_type == 'openvz' or not common.ipv6.enable
+  notify: reload sysctl
+  tags:
+    - sysctl
+    - config
+    - disable
+
+- name: config | ipv6 | Enable IPv6
+  sysctl:
+    name={{ item }}
+    value=0
+    state=present
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+    - net.ipv6.conf.lo.disable_ipv6
+  when: not ansible_virtualization_type == 'openvz' and common.ipv6.enable
+  notify: reload sysctl
+  tags:
+    - sysctl
+    - config
+    - enable
+
+# General management for NTP
+###
+
+- include: service.yml
+  vars:
+    name: ntp
+
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: '123/udp'

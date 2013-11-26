@@ -1,0 +1,49 @@
+# {{ ansible_managed }}
+
+# The text that follows the 220 status code in the SMTP greeting banner. Some
+# people like to see the mail version advertised. By default, Postfix shows no
+# version.
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+
+# Whether or not to use the local biff service. This service sends "new mail"
+# notifications to users who have requested new mail notification with the UNIX
+# command "biff y".
+biff = no
+
+# The location of Postfix README files that describe how to build, configure or
+# operate a specific Postfix subsystem or feature.
+readme_directory = no
+
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_use_tls=yes
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+
+# The internet hostname of this mail system. The default is to use the
+# fully-qualified domain name (FQDN) from gethostname(), or to use the non-FQDN
+# result from gethostname() and append ".$mydomain". $myhostname is used as a
+# default value for many other configuration parameters.
+myhostname = {{ ansible_fqdn }}
+
+# The internet domain name of this mail system. The default is to use
+# $myhostname minus the first component, or "localdomain" (Postfix 2.3 and
+# later). $mydomain is used as a default value for many other configuration
+# parameters.
+# mydomain = {{ hostname }}
+
+# The domain name that locally-posted mail appears to come from, and that
+# locally posted mail is delivered to. The default, $myhostname, is adequate
+# for small sites. If you run a domain with multiple machines, you should (1)
+# change this to $mydomain and (2) set up a domain-wide alias database that
+# aliases each user to user@that.users.mailhost.
+# myorigin = /etc/mailname
+
+relayhost =
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mydestination =
+recipient_delimiter = +
+# Make sure Postfix listens to localhost only
+inet_interfaces = 127.0.0.1

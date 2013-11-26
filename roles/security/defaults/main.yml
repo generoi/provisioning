@@ -1,60 +1,58 @@
 ---
-common:
-  install: true
-  tiger: false # disabled until tested
-  ipspoof: true
-  limit_su: true
-  untattended_upgrades: true
-  secure_shm: true
+security:
+  common:
+    install: true
+    tiger: false # disabled until tested
+    ipspoof: true
+    limit_su: true
+    unattended_upgrades: true
+    secure_shm: false
 
-sysctl:
-  install: true
-  ipspoof: {{ common.ipspoof }}
-  ignore_icmp_broadcasts: true
-  disable_source_routing: true
-  ignore_send_redirects: true
-  synattack: true
-  ignore_icmp_redirects: true
-  ignore_directed_ping: true
+  sysctl:
+    install: true
+    ipspoof: true
+    ignore_icmp_broadcasts: true
+    disable_source_routing: true
+    ignore_send_redirects: true
+    synattack: true
+    ignore_icmp_redirects: true
+    ignore_directed_ping: true
+    log_martians: true
 
-ssh:
-  install: true
-  disallow_root: true
-  prevent_dos: true
-  force_sftp: true
-  limit_group: true
-  access_group: 'admin sshlogin'
+  ssh:
+    install: true
+    disallow_root: true
+    prevent_dos: true
+    force_sftp: true
+    limit_group: true
+    access_group: 'admin sshlogin'
 
-denyhosts:
-  install: true
-  enabled: true
-  purge: 1w
-  purge_threshold: 2
-  deny_threshold_invalid: 2
-  deny_threshold_valid: 3
-  deny_threshold_root: 1
-  deny_threshold_restricted: 1
-  notify_email: ''
-  syslog: YES
-  age_reset_valid: 1h
-  age_reset_root: 30d
-  age_reset_restricted: 30d
-  age_reset_invalid: 10d
-  reset_on_success: yes
-  daemon_sleep: 20s
-  daemon_purge: 1h
-  mail:
-    enabled: false
-    notify_email:
+  denyhosts:
+    install: true
+    enabled: true
+    purge: 1w
+    purge_threshold: 2
+    deny_threshold_invalid: 2
+    deny_threshold_valid: 3
+    deny_threshold_root: 1
+    deny_threshold_restricted: 1
+    notify_email: ''
+    syslog: YES
+    age_reset_valid: 1h
+    age_reset_root: 30d
+    age_reset_restricted: 30d
+    age_reset_invalid: 10d
+    reset_on_success: yes
+    daemon_sleep: 20s
+    daemon_purge: 1h
+    mail:
+      enabled: false
+      notify_email:
+    log:
+      enabled: true
+      file: '/var/log/denyhosts-denies.log'
 
-firewall:
-  install: true
-  enabled: true
-  allow: ['http', 'ssh'] # mosh, ntp
-  allow_from: [] # development servers
-
-rootkit:
-  install: true
-  enabled: true
-  notify_email: false
-  update_properties: false
+  rootkit:
+    install: true
+    enabled: true
+    notify_email: false

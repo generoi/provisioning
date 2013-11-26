@@ -4,38 +4,16 @@
 # Description: Sets up Apache2 and mods
 #
 # Parameters:
-# - mods_enabled: List of apache modules to enable (default: [rewrite, vhost_alias, ssl])
-# - mods_disabled: List of apache modules to disable (default: [])
-# - root: Document root (default: /var/www)
-# - hostname: Hostname of server
-#
-# - user (default: www-data)
-# - group (default: www-data)
-# - admin (default: admin@localhost)
-#
-# - port.http (default: 80)
-# - port.https (default: 443)
-#
-# - config.timeout (default: 300)
-# - config.keepalive.enabled (default: 'On')
-# - config.keepalive.requests (default: '100')
-# - config.keepalive.timeout (default: '2')
-#
-# - config.mpm.mpm_start_servers (default: 2)
-# - config.mpm.min_spare_threads (default: 25)
-# - config.mpm.spare_threads (default: 25)
-# - config.mpm.max_spare_threads (default: 75)
-# - config.mpm.thread_limit (default: 64)
-# - config.mpm.threads_per_child (default: 25)
-# - config.mpm.max_clients (default: 150)
-# - config.mpm.max_requests_per_child (default: 0)
 #
 # Dependencies:
+# - ufw:tasks:entry
+# - rsyslog:tasks:entry
+# - logrotate:tasks:entry
+# - monit:tasks:entry
+# - common:tasks:service
 #
 # Creates:
-# - /etc/apache2/sites-available/{{ hostname }}
-# - /etc/apache2/sites-enabled/{{ hostname }}
-# - http://{{ hostname }}
+# - /etc/apache2/vhosts.d
 #
 # File modifications:
 # - /etc/apache2/envvars
@@ -45,7 +23,7 @@
 #
 ###############################################################################
 
-- name: Apache | Install required packages
+- name: install | Install required apache packages
   apt:
     pkg={{ item }}
     state=installed
@@ -56,10 +34,11 @@
   tags:
     - install
 
-- name: Apache | Configure Apache: /etc/apach2/{envvars, apache2.conf, ports.conf, conf.d/security}
+- name: "config | Configure: /etc/apache2/*"
   template:
     src={{ item }}.j2
     dest=/etc/apache2/{{ item }}
+    owner=root group=root
   with_items:
     - envvars
     - apache2.conf
@@ -67,63 +46,144 @@
     - conf.d/security
   notify: restart apache
   tags:
-    - config
 
-- name: Apache | Enable some required modules
+
+- name: "install | Enable required modules: {{ apache.mods_enabled|join(', ') }}"
   command: a2enmod {{ item }}
-  with_items: mods_enabled
+  register: a2enmod_result
+  with_items: apache.mods_enabled
+  changed_when: "'already enabled' not in a2enmod_result.stdout"
   notify: restart apache
   tags:
     - install
     - apachemods
 
-- name: Apache | Disable some banned modules
+- name: "clean | Disable banned modules: {{ apache.mods_disabled|join(', ') }}"
   command: a2enmod {{ item }}
-  with_items: mods_disabled
+  with_items: apache.mods_disabled
   notify: restart apache
   tags:
     - clean
     - apachemods
 
-- name: Apache | Remove default index file from default docroot: /var/www/index.html
+- name: "clean | Disable default apache virtual host"
+  command: a2dissite 000-default
+  register: a2dissite_result
+  changed_when: "'already disabled' not in a2dissite_result.stdout"
+  tags:
+    - clean
+
+- name: "clean | Remove default index file from docroot: /var/www/index.html"
   file:
     path=/var/www/index.html
     state=absent
   tags:
     - clean
 
-- include: create-vhost.yml
-  vars:
-    create_docroot: true
-    docroot: root
-    vhost: hostname
-    # The rest are passed on as they were passed into this task.
-  tags:
-    - vhost
-
-- name: Apache | Create a directory for per vhost configurations: /etc/apache2/vhosts.d/
+- name: "config | vhost | Create a directory for per vhost configurations: /etc/apache2/vhosts.d/"
   file:
     path=/etc/apache2/vhosts.d
     state=directory
+    owner=root group=root
   tags:
     - vhost
+    - config
 
-- name: Apache | Start service and enable autostart
-  service:
-    name=apache2
-    enabled=yes
-    state=started
-  when: enabled
+- name: "install | Enable: vhost_alias"
+  command: a2enmod vhost_alias
+  register: a2enmod_result
+  with_items: apache.mods_enabled
+  changed_when: "'already enabled' not in a2enmod_result.stdout"
+  notify: restart apache
+  when: apache.wildcard_subdomains
   tags:
-    - service
-    - enable
+    - install
+    - apachemods
 
-- name: Apache | Shutdown service and disable autostart
-  service:
-    name=apache2
-    enabled=no
-    state=stopped
-  when: not enabled
+- name: "config | wildcard subdomains | Enable: /etc/apache2/conf.d/wildcard-subdomains"
+  template:
+    src={{ item }}.j2
+    dest=/etc/apache2/{{ item }}
+    owner=root group=root
+  with_items:
+    - conf.d/wildcard-subdomains
+  notify: restart apache
+  when: apache.wildcard_subdomains
   tags:
-    - service
-    - disable
+    - config
+
+- name: "config | wildcard subdomains | Add global robots.txt: /var/www/robots.txt"
+  copy:
+    src=robots.txt
+    dest=/var/www/robots.txt
+    owner=root group=root mode=644
+  when: apache.wildcard_subdomains
+  tags:
+    - config
+
+# Create a default virtual host
+- include: vhost.yml
+  vars:
+    enabled: '{{ apache.enabled and not apache.wildcard_subdomains }}'
+    vhost: '{{ ansible_fqdn }}'
+    docroot: '/var/www/{{ ansible_fqdn }}'
+    ssl:
+      enabled: true
+      certificate_file: '{{ apache.ssl.certificate_file }}'
+      certificate_key_file: '{{ apache.ssl.certificate_key_file }}'
+      certificate_chain_file: '{{ apache.ssl.certificate_chain_file }}'
+  tags:
+    - config
+
+- name: lint | verify configuration files are valid
+  command: apachectl configtest
+  changed_when: false
+  tags:
+    - lint
+
+# General management
+###
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: apache2
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: apache
+    port: '{{ apache.port.http }}'
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: apache
+    logs: '{{ apache.log.error_file }} {{ apache.log.access_file }}'
+    size: 100M
+    maxage: 30
+    postrotate: '/etc/init.d/apache2 reload > /dev/null'
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: apache-access
+    mode: filemonitor
+    logfile: '{{ apache.log.access_file }}'
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: apache-error
+    mode: filemonitor
+    logfile: '{{ apache.log.error_file }}'
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: '{{ apache.port.http }}'
+    enabled: '{{ apache.enabled }}'
+
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: '{{ apache.port.https }}'
+    enabled: '{{ apache.enabled and apache.ssl.enabled }}'

@@ -1,0 +1,60 @@
+# {{ ansible_managed }}
+# Rsyslog entry for {{ name }}
+
+# Loggly
+###
+
+{% if loggly|default(true) and rsyslog.loggly.enabled -%}
+  {# Create a template for loggly #}
+  $template LogglyFormat{{ name|capitalize }},"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [{{ rsyslog.loggly.token }}@{{ rsyslog.loggly.id }} tag=\"{{ name }}\"] %msg%\n"
+
+  {# We're reading from a syslog facility (local0-7) #}
+  {% if mode == 'facility' -%}
+    {{ facility }} @{{ rsyslog.loggly.udp_logger }}; LogglyFormat{{ name|capitalize }}
+
+  {# We're listening for a specific programname such as php. #}
+  {%- elif mode == 'programname' -%}
+    if $programname == '{{ name }}' then @{{ rsyslog.loggly.udp_logger }};LogglyFormat{{ name|capitalize }}
+
+  {# We're monitoring another log file not associated with syslog. #}
+  {%- elif mode == 'filemonitor' -%}
+    $InputFileName          {{ logfile }}
+    $InputFileTag           {{ name }}:                     # Tag is referenced in $programname
+    $InputFileStateFile     stat-{{ name }}                 # Name of file within rsyslogs working directory
+    $InputFileSeverity      {{ severity|default('info') }}  # info, notice...
+    $InputRunFileMonitor                                    # File monitoring
+
+    if $programname == '{{ name }}' then @{{ rsyslog.loggly.udp_logger }};LogglyFormat{{ name|capitalize }}
+
+  {# We're looking for a message containing something #}
+  {%- elif mode == 'contains' -%}
+    :msg,contains,"{{ contains }} "   @{{ rsyslog.loggly.udp_logger }};LogglyFormat{{ name|capitalize }}
+
+  {%- endif %}
+{%- endif %}
+
+# File logging
+###
+
+{% if output is defined -%}
+  {# We're reading from a syslog facility (local0-7) #}
+  {% if mode == 'facility' -%}
+    {{ facility }} -{{ output }}
+    {% if stop_processing|default(false) %}&~{% endif %}
+
+  {# We're listening for a specific programname such as php. #}
+  {%- elif mode == 'programname' -%}
+    if $programname == '{{ name }}' then -{{ output }}
+    {% if stop_processing|default(false) %}&~{% endif %}
+
+  {# We're monitoring another log file not associated with syslog. #}
+  {%- elif mode == 'contains' -%}
+    :msg,contains,"{{ contains }} " -{{ output }}
+    {% if stop_processing|default(false) %}&~{% endif %}
+
+  {# File monitoring doesnt need a separate output. #}
+  {%- endif %}
+
+{%- else -%}
+# File logging is handled by the application itself.
+{%- endif %}

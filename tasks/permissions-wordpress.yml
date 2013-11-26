@@ -1,0 +1,47 @@
+- name: Security | Set general directory permissions
+  raw: >
+    file {{ item.docroot }} -type d ! -perm 755 \
+      ! -iwholename '*/wp-content/uploads*' \
+      ! -iwholename '*/wp-content/files_mf*' \
+      -exec chmod 755 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  with_items: sites
+  when: secure.permissions.dir
+
+- name: Security | Set general file permissions
+  raw: >
+    file {{ item.docroot }} -type f ! -perm 644 \
+      ! -iwholename '*/wp-content/uploads/*' \
+      ! -iwholename '*/wp-content/files_mf/*' \
+      -exec chmod 644 {} \; \
+      -exec chown {{ item.owner }}:{{ item.owner }} {} \;
+  with_items: sites
+  when: secure.permissions.file
+
+- name: Security | Remove php and html files from uploads
+  raw: >
+    file {{ item.docroot }}/wp-content/uploads/ \
+      \( -name '*.php' -o -name '*.html' \) \
+    | xargs rm -f
+  with_items: sites
+  when: secure.php_clean.uploads
+
+- name: Security | Set directory permissions of files directory
+  raw: >
+    file {{ item[0].docroot }}/wp-content/{{ item[1] }} -type d ! -perm 775 \
+      -exec chmod 775 {} \; \
+      -exec chown {{ item.owner }}:{{ web.group }} {} \;
+  with_nested:
+    - sites
+    - ['files_mf', 'uploads']
+  when: secure.permissions.uploads
+
+- name: Security | Set file permissions of files directory
+  raw: >
+    file {{ item[0].docroot }}/wp-content/{{ item[1] }} -type f ! -perm 664 \
+      -exec chmod 664 {} \; \
+      -exec chown {{ item.owner }}:{{ web.group }} {} \;
+  with_nested:
+    - sites
+    - ['files_mf', 'uploads']
+  when: secure.permissions.uploads

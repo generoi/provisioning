@@ -1,21 +1,37 @@
-poll_interval: 10
+---
+rsyslog:
+  poll_interval: 10
 
-reception:
-  udp:
+  owner: syslog
+  group: adm
+
+  reception:
+    udp:
+      enabled: true
+      port: 514
+    tcp:
+      enabled: false
+      port: 514
+
+  loggly:
     enabled: true
-    port: 514
-  tcp:
-    enabled: false
-    port: 514
+    udp_logger: logs-01.loggly.com:514
+    ssl:
+      ca: /etc/ssl/combined/loggly.crt
+      cert: /etc/ssl/certs/ssl-cert-snakeoil.pem
+      key: /etc/ssl/private/ssl-cert-snakeoil.pem
+    token: '{{ loggly_token }}'
+    id: '{{ loggly_id }}'
 
-loggly:
-  enabled: true
-  udp_logger: logs-01.loggly.com:514
-
-logs:
-  mysql_slow_query: /var/log/mysqld_slow_query.log
-  mysql_error: /var/log/mysqld_error.log
-  apache_error: /var/log/apache2/error.log
-  apache_access: /var/log/apache2/access.log
-  pound_log: /var/log/pound.log
-  monit_log: /var/log/monit.log
+  logs:
+    mysql_slow_query: /var/log/mysqld_slow_query.log
+    mysql_error: /var/log/mysqld_error.log
+    apache_error: /var/log/apache2/error.log
+    apache_access: /var/log/apache2/access.log
+    pound_log: /var/log/pound.log
+    monit_log: /var/log/monit.log
+    varnish_log: /var/log/varnish.log
+    newrelic_sysmond: /var/log/newrelic/nrsysmond.log
+    newrelic_php_daemon: /var/log/newrelic/php-daemon.log
+    newrelic_php_agent: /var/log/newrelic/php_agent.log
+    drupal_log: /var/log/drupal.log

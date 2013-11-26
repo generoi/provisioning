@@ -1,0 +1,41 @@
+---
+# Part: Common
+#
+# Description: Compile terminfo
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: terminfo | Check if terminfo exists
+  file:
+    path=/usr/share/terminfo/{{ item.dir }}/{{ item.file }}
+    state=file
+  with_items: common.terminfo
+  ignore_errors: true
+  register: terminfo_exists
+  tags:
+    - terminfo
+
+- name: terminfo | Fetch terminfo file
+  copy:
+    src=terminfo/{{ item.file }}
+    dest=/tmp/{{ item.file }}
+  with_items: common.terminfo
+  when: terminfo_exists|failed
+  tags:
+    - terminfo
+
+- name: terminfo | Compile terminfo file
+  command: tic {{ item.file }}
+    chdir=/tmp
+    creates=/usr/share/terminfo/{{ item.dir }}/{{ item.file }}
+  with_items: common.terminfo
+  tags:
+    - terminfo

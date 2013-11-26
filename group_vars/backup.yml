@@ -1,0 +1,9 @@
+---
+backup:
+  db:
+    daily: 7
+    weekly: 3
+    monthly: 12
+    yearly: 10
+  docroot:
+    weekly: 2

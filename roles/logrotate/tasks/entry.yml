@@ -1,0 +1,42 @@
+---
+# Part: Logrotate
+#
+# Description: Manage a logrotate entry
+#
+# Parameters:
+# - name: Name of the service that logs
+# - enabled (default: true)
+# - logs: files to watch, separated by space
+# - size: maximum size
+# - postrotate: command to run after totation
+# - special (weekly|daily|etc)
+# - maxage (default: 30)
+# - owner (default: root)
+# - group (default: adm)
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/logrotate.d/{{ name }}
+#
+# File modifications:
+#
+###############################################################################
+
+- name: "logrotate | enable | Create logrotate entry for {{ name }}: /etc/logrotate.d/{{ name }}"
+  template:
+    src=entry.j2
+    dest=/etc/logrotate.d/{{ name }}
+  when: enabled|default(true)
+  tags:
+    - logrotate
+    - enable
+
+- name: "logrotate | disable | Delete logrotate entry for {{ name }}: /etc/logrotate.d/{{ name }}"
+  file:
+    path=/etc/logrotate.d/{{ name }}
+    state=absent
+  when: not enabled|default(true)
+  tags:
+    - logrotate
+    - disable

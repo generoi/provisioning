@@ -1,0 +1,34 @@
+---
+# Part: Rsyslog
+#
+# Description: Set up and configure loggly for rsyslog
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: loggly | Fetch loggly certificate
+  get_url:
+    url={{ loggly_install.cert }}
+    sha256sum={{ loggly_install.cert_sha256sum }}
+    dest=/tmp/loggly.com.crt
+
+- name: loggly | Fetch intermediary certificate
+  get_url:
+    url={{ loggly_install.intermediary }}
+    sha256sum={{ loggly_install.intermediary_sha256sum }}
+    dest=/tmp/sf_bundle.crt
+
+- include: ../../pound/tasks/join-cert-key.yml
+  vars:
+    certificate: /tmp/loggly.com.crt
+    private_key: /tmp/sf_bundle.crt # not really private, just a bundle
+    output: '{{ rsyslog.loggly.ssl.ca }}'
+  tags:
+    - config

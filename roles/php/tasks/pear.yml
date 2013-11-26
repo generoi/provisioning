@@ -1,9 +1,10 @@
 ---
 # Part: PHP
 #
-# Description: Installs PHP PEAR and sets it up for auto-discovery.
+# Description: Installs PEAR package
 #
 # Parameters:
+# - package
 #
 # Dependencies:
 # - tasks:setup
@@ -13,15 +14,24 @@
 # File modifications:
 #
 ###############################################################################
-- name: PHP | PEAR | Install PHP development packages: php-pear
+- name: pear | Install PHP development packages for pear
   apt:
     pkg=php-pear
     state=installed
   tags:
     - install
 
-- name: PHP | PHPDev | Update pear packages
+- name: pear | Update pear packages
   command: pear upgrade
+  changed_when: false
 
-- name: PHP | Set pear auto-discover
+- name: pear | Set pear auto-discover
   command: pear config-set auto_discover 1
+  changed_when: false
+
+- name: pear | Install package {{ package }}
+  command: pear install {{ package }}
+  register: pear_output
+  failed_when: pear_output.rc != 0 and 'already installed' not in pear_output.stdout
+  changed_when: "'already installed' not in pear_output.stdout"
+  ignore_errors: true

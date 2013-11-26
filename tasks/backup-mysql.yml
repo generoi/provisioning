@@ -1,0 +1,79 @@
+---
+# Part: Backup
+#
+# Description: Do a rotated backup of a mysql database on a remote host.
+#
+# Parameters:
+# - name: Database name
+# - user: Username to log in with
+# - rotation: Rotation type (daily, weekly, monthly, yearly)
+# - keep_count: How many rotations to keep (eg. 2 will keep two backups in the rotation)
+# - backup.mariadb: Directory where to store backups (on the local machine)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Backup | Check if backup is needed
+  script: rotate.sh {{ rotation }} {{ keep_count }} {{ dir.mariadb }} {{ name }}
+  ignore_errors: True
+  register: do_backup # 0: backup exists, 3: backup required, other: error
+  failed_when: do_backup.rc != 3 # Create a backup only when required
+  delegate_to: 127.0.0.1 # Run this on localhost
+
+# Try to reuse existing backup from another rotation
+###
+
+- name: Backup | Check if backup already exists locally
+  shell:
+    find {{ backup.mariadb }} -maxdepth 2
+    -name "{{ name }}-{{ ansible_date_time.date }}.tar.gz" -print0
+    | head -1
+    | xargs --null realpath
+  register: duplicate_path
+  delegate_to: 127.0.0.1
+  when: do_backup|success
+
+# Backup exists locally but in another rotation directory, reuse it.
+- name: Backup | Reuse backup which already exist in different rotation
+  command:
+    cp {{ duplicate_path }} {{ backup.mariadb }}/{{ rotation }}/
+    creates={{ backup.mariadb }}/{{ rotation }}/{{ name }}-{{ ansible_date_time.date }}.tar.gz
+  delegate_to: 127.0.0.1
+  when: do_backup|success and duplicate_path|success
+
+# Backup needs to be created
+# Henceforth only raw and script actions are available
+###
+
+- name: Backup | Create temporary filestorage
+  raw:
+    mkdir /tmp/mysql-dump
+    && chmod 700 /tmp/mysql-dump
+  when: do_backup|success and duplicate_path|failed
+
+- name: Backup | Dump database {{ name }} to /tmp/mysql-dump/{{ name }}-{{ ansible_date_time.date }}.sql.gz
+  raw:
+    kill -9 $$;
+    mysqldump
+    -u {{ user }}
+    -p{{ lookup('password', 'credentials/' + hostname + '/' + user + '/mariadb_password') }}
+    {{ name }}
+    | gzip
+    > /tmp/mysql-dump/{{ name }}-{{ ansible_date_time.date }}.sql.gz
+  when: do_backup|success and duplicate_path|failed
+
+- name: Backup | Fetch file back to localhost
+  fetch:
+    dest={{ dir.mariadb }}/{{ rotation }}
+    flat=yes
+    src=/tmp/mysql-dump/{{ name }}-{{ ansible_date_time.date }}.sql.gz
+  when: do_backup|success and duplicate_path|failed
+
+- name: Backup | Clean up temporary files
+  raw: rm -rf /tmp/mysql-dump
+  when: do_backup|success and duplicate_path|failed

@@ -22,83 +22,32 @@
 #
 ###############################################################################
 
+# Used in conf.d/xdebug.ini.j2
+- name: xdebug | Fetch PHP extension dir
+  shell: "php -i | grep -i '^extension_dir' | awk '{print $3}'"
+  register: php_extension_dir
+  changed_when: false
+  tags:
+    - php-dev
+    - xdebug
+    - install
+
 - include: pecl.yml
   vars:
     package: xdebug
     version: stable
-  tags:
-    - php-dev
-    - xdebug
-    - install
 
-- name: PHP | XDebug | Download webgrind source tarball: /tmp/webgrind.tar.gz
-  get_url:
-    url={{ xdebug.webgrind.tarball }}
-    sha256sum={{ xdebug.webgrind.sha256sum }}
-    dest=/tmp/webgrind.tar.gz
-    mode=0440
-  tags:
-    - php-dev
-    - xdebug
-    - webgrind
-    - install
-
-- name: PHP | XDebug | Create /opt/webgrind
-  file:
-    path=/opt/webgrind
-    state=directory
-  tags:
-    - php-dev
-    - xdebug
-    - webgrind
-    - install
-
-- name: PHP | XDebug | Extract source to /opt/webgrind
-  command:
-    # Strip first directory and extract its content
-    tar -xzf /tmp/webgrind.tar.gz --strip 1 -C /opt/webgrind/
-    creates=/opt/webgrind/index.php
-  tags:
-    - php-dev
-    - xdebug
-    - webgrind
-    - install
-
-- name: PHP | XDebug | Delete tarball /tmp/webgrind.tar.gz
-  file:
-    path=/tmp/webgrind.tar.gz
-    state=absent
-  tags:
-    - php-dev
-    - xdebug
-    - webgrind
-    - clean
+- include: ../../common/tasks/source-install.yml
+  vars:
+    name: webgrind
+    tarball: '{{ webgrind_install.tarball }}'
+    sha256sum: '{{ webgrind_install.sha256sum }}'
+    strip: 1
+    creates: index.php
 
 # Manage local vhost alias for /webgrind
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
     docroot: /opt/webgrind
     alias: /webgrind
-    remove: not xdebug.enabled
-  tags:
-    - php-dev
-    - xdebug
-    - webgrind
-    - config
-
-- name: PHP | XDebug | Configure: /etc/php5/conf.d/xdebug.ini
-  lineinfile:
-    dest=/etc/php5/conf.d/xdebug.ini
-    regexp="^{{ item[0] }}"
-    line="{{ item[0] }} = {{ item[1] }}"
-  notify: restart php
-  with_items:
-    ['xdebug.profiler_enable_trigger', {{ xdebug.enabled }}]
-    ['xdebug.profiler_output_dir', '/tmp']
-    ['xdebug.profiler_output_name', 'cachegrind.out.%t.%p']
-    ['xdebug.max_nesting_level', 150]
-  tags:
-    - php-dev
-    - xdebug
-    - config
-    - webgrind
+    enabled: '{{ php.xdebug.enabled }}'

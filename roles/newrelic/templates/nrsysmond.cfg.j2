@@ -1,10 +1,9 @@
-
 # {{ ansible_managed }}
 
-license_key={{ license_key  }}
+license_key={{ newrelic_license }}
 
 # https://docs.newrelic.com/docs/server/server-monitor-configuration
 # error | warnig | info | verbose | debug | verbosedebug
-loglevel={{ sysmond.loglevel }}
+loglevel={{ newrelic.sysmond.loglevel }}
 
-logfile={{ sysmond.logfile }}
+logfile={{ newrelic.sysmond.logfile }}

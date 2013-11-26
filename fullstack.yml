@@ -1,0 +1,34 @@
+---
+# Job: Setup
+#
+# Description: Manages all the servers
+#
+###############################################################################
+
+- hosts: fullstack
+  sudo: true
+  connection: '{{ connection|default("ssh") }}'
+  vars:
+    hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_eth0.ipv4.address }}'
+
+  roles:
+    # Make sure admin users exist
+    - { role: common }
+    - { role: user }
+    - { role: ufw }
+    - { role: monit }
+    - { role: rsyslog }
+    - { role: postfix }
+    - { role: apache }
+    # - { role: development }
+    - { role: php }
+    - { role: mariadb }
+    - { role: drush }
+    # - { role: wpcli }
+    - { role: varnish }
+    - { role: pound }
+    - { role: vnstat }
+    - { role: security }
+    - { role: newrelic }
+    # - { role: project }

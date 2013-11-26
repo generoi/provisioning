@@ -1,21 +1,24 @@
 ---
-license_key: ''
+newrelic_license: false
 
-sysmond:
-  enabled: true
-  install: true
-  loglevel: 'info'
-  logfile: '/var/log/newrelic/nrsysmond.log'
+newrelic:
+  sysmond:
+    enabled: true
+    install: true
+    loglevel: 'info'
+    logfile: '/var/log/newrelic/nrsysmond.log'
 
-php:
-  enabled: true
-  install: true
-  loglevel: 'info'
-  logfile: '/var/log/newrelic/php_agent.log'
-  daemon_logfile: '/var/log/newrelic/newrelic-daemon.log'
+  php:
+    enabled: true
+    install: true
+    loglevel: 'info'
+    logfile: '/var/log/newrelic/php_agent.log'
+    daemon_logfile: '/var/log/newrelic/newrelic-daemon.log'
+    daemon_loglevel: 'info'
 
-  browser_monitoring_auto_instrument: 1
-  drupal_modules: 1
-  error_collector_record_database_error: 1
-  error_collector_include_notices: 1
-  analytics_events: 1
+    browser_monitoring_auto_instrument: true
+    drupal_modules: true
+    error_collector:
+      record_database_errors: true
+      include_notices: true
+    analytics_events: true

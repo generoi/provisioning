@@ -6,6 +6,7 @@
 # Parameters:
 #
 # Dependencies:
+# - ufw:tasks:entry
 #
 # Creates:
 #
@@ -13,13 +14,14 @@
 #
 ###############################################################################
 
-- name: Common | Add the silver searcher PPA: {{ common.ag_repository }}
+- name: common | mosh | Add the mosh repository
   apt_repository:
-    repo={{ common.ag_repository }}
-  tag:
+    name=ppa:keithw/mosh
+  tags:
     - install
+    - mosh
 
-- name: Common | Install development packages
+- name: common | Install common development packages
   apt:
     pkg={{ item }}
     state=present
@@ -28,9 +30,91 @@
     - luajit # fast vim plugins
     - python # @TODO figure out bin names
     - python3
-    - silversearcher-ag
     - tmux
     - tree
     - lftp
+    # Silversearcher build requirements
+    - automake
+    - pkg-config
+    - libpcre3-dev
+    - zlib1g-dev
+    - liblzma-dev
   tags:
     - install
+
+# Silver Searcher
+###
+
+- name: ag | Check silver searcher version
+  shell: ag --version | cut -d ' ' -f 3
+  register: ag_version
+  ignore_errors: true
+  changed_when: false
+  tags:
+    - install
+    - ag
+
+- include: ../../common/tasks/source-install.yml
+  vars:
+    tarball: '{{ silversearcher_install.tarball }}'
+    sha256sum: '{{ silversearcher_install.sha256sum }}'
+    strip: 1
+    name: ag
+    destination: /opt
+    creates: build.sh
+  when: ag_version.stdout != '{{ silversearcher_install.version }}'
+
+- name: ag | install | Run install script
+  shell:
+    ./build.sh && sudo make install
+    chdir=/opt/ag
+    creates=/usr/bin/ag
+  when: ag_version.stdout != '{{ silversearcher_install.version }}'
+
+# Fasd
+###
+
+- name: fasd | Check fasd version
+  shell: fasd --version
+  register: fasd_version
+  ignore_errors: true
+  changed_when: false
+  tags:
+    - development
+    - fasd
+
+- include: ../../common/tasks/source-install.yml
+  vars:
+    tarball: '{{ fasd_install.tarball }}'
+    sha256sum: '{{ fasd_install.sha256sum }}'
+    strip: 1
+    name: fasd
+    destination: /opt
+    creates: fasd
+  when: fasd_version.stdout != '{{ fasd_install.version }}'
+  tags:
+    - fasd
+    - development
+
+- name: fasd | install | Run make install
+  shell: make install
+    chdir=/opt/fasd
+    creates=/usr/local/bin/fasd
+  tags:
+    - development
+    - fasd
+
+- name: git | config | Set default systemwide .gitconfig
+  copy:
+    src=gitconfig
+    dest=/etc/gitconfig
+    owner=root group=root mode=644
+  tags:
+    - git
+    - development-git
+    - development
+
+# Allow mosh in the firewall
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: 60000:61000/udp

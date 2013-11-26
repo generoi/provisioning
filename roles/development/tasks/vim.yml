@@ -1,0 +1,118 @@
+---
+# Part: Development
+#
+# Description: Install vim 7.4 from source with luajit and python enabled
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: vim | Check if the correct vim version is installed
+  shell: vim --version | grep '+lua'
+  register: vim_has_lua
+  ignore_errors: true
+  changed_when: vim_has_lua.rc != 0
+  tags:
+    - vim
+    - install
+
+- name: vim | install | Remove current vim installations
+  apt:
+    pkg={{ item }}
+    state=absent
+  with_items:
+    - vim
+    - vim-tiny
+    - vim-runtime
+    - vim-common
+    - vim-gui-common
+    - gvim
+  when: vim_has_lua|failed
+  tags:
+    - install
+    - vim
+
+- name: vim | install | Install dependencies
+  apt:
+    pkg={{ item }}
+    state=present
+  with_items:
+    - python-dev
+    - ruby-dev
+    - mercurial
+    - libncurses5-dev
+    - checkinstall
+    - luajit
+    - libluajit-5.1-dev
+    - liblua5.1-0-dev
+  when: vim_has_lua|failed
+  tags:
+    - install
+    - vim
+
+- name: vim | install | Symlink luajit-2.0.0-beta9 to luajit
+  file:
+    src=/usr/bin/luajit-2.0.0-beta9
+    dest=/usr/bin/luajit
+    state=link
+  tags:
+    - install
+    - vim
+
+- include: ../../common/tasks/source-install.yml
+  vars:
+    name: vim
+    tarball: '{{ vim_install.tarball }}'
+    sha256sum: '{{ vim_install.sha256sum }}'
+    strip: 1
+    creates: 'configure'
+    destination: /opt
+  when: vim_has_lua|failed
+
+- name: vim | install | Configure install
+  shell: >
+    ./configure \
+      --prefix=/usr \
+      --enable-fail-if-missing \
+      --localstatedir=/var/lib/vim \
+      --with-features=huge \
+      --enable-pythoninterp \
+      --with-python-config-dir=/usr/lib/python2.7/config \
+      --with-python3-config-dir=/usr/lib/python3/config \
+      --enable-luainterp \
+      --with-luajit \
+      --enable-cscope \
+      --enable-multibyte \
+      --disable-netbeans \
+      --disable-gui \
+      --enable-gpm \
+      --with-x=no
+    chdir=/opt/vim
+  when: vim_has_lua|failed
+  tags:
+    - vim
+    - install
+
+- name: vim | install | Make
+  command:
+    make VIMRUNTIMEDIR=/usr/share/vim/vim74
+    chdir=/opt/vim
+  when: vim_has_lua|failed
+  tags:
+    - vim
+    - install
+
+- name: vim | install | Make install
+  command:
+    make install
+    chdir=/opt/vim
+  when: vim_has_lua|failed
+  tags:
+    - vim
+    - install

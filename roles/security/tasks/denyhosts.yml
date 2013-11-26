@@ -4,23 +4,6 @@
 # Description: Install denyhosts to block failed ssh login attempts
 #
 # Parameters:
-# - denyhosts.enabled (defaults: true)
-# - denyhosts.purge (default: 1w)
-# - denyhosts.purge_threshold (default: 2)
-# - denyhosts.deny_threshold_invalid (default: 2)
-# - denyhosts.deny_threshold_valid (default: 3)
-# - denyhosts.deny_threshold_root (default: 1)
-# - denyhosts.deny_threshold_restricted (default: 1)
-# - denyhosts.syslog (default: yes)
-# - denyhosts.age_reset_valid (default: 1h)
-# - denyhosts.age_reset_root (default: 30d)
-# - denyhosts.age_reset_restricted (default: 30d)
-# - denyhosts.age_reset_invalid (default: 10d)
-# - denyhosts.reset_on_success (default: yes)
-# - denyhosts.daemon_sleep (default: 20s)
-# - denyhosts.daemon_purge (default: 1h)
-# - denyhosts.mail.enabled (default: false)
-# - denyhosts.mail.notify_email (default: '')
 #
 # Dependencies:
 #
@@ -31,7 +14,7 @@
 #
 ###############################################################################
 
-- name: Security | Install DenyHosts
+- name: denyhosts | Install package
   apt:
     pkg=denyhosts
     state=present
@@ -40,33 +23,41 @@
     - install
 
 # @see http://blog.bigdinosaur.org/securing-your-server-with-denyhosts/
-- name: DenyHosts | Configure /etc/denyhosts.conf
+- name: "denyhosts | Configure: /etc/denyhosts.conf"
   template:
-    src=denyhosts.conf
+    src=denyhosts.conf.j2
     dest=/etc/denyhosts.conf
+    owner=root group=root
   notify: restart denyhosts
   tags:
     - denyhosts
     - config
 
-- name: DenyHosts | Start the service and enable autostart
-  service:
-    name=denyhosts
-    state=started
-    enabled=true
-  when: denyhosts.enabled
-  tags:
-    - denyhosts
-    - service
-    - enable
+# General management
+###
 
-- name: DenyHosts | Shutdown the service and disable autostart
-  service:
-    name=denyhosts
-    state=stopped
-    enabled=false
-  when: not denyhosts.enabled
-  tags:
-    - denyhosts
-    - service
-    - disable
+- include: ../../common/tasks/service.yml
+  vars:
+    name: denyhosts
+    enabled: '{{ security.denyhosts.enabled }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: denyhosts
+    enabled: '{{ security.denyhosts.enabled }}'
+
+
+- include: ../../logrotate/tasks/entry.yml
+  vars:
+    name: denyhosts
+    logs: '{{ security.denyhosts.log.file }}'
+    special: weekly
+    maxage: 30
+    enabled: '{{ security.denyhosts.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: denyhosts
+    mode: programname
+    enabled: '{{ security.denyhosts.enabled }}'
+    output: '{{ security.denyhosts.log.file }}'

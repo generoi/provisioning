@@ -5,10 +5,6 @@
 # profiling tools.
 #
 # Parameters:
-# - phpqatools.install (default: true)
-# - composer.install (default: true)
-# - xhprof.install (default: true)
-# - xdebug.install (default: true)
 #
 # Dependencies:
 # - tasks:setup
@@ -24,33 +20,64 @@
 
 # PHP QA Toolchain
 ##
-- name: PHP | PHPDev | PEAR install the PHP QA Toolchain
-  command:
-    pear install pear.phpqatools.org/phpqatools
-    creates=/usr/bin/phpunit
-  # this fails often (dns problems, pear problems, etc. So just ignore the errors and continue.)
-  # @TODO fix this
-  ignore_errors: true
-  notify: restart php
-  when: phpqatools.install
-  tags:
-    - php-dev
-    - phpqatools
-    - install
+- include: pear.yml
+  vars:
+    package: pear.phpqatools.org/phpqatools
+  when: php.phpqatools.install
 
 # Composer
 ###
-- name: PHP | PHPDev | Install Composer
-  shell:
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin && mv /usr/local/bin/composer{.phar,}
-    creates=/usr/local/bin/composer
-  when: composer.install
+- name: composer | Check if composer is installed
+  file:
+    path={{ php.composer.dir }}/composer
+    state=file
+  ignore_errors: true
+  register: composer_exists
+
+- name: "composer | Download install script: /tmp/composer.php"
+  get_url:
+    url={{ composer_install.script }}
+    dest=/tmp/composer.php
+    sha256sum={{ composer_install.sha256sum }}
+  when: php.composer.install and composer_exists|failed
+  tags:
+    - php-dev
+    - composer
+    - install
+
+- name: "composer | Run install script"
+  command:
+    php /tmp/composer.php -- --install-dir={{ php.composer.dir }}
+    creates={{ php.composer.dir }}/composer.phar
+  when: php.composer.install and composer_exists|failed
+  tags:
+  tags:
+    - php-dev
+    - composer
+    - install
+ 
+- name: "composer | Rename .phar for binary"
+  command:
+    mv {{ php.composer.dir }}/composer.phar {{ php.composer.dir }}/composer
+    creates={{ php.composer.dir }}/composer
+    removes={{ php.composer.dir }}/composer.phar
+  when: php.composer.install and composer_exists|failed
+  tags:
+    - php-dev
+    - composer
+    - install
+ 
+- name: "composer | Remove install script"
+  file:
+    path=/tmp/composer.php
+    state=absent
   tags:
     - php-dev
     - composer
     - install
 
 - include: xhprof.yml
-  when: xhprof.install
+  when: php.xhprof.install
+
 - include: xdebug.yml
-  when: xdebug.install
+  when: php.xdebug.install

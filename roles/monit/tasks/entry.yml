@@ -1,0 +1,56 @@
+---
+# Part: Monit
+#
+# Description: Set up monit for specified service.
+#
+# Supported monitors:
+# - apache
+# - cron
+# - mysql
+# - postfix
+# - sshd
+# - rsyslogd
+# - varnish
+# - newrelic-sysmond
+# - pound
+# - ntp
+# - vnstat
+#
+# Parameters:
+# - enabled (default: true)
+# - name
+# - port: Many templates accept to override port, specify if if you need it.
+#
+# Dependencies:
+#
+# Creates:
+# - /etc/monit/conf.d/{{ name }}
+#
+# File modifications:
+#
+###############################################################################
+
+- name: "monit | Create: /etc/monit/conf.d"
+  file:
+    path=/etc/monit/conf.d
+    state=directory
+
+- name: "monit | Create monitor {{ name }}"
+  template:
+    src=monitors/{{ name }}.j2
+    dest=/etc/monit/conf.d/{{ name }}
+  notify: restart monit
+  when: enabled|default(true)
+  tags:
+    - config
+    - enable
+
+- name: "monit | Remove monitor {{ name }}"
+  file:
+    path=/etc/monit/conf.d/{{ name }}
+    state=absent
+  notify: restart monit
+  when: not enabled|default(true)
+  tags:
+    - config
+    - disable

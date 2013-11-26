@@ -1,6 +1,9 @@
 # {{ ansible_managed }}
-set httpd port {{ webinterface.port }} and
-    use address {{ webinterface.bind }}
-    allow @{{ webinterface.rw_group }}
-    allow @{{ webinterface.r_group }} readonly
-{% else %}
+set httpd port {{ monit.webinterface.port }} and
+    use address {{ monit.webinterface.addr }}
+    use ssl
+    pemfile {{ monit.ssl.combined_cert }}
+    allow localhost
+    allow admin:{{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/monit_password length=15 chars=ascii,numbers,digits,hexdigits') }}
+    allow @{{ monit.webinterface.rw_group }}
+    allow @{{ monit.webinterface.r_group }} readonly

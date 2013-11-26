@@ -1,21 +1,32 @@
-motd:
-  enabled: true
+---
+common:
+  # main.yml
+  ###
 
-known_hosts:
-  enabled: true
-  hosts: []
+  motd:
+    enabled: true
 
-packages:
-  - build-essential
-  - libpcre3-dev
-  - curl
-  - sendmail
-  - unzip
-  - python-software-properties # unattended-upgrades for example
-  - nmap
-  - git
-  - htop
-  - imagemagick
-  - ca-certificates
-  - pwgen
-  - ntp
+  known_hosts:
+    enabled: true
+    hosts: []
+
+  hosts_allow: []
+
+  ipv6:
+    enable: false
+
+  terminfo:
+    - { file: rxvt-unicode-256color, dir: r }
+
+  packages:
+    - build-essential
+    - libpcre3-dev
+    - curl
+    - unzip
+    - nmap
+    - git
+    - htop
+    - imagemagick
+    - ca-certificates
+    - pwgen
+    - ntp

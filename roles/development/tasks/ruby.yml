@@ -1,12 +1,10 @@
 ---
 # Part: Development
 #
-# Description: Install ruby and common packages such as compass. If ruby is
-# used for development however, then it should be installed per user through
-# rvm.
+# Description: Install rubygems.
 #
 # Parameters:
-# - ruby.gems (default: ['compass'])
+# - packages: List of gems to install.
 #
 # Dependencies:
 #
@@ -16,7 +14,7 @@
 #
 ###############################################################################
 
-- name: Ruby | Install required packages.
+- name: ruby | install | Install required ruby packages.
   apt:
     pkg={{ item }}
     state=present
@@ -25,13 +23,13 @@
     - rubygems
   tags:
     - install
+    - ruby
 
-- name: Ruby | Install common gems
-  # @TODO sudo
+- name: ruby | gem | Install ruby gems
   gem:
     name={{ item }}
     state=latest
-  with_items: ruby.gems
+  with_items: packages
   tags:
     - install
     - ruby

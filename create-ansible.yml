@@ -1,0 +1,59 @@
+---
+# Job: Setup
+#
+# Description: Manages all the servers
+#
+###############################################################################
+
+- hosts: "{{ target }}"
+  remote_user: root
+  connection: ssh
+  vars:
+    orig_hostname: '{{ ansible_hostname }}'
+    ip: '{{ ansible_eth0.ipv4.address }}'
+
+    user_accounts:
+      managed:
+        - username: genero
+          fullname: Genero
+          email: oskar.scholdstrom@gmail.com
+          groups: ['admin', 'sshlogin', 'sudo']
+  vars_prompt:
+    - name: 'hostname'
+      prompt: 'Hostname'
+
+  pre_tasks:
+    # @TODO fqdn!
+    - name: Set hostname to {{ hostname }}
+      hostname:
+        name={{ hostname }}
+
+  roles:
+    - { role: user }
+
+  tasks:
+    - name: Create ssh key folder
+      connection: local
+      local_action: file
+        path={{ inventory_dir }}/credentials/ssh
+        state=directory
+        mode=0700
+
+    - name: Create ssh key
+      connection: local
+      local_action:
+        command ssh-keygen -N '' -t rsa -f {{ inventory_dir }}/credentials/ssh/id_rsa
+        creates={{ inventory_dir }}/credentials/ssh/id_rsa.pub
+
+    - name: Push public key to host
+      authorized_key:
+        user={{ user_accounts.managed[0].username }}
+        key="{{ lookup('file', inventory_dir + '/credentials/ssh/id_rsa.pub') }}"
+        state=present
+
+    - name: Set passwordless sudo for user
+      template:
+        src=templates/sudoers-passwordless.j2
+        dest=/etc/sudoers.d/90-passwordless
+        owner=root group=root mode=0440
+        validate='visudo -cf %s'

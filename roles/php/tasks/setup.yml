@@ -5,14 +5,6 @@
 # packages and configures php.ini for development/production
 #
 # Parameters:
-# - development: Whether to use development or production configurations in
-#   php.ini (default: false).
-# - php.max_execution_time (default: 30)
-# - php.memory_limit (default: 256M)
-# - php.max_size (default: 8M)
-# - php.upload_max_filesize (default: 10M)
-# - php.max_file_uploads (default: 20)
-# - php.post_max_size (default: 10M)
 #
 # Dependencies:
 # - apache:tasks:main
@@ -25,21 +17,23 @@
 ###############################################################################
 
 # Extract candiate PHP version
-- name: PHP | Detect if PHP 5.4 is available in the repository
-  shell: apt-cache policy php5 | grep -i 'candidate' | tr -s ' ' | cut -d ' ' -f 3
-  ignore_errors: yes
+- name: install | Detect if PHP 5.4 is available in the repository
+  shell:
+    "apt-cache policy php5 | grep ': 5.4'"
+  ignore_errors: true
   register: php_version_available
+  changed_when: php_version_available.rc != 0
   tags:
     - install
 
-- name: PHP | Add the PHP 5.4 PPA, current is {{ php_version_avaiable.stdout }}
+- name: 'install | Add the PHP 5.4 PPA, current is {{ php_version_avaiable.stdout }}'
   apt_repository:
     repo=ppa:ondrej/php5-oldstable
-  when: not php_version_available.stdout.startswith('5.4')
+  when: php_version_available|failed
   tags:
     - install
 
-- name: PHP | Install required packages
+- name: install | Install required php packages
   apt:
     pkg={{ item }}
     state=installed
@@ -56,10 +50,11 @@
   tags:
     - install
 
-- name: PHP | Configuration file: /etc/php5/apache2/php.ini
+- name: "config | Configuration file: /etc/php5/apache2/php.ini"
   template:
     src=php.ini.j2
     dest=/etc/php5/apache2/php.ini
-  notify: restart apache
+    owner=root group=root
+  notify: restart php
   tags:
     - config

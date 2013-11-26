@@ -4,21 +4,6 @@
 # Description: Install APC from PECL and configure it.
 #
 # Parameters:
-# - apc.enabled (default: true)
-# - apc.frontend_archive (default: /usr/share/doc/php-apc/apc.php.gz)
-# - apc.shm_segments (default: 1)
-# - apc.shm_size (default: 256M)
-# - apc.num_files_hint (default: 3000)
-# - apc.ttl (default: 0)
-# - apc.user_ttl (default: 7200)
-# - apc.gc_ttl (default: 3600)
-# - apc.cache_by_default (default: 1)
-# - apc.filters (default: '/opt/apc/index.php,/opt')
-# - apc.mmap_file_mask (default: '/tmp/apc.XXXXXX')
-# - apc.max_file_size (default: 8M)
-# - apc.write_lock (default: 1)
-# - apc.report_autofilter (default: 1)
-# - apc.include_once_override (default: 1)
 #
 # Dependencies:
 # - tasks:setup
@@ -38,12 +23,9 @@
 - include: pecl.yml
   vars:
     package: apc
-    version: stable
-  tags:
-    - apc
-    - install
+    version: beta
 
-- name: PHP | APC | Create APC frontend directory
+- name: apc | Create APC frontend directory
   file:
     path=/opt/apc
     state=directory
@@ -51,10 +33,19 @@
     - apc
     - config
 
-- name: PHP | APC | Unarchive {{ apc.frontend_archive }} to /opt/apc/index.php
-  shell:
-    gunzip {{ apc.frontend_archive }} > /opt/apc/index.php
+- name: "apc | Set up frontend web ui: /opt/apc/index.php"
+  command:
+    cp {{ php.apc.frontend_archive }} /opt/apc/index.php
     creates=/opt/apc/index.php
+  tags:
+    - apc
+    - config
+
+- name: apc | Disable authentication for frontend
+  lineinfile:
+    dest=/opt/apc/index.php
+    regexp="^defaults\('USE_AUTHENTICATION'"
+    line="defaults('USE_AUTHENTICATION', 0);"
   tags:
     - apc
     - config
@@ -64,16 +55,4 @@
   vars:
     docroot: /opt/apc
     alias: /apc
-    remove: not apc.enabled|bool
-  tags:
-    - apc
-    - config
-
-- name: PHP | APC | Configure, /etc/php5/conf.d/apc.ini
-  template:
-    src=apc.ini.j2
-    dest=/etc/php5/conf.d/apc.ini
-  notify: restart php
-  tags:
-    - apc
-    - config
+    enabled: '{{ php.apc.enabled }}'

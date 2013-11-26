@@ -18,9 +18,34 @@
 #
 ###############################################################################
 
-- name: Pound | Join a {{ certificate }} certificate and a private key {{ private_key }} into one {{ output }}
+- name: "certificate | Create a storage directory for combined pem files: /etc/ssl/combined"
+  file:
+    path=/etc/ssl/combined
+    state=directory
+    owner=root group=root mode=0700
+  tags:
+    - config
+
+
+- name: certificate | Check current certificate md5sum
   shell:
-    cat {{ certficate }} {{ private_key }} > {{ output }}
-    creates={{ output }}
+    md5sum {{ output }}
+  ignore_errors: true
+  changed_when: false
+  register: certificate_md5sum
+
+- name: "certificate | Join certificate and private key into one"
+  shell:
+    cat {{ certificate }} {{ private_key }} >| {{ output }}; cat {{ output }}
+  register: combined_md5sum
+  changed_when: certificate_md5sum.stdout != combined_md5sum.stdout
+  tags:
+    - config
+
+- name: "certificate | Set certificate permissions"
+  file:
+    path={{ output }}
+    mode=0700
+    owner=root group=root
   tags:
     - config

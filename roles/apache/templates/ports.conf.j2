@@ -6,8 +6,8 @@
 # Debian etch). See /usr/share/doc/apache2.2-common/NEWS.Debian.gz and
 # README.Debian.gz
 
-NameVirtualHost *:{{ port.http }}
-Listen {{ port.http }}
+NameVirtualHost *:{{ apache.port.http }}
+Listen {{ apache.port.http }}
 
 <IfModule mod_ssl.c>
     # If you add NameVirtualHost *:443 here, you will also have to change
@@ -15,9 +15,9 @@ Listen {{ port.http }}
     # to <VirtualHost *:443>
     # Server Name Indication for SSL named virtual hosts is currently not
     # supported by MSIE on Windows XP.
-    Listen {{ port.https }}
+    Listen {{ apache.port.https }}
 </IfModule>
 
 <IfModule mod_gnutls.c>
-    Listen {{ port.https }}
+    Listen {{ apache.port.https }}
 </IfModule>

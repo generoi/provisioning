@@ -5,19 +5,12 @@
 # users as well.
 #
 # Parameters:
-# - development: Whether to use development or production configurations in
-#   my.cnf (default: false).
-# - configure_root (default: true).
-# - enabled (default: true)
-# - active: List of active users
-# - departed: List of departed users
-# - hosts: List of hosts (default: ['localhost'])
-#
-# - login.user (default: root)
-# - login.password (default: false)
-# - login.password_file (default: credentials/{{ hostname }}/root/mariadb_password length=15)
 #
 # Dependencies:
+# - rsyslog:tasks:entry
+# - logrotate:tasks:entry
+# - monit:tasks:entry
+# - common:tasks:service
 #
 # Creates:
 #
@@ -26,7 +19,32 @@
 #
 ###############################################################################
 
-- name: MariaDB | Install required packages
+- name: install | Install ansible dependencies
+  apt:
+    pkg={{ item }}
+    cache_valid_time=3600
+    update_cache=yes
+    state=present
+  with_items:
+    - python-mysqldb
+    - python-pycurl
+    - python-software-properties
+  tags:
+    - install
+
+- name: install | Add apt key
+  apt_key:
+    url={{ mariadb_apt_key }}
+  tags:
+    - install
+
+- name: install | Add repository
+  apt_repository:
+    repo="deb http://download.nus.edu.sg/mirror/mariadb/repo/5.5/ubuntu precise main"
+  tags:
+    - install
+
+- name: install | Install required packages
   apt:
     pkg={{ item }}
     state=present
@@ -36,63 +54,92 @@
   tags:
     - install
 
-- name: MariaDB | Configure: /etc/my.cnf
+- name: "config | Configure: /etc/mysql/my.cnf"
   template:
     src=my.cnf.j2
-    dest=/etc/my.cnf
-    mode=0600
+    dest=/etc/mysql/my.cnf
+    owner=root group=root mode=0600
   notify: restart mariadb
   tags:
     - config
 
-# Start service now as we need it to configure root, this also sets the service
-# to autostart but this will be disabled at the end of the play if configured
-# thusly.
-- name: MariaDB | Start service and enable on startup
+# Start service now as we need it to configure root
+- name: service | Start mysql service
   service:
-    name=mysqld
+    name=mysql
     state=started
-    enabled=true
   tags:
     - service
     - enable
 
-- name: MariaDB | Set root password for all hosts
-  mysql_user:
-    # Dont provide login user, first time root user is without password.
-    name=root
-    host={{ item }}
-    # Password is stored in plain text at credentials/root/mariadb_password
-    password={{ lookup('password', 'credentials/' + hostname + '/root/mariadb_password length=15') }}
-    priv=*.*:ALL,GRANT # Only root should have GRANT
-    state=present
-  when: configure_root
-  with_items:
-    - {{ hostname }}
-    - 127.0.0.1
-    - ::1
-    - localhost
+- name: config | Check if root password is generated
+  sudo: false
+  local_action: raw test -s {{ inventory_dir }}/credentials/{{ ansible_hostname }}/root/mariadb_password
+  changed_when: false
+  ignore_errors: true
+  register: root_password_set
   tags:
+    - config
+
+- name: config | Set root password (first time)
+  mysql_user:
+    name=root
+    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    priv="*.*:ALL,GRANT"
+    state=present
+  when: mariadb.manage_root and root_password_set|failed
+  tags:
+    - config
+
+# Subsequent run requires the login information.
+- name: config | Set root password (verify)
+  mysql_user:
+    login_user=root
+    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    name=root
+    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    priv="*.*:ALL,GRANT"
+    state=present
+  when: mariadb.manage_root and root_password_set|success
+  tags:
+    - config
 
 - include: create-users.yml
   vars:
-    accounts: active
+    users: mariadb_users.active
+  when: mariadb_users.active|default(false)|bool
 
 - include: delete-users.yml
   vars:
-    users: departed
-  tags:
-    - clean
-
-- name: MariaDB | Shutdown service and disable autostart.
-  service:
-    name=mysqld
-    state=stopped
-    enabled=false
-  when: not enabled
-  tags:
-    - service
-    - disable
+    users: mariadb_users.departed
+  when: mariadb_users.departed|default(false)|bool
 
 - include: phpmyadmin.yml
-  when: pma.install
+  when: mariadb.pma.install
+
+# General management
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: mysql
+    enabled: '{{ mariadb.enabled }}'
+
+- include: ../../monit/tasks/entry.yml
+  vars:
+    name: mysql
+    port: '{{ mariadb.config.port }}'
+    enabled: '{{ mariadb.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: mysql-log
+    mode: filemonitor
+    logfile: '{{ mariadb.log.file }}'
+    enabled: '{{ mariadb.enabled }}'
+
+- include: ../../rsyslog/tasks/entry.yml
+  vars:
+    name: mysql-slow-query
+    mode: filemonitor
+    logfile: '{{ mariadb.config.slow_query_log_file }}'
+    enabled: '{{ mariadb.enabled }}'

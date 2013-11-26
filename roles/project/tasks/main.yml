@@ -1,0 +1,55 @@
+---
+# Part: Project
+#
+# Description: Set up projects
+#
+# Parameters:
+# - projects: Dictionary of projects with the keys:
+#   - name
+#   - alias
+#   - repository
+#   - docroot
+#   - owner
+#   - group
+#   - type: Project type, wordpress or drupal.
+#   - sync_files (default: false)
+#   - checkout: Whether to checkout the repository (default: true)
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: Create project directory
+  file:
+    path={{ item.docroot }}
+    state=directory
+    owner={{ item.owner }} group={{ item.group }}
+    mode=775
+  with_items:
+    - '{{ projects.drupal|selectattr("checkout")|list }}'
+    - '{{ projects.wordpress|selectattr("checkout")|list }}'
+    - '{{ projects.other|selectattr("checkout")|list }}'
+
+- name: Checkout repository
+  git:
+    dest={{ item.docroot }}
+    force=yes
+    repo={{ item.repository }}
+    update=yes
+    version={{ item.version|default('HEAD') }}
+  with_items:
+    - '{{ projects.drupal|selectattr("checkout")|list }}'
+    - '{{ projects.wordpress|selectattr("checkout")|list }}'
+    - '{{ projects.other|selectattr("checkout")|list }}'
+
+- include: drupal.yml
+  vars:
+    sites: '{{ projects.drupal }}'
+
+# - include: wordpress.yml
+#   vars:
+#     projects: '{{ projects.wordpress }}'

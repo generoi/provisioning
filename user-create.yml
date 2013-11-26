@@ -1,0 +1,118 @@
+---
+# Job: Create User
+#
+# Description: Create a new user account with a randomly generated password
+# which will be emailed to them.
+#
+# Parameters:
+#
+# Dependencies:
+# - roles/mariadb/tasks/create-users.yml
+# - roles/user/tasks/create-users.yml
+#
+# Creates:
+# - /home/{{ username }}
+# - /home/{{ username }}/.ssh
+# - /home/{{ username }}/.ssh/authorized_keys
+#
+# File modifications:
+#
+###############################################################################
+
+- hosts: development
+  user: vagrant
+  sudo: yes
+  vars:
+    ip: '{{ ansible_venet0_0.ipv4.address }}'
+    hostname: '{{ ansible_hostname }}'
+    notify_email: 'genero@{{ ansible_fqdn }}'
+
+  vars_prompt:
+    - name: 'username'
+      prompt: 'Username'
+      private: no
+    - name: 'fullname'
+      prompt: 'Fullname'
+      private: no
+    - name: 'email'
+      prompt: 'E-mail'
+      private: no
+    - name: 'github'
+      prompt: 'GitHub username'
+      private: no
+    - name: 'user_group'
+      prompt: 'Comma delimited list of user groups'
+      default: 'admin,sudo'
+      private: no
+    - name: 'account_type'
+      prompt: 'Account type (admin,user)'
+      default: 'admin'
+      private: no
+  tasks:
+    # Create a MariaDB user, consequently creating a credentials file with a
+    # random generated password.
+    - include: roles/mariadb/tasks/create-users.yml
+      vars:
+        users:
+          - username: '{{ username }}'
+            privileges: '*.*:ALL'
+
+    - name: User | Store database password in variable
+      sudo: false
+      local_action: raw echo -n "{{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + username + '/mariadb_password') }}"
+      register: password
+      tags:
+        - email
+
+    # Encrypt the password generated in the credentials file
+    - name: User | Generate encrypted password for usage in user module
+      sudo: false
+      # Use passlib for cross platform encryption
+      local_action: raw python2.7 -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('{{ password.stdout }}');"
+      register: encrypted_password
+      tags:
+        - email
+
+    - include_vars: roles/user/defaults/main.yml
+      tags:
+        - dotfiles
+    - include_vars: roles/user/vars/main.yml
+      tags:
+        - dotfiles
+
+    - include: roles/user/tasks/create-users.yml
+      vars:
+        user_groups: '{{ user_group.split(",") }}'
+        users:
+        - username: '{{ username }}'
+          fullname: '{{ fullname }}'
+          email: '{{ email }}'
+          password: '{{ encrypted_password.stdout }}'
+
+    - include: roles/user/tasks/dotfiles.yml
+      vars:
+        users:
+        - username: '{{ username }}'
+          fullname: '{{ fullname }}'
+          github: '{{ github }}'
+          email: '{{ email }}'
+      tags:
+        - dotfiles
+
+    - name: user | Create personal webspace
+      file:
+        path=/var/www/u/{{ username }}
+        owner={{ username }} group={{ username }} mode=755
+        state=directory
+      tags:
+        - webspace
+
+    # Send an email with the password to the user.
+    ###
+    - name: "create user | Email newly created user {{ username }}: {{ email }}"
+      mail:
+        subject="New {{ hostname }} user account created"
+        to="{{ email }}"
+        body=" {{ lookup('template', 'templates/create-new-user-email.j2') }}"
+      tags:
+        - email
