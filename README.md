@@ -1,53 +1,19 @@
 Definitions
 -----------
 
-### Playbook
-
-A set of plays for a specified host
-
-- #### Play
-
-  A set of tasks
-
-- #### Task
-
-  A task to perform, this could also be another play or
-  playbook.
-
-- #### Roles
-
-  A complete play with associated handlers, variables etc.
-  Basically syntax sugar for strutcuring larger plays as
-  playbooks.
-
-- #### Handler
-
-  A reaction to a notification. Whenever a task uses
-  `notfify`, a handler will be sought after
-
-- #### Vars
-
-  Variables, like in any language. They can exist in
-  multiple places though. Better read the documentation.
-
-### Job
-
-Essentially the same as a playbook, except these are meant
-to be executed manually when needed. They do not guarantee
-idemopotence.
-
 Guidelines for tasks
 --------------------
 - Must be idempotent (can run multiple times, without causing side effects)
 - Always specify a `state` (`present`, `absent`)
-- Tag properly (read tag guidelines)
+- Remember permissions
+- Tag properly so it can be filtered when useful
 - Fill out all fields of the comment template and keep it updated (config
   params arent necessary if too many).
-- All services should have an `enabled` state and they should be stopped and
-  disabled if not set to `true`.
+- Reuse the helper tasks (service, ufw, monit, logrotate, vhost, etc.)
 - If possible use `creates` or `removes` for each `shell` and `command` action.
 - Make action names as descriptive as possible. If possible specify
   files modified or variables used.
+- Make sure subsequent runs will not trigger any `changed` or `failed` events.
 
 Guidelines for jobs
 -------------------
@@ -55,24 +21,130 @@ Guidelines for jobs
 - Doesn't have to be idempotent.
 - Prompting is nice!
 
-Variable precedence
--------------------
-
-_1: Highest, 6: Lowest_
-
-1. Variables defined under `vars_files`.
-2. Variables defined in the `vars/main.yml`.
-3. Variables passed in on the command line.
-4. Variables defined under play/role `vars:` variable.
-5. Variables defined in `group_vars/`.
-6. Variables defined in `defaults/`.
-
-Logs
+Tags
 ----
-- varnish
-  - we are currently not logging access
-  - restarts go to /var/log/messages
-  - errors go to /var/log/syslog
+
+_The toplevel tag is only applicable within a role inclusion, meaning these are
+most likely not available in jobs._
+
+- apache
+- apache-config
+- apache-wildcard
+- apache-mods
+- apache-https
+
+- user
+- user-config
+- user-admins
+- user-regular
+- user-managed
+- user-dotfiles
+- user-known-hosts
+- user-permissions
+- user-groups
+- user-create (Create user)
+- user-delete
+
+- rsyslog
+- rsyslog-config
+- rsyslog-loggly
+
 - pound
-  - /var/log/syslog
-  - syslogd: local6
+- pound-config
+- certificate-combined
+
+- postfix
+- postfix-config
+
+- common
+- common-config
+- common-ntp
+- common-ipv6
+- common-git
+- common-terminfo
+- service
+- service-enable
+- service-disable
+
+- development
+- development-ruby
+- development-ruby-gems
+- development-nodejs
+- development-nodejs-npm
+- development-vim
+- development-mosh
+- development-fasd
+- development-git
+- development-ag
+
+- project
+- project-shared (shared files folder)
+- project-drupal
+- project-drupal-permissions
+- project-wordpress
+- project-wordpress-permissions
+- project-other (nor drupal or wordpress)
+
+- security
+- security-tiger
+- security-common
+- security-denyhosts
+- security-unattended-upgrades
+- security-rootkit
+- security-sysctl
+
+- ufw
+- ufw-config
+
+- vnstat
+- vnstat-config
+
+- varnish
+- varnish-config
+
+- wpcli
+- wpcli-config
+
+- php
+- php-apc
+- php-xhprof
+- php-xdebug
+- php-dev
+
+- newrelic
+- newrelic-config
+- newrelic-sysmond
+- newrelic-php
+
+- monit
+- monit-config
+- monit-webui
+- monit-mail
+
+- mariadb
+- mariadb-pma
+- mariadb-config
+- mariadb-user-delete
+- mariadb-user-create
+- mariadb-db-create
+
+- logrotate
+
+- drush
+- drush-config
+- drush-dev
+
+- webui: Webinterfaces such as pma, apc, xdebug, xhprof.
+- openvz: OpenVZ specific fixes.
+- ansible: Ansible dependencies
+
+Lint handlers
+-------------
+- lint rsyslog
+- lint apache
+- lint monit
+
+Todo
+----
+- Tiger syslog entry?
+- rkhunter: syslog -> authpriv.notice
