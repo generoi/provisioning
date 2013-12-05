@@ -16,7 +16,7 @@
 
 - name: common | mosh | Add the mosh repository
   apt_repository:
-    name=ppa:keithw/mosh
+    repo=ppa:keithw/mosh
   tags:
     - install
     - mosh

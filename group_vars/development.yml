@@ -4,14 +4,14 @@
 #####################
 
 user_accounts:
-  # admins:
-  #   groups: ['admin', 'sshlogin', 'sudo', 'staging']
-  #   active: []
-  #   departed: []
-  # regular:
-  #   groups: ['sshlogin']
-  #   active: []
-  #   departed: []
+  admins:
+    groups: ['admin', 'sshlogin', 'sudo', 'staging']
+    active: []
+    departed: []
+  regular:
+    groups: ['sshlogin']
+    active: []
+    departed: []
   managed:
     - username: genero
       fullname: Genero

@@ -27,17 +27,14 @@
   vars:
     users: '{{ user_accounts.admins.active }}'
     user_groups: '{{ user_accounts.admins.groups }}'
-  when: user_accounts.admins.active is defined
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.admins.active }}'
-  when: user_accounts.admins.active is defined
 
 - include: delete-users.yml
   vars:
     users: '{{ user_accounts.admins.departed }}'
-  when: user_accounts.admins.departed is defined
 
 # Regular
 ###
@@ -46,17 +43,14 @@
   vars:
     users: '{{ user_accounts.regular.active }}'
     user_groups: '{{ user_accounts.regular.groups }}'
-  when: user_accounts.regular.active is defined
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.regular.active }}'
-  when: user_accounts.regular.active is defined
 
 - include: delete-users.yml
   vars:
     users: '{{ user_accounts.regular.departed }}'
-  when: user_accounts.regular.departed is defined
 
 # Managed
 ###
@@ -64,9 +58,7 @@
 - include: create-managed-users.yml
   vars:
     users: '{{ user_accounts.managed }}'
-  when: user_accounts.managed is defined
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.managed }}'
-  when: user_accounts.managed is defined

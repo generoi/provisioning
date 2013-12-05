@@ -54,7 +54,7 @@
 - name: "module builder | config | Add hooks data directory: drushrc.php"
   lineinfile:
     dest={{ drush.dir }}/drushrc.local.php
-    line="\$options['data'] = \"{{ drush.dir }}/hooks;\""
+    line="\$options['data'] = \"{{ drush.dir }}/hooks\";"
     state=present
   tags:
     - drush-dev
