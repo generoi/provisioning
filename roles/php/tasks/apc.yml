@@ -55,4 +55,3 @@
   vars:
     docroot: /opt/apc
     alias: /apc
-    enabled: '{{ php.apc.enabled }}'

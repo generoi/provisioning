@@ -69,4 +69,3 @@
   vars:
     docroot: '{{ php.pecl.install_dir }}/xhprof_html'
     alias: /xhprof
-    enabled: '{{ php.xhprof.enabled }}'

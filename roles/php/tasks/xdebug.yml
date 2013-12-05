@@ -50,4 +50,3 @@
   vars:
     docroot: /opt/webgrind
     alias: /webgrind
-    enabled: '{{ php.xdebug.enabled }}'
