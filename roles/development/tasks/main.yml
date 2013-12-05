@@ -18,6 +18,9 @@
 - include: vim.yml
   when: development.vim.install
 
+- include: afp.yml
+  when: development.afp.install
+
 - include: ruby.yml
   vars:
     packages: '{{ development.ruby.gems }}'

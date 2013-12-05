@@ -1,0 +1,4 @@
+- name: restart netatalk
+  service:
+    name=netatalk
+    state=restarted

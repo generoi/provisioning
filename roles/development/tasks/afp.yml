@@ -1,0 +1,47 @@
+---
+# Part: Development
+#
+# Description: Install netatalk 2 for Apple File Protocol
+#
+# Parameters:
+#
+# Dependencies:
+#
+# Creates:
+#
+# File modifications:
+#
+###############################################################################
+
+- name: install | Install netatalk package
+  apt:
+    pkg=netatalk
+    state=installed
+  tags:
+    - development-netatalk
+
+- name: "config | Configure: /etc/netatalk/AppleVolumes.default"
+  template:
+    src=AppleVolumes.default.j2
+    dest=/etc/netatalk/AppleVolumes.default
+    owner=root group=root mode=0644
+  notify: restart netatalk
+  tags:
+    - development-netatalk
+
+# General management
+###
+
+- include: ../../common/tasks/service.yml
+  vars:
+    name: netatalk
+    enabled: '{{ development.afp.enabled }}'
+  tags:
+    - development-netatalk
+
+- include: ../../ufw/tasks/entry.yml
+  vars:
+    name: 548/tcp
+    enabled: '{{ development.afp.enabled }}'
+  tags:
+    - development-netatalk

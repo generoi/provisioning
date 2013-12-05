@@ -160,6 +160,10 @@ projects:
 #   vim:
 #     install: true
 #
+#  afp:
+#    install: true
+#    webdev_dir: true
+#
 #   nodejs:
 #     install: true
 #     packages:
