@@ -26,8 +26,7 @@
     state=directory
   with_items: users
   tags:
-    - security
-    - permissions
+    - user-permissions
 
 - name: Set SSH folder permissions ~/.ssh
   file:
@@ -36,9 +35,7 @@
     state=directory
   with_items: users
   tags:
-    - ssh
-    - security
-    - permissions
+    - user-permissions
 
 - name: Create ~/.ssh/authorized_keys
   copy:
@@ -47,6 +44,8 @@
     owner={{ item.username }} group={{ item.username }} mode=0600
     force=no
   with_items: users
+  tags:
+    - user-permissions
 
 - name: Set SSH authorized_keys permissions ~/.ssh/authorized_keys
   file:
@@ -55,17 +54,17 @@
     state=file
   with_items: users
   tags:
-    - ssh
-    - security
-    - permissions
+    - user-permissions
 
-- name: Create ~/.ssh/authorized_keys
+- name: Create ~/.ssh/known_hosts
   copy:
     src=known_hosts
     dest=/home/{{ item.username }}/.ssh/known_hosts
     owner={{ item.username }} group={{ item.username }} mode=0644
     force=no
   with_items: users
+  tags:
+    - user-known-hosts
 
 - name: Set SSH known_hosts permissions ~/.ssh/known_hosts
   file:
@@ -74,9 +73,7 @@
     state=file
   with_items: users
   tags:
-    - ssh
-    - security
-    - known_hosts
+    - user-known-hosts
 
 - name: Add known hosts to ~/.ssh/known_hosts
   lineinfile:
@@ -88,5 +85,4 @@
     - users
     - user.known_hosts
   tags:
-    - ssh
-    - known_hosts
+    - user-known-hosts

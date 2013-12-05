@@ -19,21 +19,20 @@
     url={{ newrelic_apt_key }}
     state=present
   tags:
-    - install
+    - newrelic-config
 
 - name: install | Add New Relic repository
   apt_repository:
     repo="{{ newrelic_repository }}"
   tags:
-    - install
+    - newrelic-config
 
 - name: config | Create newrelic group newrelic
   group:
     name=newrelic
     state=present
   tags:
-    - config
-    - acl
+    - newrelic-config
 
 - include: php.yml
   when: newrelic.php.install

@@ -23,13 +23,13 @@
     update-cache=yes
     cache_valid_time=3600
   tags:
-    - update
+    - common-config
 
 - name: update | Upgrade APT packages
   apt:
     upgrade=yes
   tags:
-    - update
+    - common-config
 
 - name: install | Ansible dependencies
   apt:
@@ -38,14 +38,16 @@
   with_items:
     - python-pycurl
   tags:
-    - install
+    - common-config
+    - ansible
 
 - name: install | Add git repository for version 1.8
   apt_repository:
     repo="ppa:git-core/ppa"
     state=present
   tags:
-    - install
+    - common-config
+    - common-git
 
 - name: install | Common packages for every environment
   apt:
@@ -53,7 +55,7 @@
     state=present
   with_items: common.packages
   tags:
-    - install
+    - common-config
 
 - include: terminfo.yml
 
@@ -64,9 +66,7 @@
     mode=0755
   when: common.motd.enabled
   tags:
-    - config
-    - motd
-    - enable
+    - common-config
 
 - name: "motd | disable | Disable MOTD: /etc/update-motd.d/95-ansible"
   file:
@@ -74,9 +74,7 @@
     state=absent
   when: not common.motd.enabled
   tags:
-    - config
-    - motd
-    - disable
+    - common-config
 
 - name: "config | known hosts | Add known hosts: /home/{{ ansible_ssh_user }}/.ssh/known_hosts"
   lineinfile:
@@ -87,8 +85,7 @@
   with_items: common.known_hosts.hosts
   when: common.known_hosts.enabled
   tags:
-    - config
-    - known_hosts
+    - common-config
 
 - name: "config | hosts | Prevent hosts from being locked out of ssh: /etc/hosts.allow"
   lineinfile:
@@ -98,8 +95,7 @@
     state=present
   with_items: common.hosts_allow
   tags:
-    - config
-    - hosts
+    - common-config
 
 - name: "config | ufw | Prevent hosts from being blocked by ufw"
   command: ufw allow from {{ item }}
@@ -107,9 +103,7 @@
   register: result
   changed_when: "'Skipping' not in result.stdout"
   tags:
-    - config
-    - ufw
-    - hosts
+    - common-config
 
 - name: "config | ipv6 | Disable IPv6"
   command: ufw allow from {{ item }}
@@ -117,9 +111,8 @@
   register: result
   changed_when: "'Skipping' not in result.stdout"
   tags:
-    - config
-    - ufw
-    - hosts
+    - common-config
+    - common-ipv6
 
 - name: config | ipv6 | Disable IPv6
   sysctl:
@@ -134,9 +127,8 @@
   when: ansible_virtualization_type == 'openvz' or not common.ipv6.enable
   notify: reload sysctl
   tags:
-    - sysctl
-    - config
-    - disable
+    - common-config
+    - common-ipv6
 
 - name: config | ipv6 | Enable IPv6
   sysctl:
@@ -150,9 +142,8 @@
   when: not ansible_virtualization_type == 'openvz' and common.ipv6.enable
   notify: reload sysctl
   tags:
-    - sysctl
-    - config
-    - enable
+    - common-config
+    - common-ipv6
 
 # General management for NTP
 ###
@@ -160,7 +151,13 @@
 - include: service.yml
   vars:
     name: ntp
+  tags:
+    - common-config
+    - common-ntp
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: '123/udp'
+  tags:
+    - common-config
+    - common-ntp

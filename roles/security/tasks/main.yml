@@ -15,11 +15,15 @@
 
 - include: common.yml
   when: security.common.install
+
 - include: ssh.yml
   when: security.ssh.install
+
 - include: denyhosts.yml
   when: security.denyhosts.install
+
 - include: sysctl.yml
   when: security.sysctl.install
+
 - include: rootkit.yml
   when: security.rootkit.install

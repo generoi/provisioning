@@ -23,8 +23,7 @@
   notify: restart monit
   when: monit.webinterface.enabled
   tags:
-    - webinterface
-    - monit
+    - monit-webui
 
 - name: "webinterface | Disable webinterface: /etc/monit/conf.d/webinterface"
   file:
@@ -33,8 +32,7 @@
   notify: restart monit
   when: not monit.webinterface.enabled
   tags:
-    - webinterface
-    - monit
+    - monit-webui
 
 - name: webinterface | Add groups
   group:
@@ -44,8 +42,7 @@
     - monit.webinterface.rw_group
     - monit.webinterface.r_group
   tags:
-    - webinterface
-    - monit
+    - monit-webui
 
 - include: ../../pound/tasks/join-cert-key.yml
   vars:
@@ -54,5 +51,4 @@
     output: '{{ monit.ssl.combined_cert }}'
   when: monit.webinterface.enabled
   tags:
-    - webinterface
-    - monit
+    - monit-webui

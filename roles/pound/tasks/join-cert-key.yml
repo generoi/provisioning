@@ -24,8 +24,7 @@
     state=directory
     owner=root group=root mode=0700
   tags:
-    - config
-
+    - certificate-combined
 
 - name: certificate | Check current certificate md5sum
   shell:
@@ -33,6 +32,8 @@
   ignore_errors: true
   changed_when: false
   register: certificate_md5sum
+  tags:
+    - certificate-combined
 
 - name: "certificate | Join certificate and private key into one"
   shell:
@@ -40,7 +41,7 @@
   register: combined_md5sum
   changed_when: certificate_md5sum.stdout != combined_md5sum.stdout
   tags:
-    - config
+    - certificate-combined
 
 - name: "certificate | Set certificate permissions"
   file:
@@ -48,4 +49,4 @@
     mode=0700
     owner=root group=root
   tags:
-    - config
+    - certificate-combined

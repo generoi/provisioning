@@ -18,8 +18,7 @@
   apt_repository:
     repo=ppa:keithw/mosh
   tags:
-    - install
-    - mosh
+    - development-mosh
 
 - name: common | Install common development packages
   apt:
@@ -40,7 +39,7 @@
     - zlib1g-dev
     - liblzma-dev
   tags:
-    - install
+    - development-mosh
 
 # Silver Searcher
 ###
@@ -51,8 +50,7 @@
   ignore_errors: true
   changed_when: false
   tags:
-    - install
-    - ag
+    - development-ag
 
 - include: ../../common/tasks/source-install.yml
   vars:
@@ -63,6 +61,8 @@
     destination: /opt
     creates: build.sh
   when: ag_version.stdout != '{{ silversearcher_install.version }}'
+  tags:
+    - development-ag
 
 - name: ag | install | Run install script
   shell:
@@ -70,6 +70,8 @@
     chdir=/opt/ag
     creates=/usr/bin/ag
   when: ag_version.stdout != '{{ silversearcher_install.version }}'
+  tags:
+    - development-ag
 
 # Fasd
 ###
@@ -80,8 +82,7 @@
   ignore_errors: true
   changed_when: false
   tags:
-    - development
-    - fasd
+    - development-fasd
 
 - include: ../../common/tasks/source-install.yml
   vars:
@@ -93,16 +94,14 @@
     creates: fasd
   when: fasd_version.stdout != '{{ fasd_install.version }}'
   tags:
-    - fasd
-    - development
+    - development-fasd
 
 - name: fasd | install | Run make install
   shell: make install
     chdir=/opt/fasd
     creates=/usr/local/bin/fasd
   tags:
-    - development
-    - fasd
+    - development-fasd
 
 - name: git | config | Set default systemwide .gitconfig
   copy:
@@ -110,11 +109,11 @@
     dest=/etc/gitconfig
     owner=root group=root mode=644
   tags:
-    - git
     - development-git
-    - development
 
 # Allow mosh in the firewall
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: 60000:61000/udp
+  tags:
+    - development-mosh

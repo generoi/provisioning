@@ -22,8 +22,6 @@
   changed_when: "'Skipping' not in result.stdout"
   tags:
     - ufw
-    - config
-    - enable
 
 - name: "ufw | Disallow services/ports: {{ name }}"
   command: ufw delete allow {{ name }}
@@ -32,5 +30,3 @@
   when: not enabled|default(true)
   tags:
     - ufw
-    - config
-    - enable

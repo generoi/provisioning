@@ -24,7 +24,7 @@
   when: not remove|default(false)
   notify: cache-clear drush
   tags:
-    - install
+    - drush
 
 - name: clean | Remove modules from
   file:
@@ -34,4 +34,4 @@
   when: remove|default(false)
   notify: cache-clear drush
   tags:
-    - clean
+    - drush

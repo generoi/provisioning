@@ -22,8 +22,7 @@
     - ruby
     - rubygems
   tags:
-    - install
-    - ruby
+    - development-ruby
 
 - name: ruby | gem | Install ruby gems
   gem:
@@ -31,6 +30,5 @@
     state=latest
   with_items: packages
   tags:
-    - install
-    - ruby
-    - gems
+    - development-ruby
+    - development-ruby-gems

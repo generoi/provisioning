@@ -19,7 +19,7 @@
   command: useradd -D -s /bin/bash
   changed_when: false
   tags:
-    - config
+    - user-config
 
 # Admins
 ###
@@ -27,14 +27,20 @@
   vars:
     users: '{{ user_accounts.admins.active }}'
     user_groups: '{{ user_accounts.admins.groups }}'
+  tags:
+    - user-admins
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.admins.active }}'
+  tags:
+    - user-admins
 
 - include: delete-users.yml
   vars:
     users: '{{ user_accounts.admins.departed }}'
+  tags:
+    - user-admins
 
 # Regular
 ###
@@ -43,14 +49,20 @@
   vars:
     users: '{{ user_accounts.regular.active }}'
     user_groups: '{{ user_accounts.regular.groups }}'
+  tags:
+    - user-regular
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.regular.active }}'
+  tags:
+    - user-regular
 
 - include: delete-users.yml
   vars:
     users: '{{ user_accounts.regular.departed }}'
+  tags:
+    - user-regular
 
 # Managed
 ###
@@ -58,7 +70,11 @@
 - include: create-managed-users.yml
   vars:
     users: '{{ user_accounts.managed }}'
+  tags:
+    - user-managed
 
 - include: dotfiles.yml
   vars:
     users: '{{ user_accounts.managed }}'
+  tags:
+    - user-managed

@@ -33,6 +33,10 @@
     - '{{ projects.drupal|selectattr("checkout")|list }}'
     - '{{ projects.wordpress|selectattr("checkout")|list }}'
     - '{{ projects.other|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-wordpress
+    - project-other
 
 - name: Checkout repository
   git:
@@ -45,6 +49,10 @@
     - '{{ projects.drupal|selectattr("checkout")|list }}'
     - '{{ projects.wordpress|selectattr("checkout")|list }}'
     - '{{ projects.other|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-wordpress
+    - project-other
 
 - include: drupal.yml
   vars:

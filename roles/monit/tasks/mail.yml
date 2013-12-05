@@ -21,8 +21,7 @@
   notify: restart monit
   when: monit.mail.enabled
   tags:
-    - config
-    - enable
+    - monit-mail
 
 - name: "mail | Disable mail: /etc/monit/conf.d/mail"
   file:
@@ -31,5 +30,4 @@
   notify: restart monit
   when: not monit.mail.enabled
   tags:
-    - config
-    - disable
+    - monit-mail

@@ -30,19 +30,20 @@
     - python-pycurl
     - python-software-properties
   tags:
-    - install
+    - mariadb-config
+    - ansible
 
 - name: install | Add apt key
   apt_key:
     url={{ mariadb_apt_key }}
   tags:
-    - install
+    - mariadb-config
 
 - name: install | Add repository
   apt_repository:
     repo="deb http://download.nus.edu.sg/mirror/mariadb/repo/5.5/ubuntu precise main"
   tags:
-    - install
+    - mariadb-config
 
 - name: install | Install required packages
   apt:
@@ -52,7 +53,7 @@
     - mariadb-server
     - mariadb-client
   tags:
-    - install
+    - mariadb-config
 
 - name: "config | Configure: /etc/mysql/my.cnf"
   template:
@@ -61,7 +62,7 @@
     owner=root group=root mode=0600
   notify: restart mariadb
   tags:
-    - config
+    - mariadb-config
 
 # Start service now as we need it to configure root
 - name: service | Start mysql service
@@ -69,8 +70,7 @@
     name=mysql
     state=started
   tags:
-    - service
-    - enable
+    - mariadb-config
 
 - name: config | Check if root password is generated
   sudo: false
@@ -79,7 +79,7 @@
   ignore_errors: true
   register: root_password_set
   tags:
-    - config
+    - mariadb-config
 
 - name: config | Set root password (first time)
   mysql_user:
@@ -89,7 +89,7 @@
     state=present
   when: mariadb.manage_root and root_password_set|failed
   tags:
-    - config
+    - mariadb-config
 
 # Subsequent run requires the login information.
 - name: config | Set root password (verify)
@@ -102,7 +102,7 @@
     state=present
   when: mariadb.manage_root and root_password_set|success
   tags:
-    - config
+    - mariadb-config
 
 - include: create-users.yml
   vars:
@@ -118,17 +118,22 @@
   when: mariadb.pma.install
 
 # General management
+###
 
 - include: ../../common/tasks/service.yml
   vars:
     name: mysql
     enabled: '{{ mariadb.enabled }}'
+  tags:
+    - mariadb-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: mysql
     port: '{{ mariadb.config.port }}'
     enabled: '{{ mariadb.enabled }}'
+  tags:
+    - mariadb-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -136,6 +141,8 @@
     mode: filemonitor
     logfile: '{{ mariadb.log.file }}'
     enabled: '{{ mariadb.enabled }}'
+  tags:
+    - mariadb-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -143,3 +150,5 @@
     mode: filemonitor
     logfile: '{{ mariadb.config.slow_query_log_file }}'
     enabled: '{{ mariadb.enabled }}'
+  tags:
+    - mariadb-config

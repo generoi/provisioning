@@ -21,7 +21,7 @@
   ignore_errors: true
   register: terminfo_exists
   tags:
-    - terminfo
+    - common-terminfo
 
 - name: terminfo | Fetch terminfo file
   copy:
@@ -30,7 +30,7 @@
   with_items: common.terminfo
   when: terminfo_exists|failed
   tags:
-    - terminfo
+    - common-terminfo
 
 - name: terminfo | Compile terminfo file
   command: tic {{ item.file }}
@@ -38,4 +38,4 @@
     creates=/usr/share/terminfo/{{ item.dir }}/{{ item.file }}
   with_items: common.terminfo
   tags:
-    - terminfo
+    - common-terminfo

@@ -28,9 +28,7 @@
     state=directory
     owner=root group=root
   tags:
-    - vhost
-    - vhost-local
-    - config
+    - apache
 
 - name: "local vhost | config | Create a vhost specific config: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
   copy:
@@ -39,9 +37,7 @@
     owner=root group=root
     force=no
   tags:
-    - vhost-local
-    - vhost
-    - config
+    - apache
 
 - name: "local vhost | config | Add virtual host configuration for {{ local_vhost.vhost }}: /etc/apache2/sites-available/{{ local_vhost.vhost }}"
   template:
@@ -49,9 +45,7 @@
     dest=/etc/apache2/sites-available/{{ local_vhost.vhost }}
     owner=root group=root
   tags:
-    - vhost
-    - vhost-local
-    - config
+    - apache
 
 - name: "local vhost | enable | Add an alias for {{ alias }} to {{ docroot }}: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
   lineinfile:
@@ -61,9 +55,7 @@
   when: enabled|default(true)|bool
   notify: restart apache
   tags:
-    - vhost
-    - vhost-local
-    - enable
+    - apache
 
 - name: "local vhost | disable | Remove alias for {{ alias }}: /etc/apache2/vhosts.d/{{ local_vhost.vhost }}.conf"
   lineinfile:
@@ -73,9 +65,7 @@
   when: not enabled|default(true)|bool
   notify: restart apache
   tags:
-    - vhost
-    - vhost-local
-    - disable
+    - apache
 
 - name: "local vhost | enable | Activate virtual host {{ local_vhost.vhost }}: /etc/apache2/sites-enabled/{{ local_vhost.vhost }}"
   command:
@@ -83,5 +73,4 @@
     creates=/etc/apache2/sites-enabled/{{ local_vhost.vhost }}
   notify: reload apache
   tags:
-    - vhost
-    - enable
+    - apache

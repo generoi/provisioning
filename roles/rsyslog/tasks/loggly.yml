@@ -18,12 +18,16 @@
     url={{ loggly_install.cert }}
     sha256sum={{ loggly_install.cert_sha256sum }}
     dest=/tmp/loggly.com.crt
+  tags:
+    - rsyslog-loggly
 
 - name: loggly | Fetch intermediary certificate
   get_url:
     url={{ loggly_install.intermediary }}
     sha256sum={{ loggly_install.intermediary_sha256sum }}
     dest=/tmp/sf_bundle.crt
+  tags:
+    - rsyslog-loggly
 
 - include: ../../pound/tasks/join-cert-key.yml
   vars:
@@ -31,4 +35,4 @@
     private_key: /tmp/sf_bundle.crt # not really private, just a bundle
     output: '{{ rsyslog.loggly.ssl.ca }}'
   tags:
-    - config
+    - rsyslog-loggly

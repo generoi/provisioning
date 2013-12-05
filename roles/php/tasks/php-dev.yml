@@ -24,6 +24,8 @@
   vars:
     package: pear.phpqatools.org/phpqatools
   when: php.phpqatools.install
+  tags:
+    - php-dev
 
 # Composer
 ###
@@ -33,6 +35,8 @@
     state=file
   ignore_errors: true
   register: composer_exists
+  tags:
+    - php-dev
 
 - name: "composer | Download install script: /tmp/composer.php"
   get_url:
@@ -42,8 +46,6 @@
   when: php.composer.install and composer_exists|failed
   tags:
     - php-dev
-    - composer
-    - install
 
 - name: "composer | Run install script"
   command:
@@ -51,10 +53,7 @@
     creates={{ php.composer.dir }}/composer.phar
   when: php.composer.install and composer_exists|failed
   tags:
-  tags:
     - php-dev
-    - composer
-    - install
  
 - name: "composer | Rename .phar for binary"
   command:
@@ -64,8 +63,6 @@
   when: php.composer.install and composer_exists|failed
   tags:
     - php-dev
-    - composer
-    - install
  
 - name: "composer | Remove install script"
   file:
@@ -73,11 +70,13 @@
     state=absent
   tags:
     - php-dev
-    - composer
-    - install
 
 - include: xhprof.yml
   when: php.xhprof.install
+  tags:
+    - php-dev
 
 - include: xdebug.yml
   when: php.xdebug.install
+  tags:
+    - php-dev

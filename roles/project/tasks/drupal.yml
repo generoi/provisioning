@@ -30,6 +30,9 @@
     state=directory
     owner=root group=root mode=0755
   with_items: projects.drupal
+  tags:
+    - project-drupal
+    - project-shared
 
 - name: drupal | shared | Create shared files directory
   file:
@@ -37,6 +40,9 @@
     state=directory
     owner={{ project.shared.files.owner }} group={{ project.shared.files.group }} mode=0775
   with_items: projects.drupal
+  tags:
+    - project-drupal
+    - project-shared
 
 - name: drupal | shared | Create settings.local.php
   template:
@@ -45,6 +51,9 @@
     owner=root group=root mode=0644
     force=no
   with_items: projects.drupal
+  tags:
+    - project-drupal
+    - project-shared
 
 - name: drupal | shared | Symlink files directory
   file:
@@ -53,14 +62,21 @@
     state=link
   with_items:
     - '{{ projects.drupal|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-shared
 
 - include: ../../mariadb/tasks/create-databases.yml
   vars:
     databases: '{{ projects.drupal|map(attribute="db")|list }}'
+  tags:
+    - project-drupal
 
 - include: ../../mariadb/tasks/create-users.yml
   vars:
     users: '{{ projects.drupal|map(attribute="db")|list }}'
+  tags:
+    - project-drupal
 
 - name: drupal | shared | Symlink settings.local.php
   file:
@@ -69,6 +85,9 @@
     state=link
   with_items:
     - '{{ projects.drupal|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-shared
 
 
 - include: permissions-drupal.yml
@@ -76,11 +95,15 @@
     web:
       owner: '{{ project.shared.files.owner }}'
       group: '{{ project.shared.files.group }}'
+  tags:
+    - project-drupal
 
 - include: ../../drush/tasks/alias.yml
   vars:
     items: '{{ projects.drupal }}'
   when: project.drush_aliases
+  tags:
+    - project-drupal
 
 - name: drush | Synchronize files from remote to local
   command:
@@ -90,3 +113,5 @@
   changed_when: false
   with_items:
     - '{{ projects.drupal|selectattr("checkout")|selectattr("sync")|list }}'
+  tags:
+    - project-drupal

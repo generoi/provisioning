@@ -19,15 +19,19 @@
     pkg=php-pear
     state=installed
   tags:
-    - install
+    - php-pear
 
 - name: pear | Update pear packages
   command: pear upgrade
   changed_when: false
+  tags:
+    - php-pear
 
 - name: pear | Set pear auto-discover
   command: pear config-set auto_discover 1
   changed_when: false
+  tags:
+    - php-pear
 
 - name: pear | Install package {{ package }}
   command: pear install {{ package }}
@@ -35,3 +39,5 @@
   failed_when: pear_output.rc != 0 and 'already installed' not in pear_output.stdout
   changed_when: "'already installed' not in pear_output.stdout"
   ignore_errors: true
+  tags:
+    - php-pear

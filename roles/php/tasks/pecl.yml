@@ -25,18 +25,24 @@
     - php5-dev
     - php-pear
     - make
+  tags:
+    - php-pecl
 
 - name: "pecl | Test for previous {{ package }} install"
   shell:  pecl list | grep -i '{{ package }}'
   register: php_package_exists
   changed_when: php_package_exists.rc != 0
   ignore_errors: true
+  tags:
+    - php-pecl
 
 - name: "pecl | Install {{ package }}-{{ version }}"
   shell:
     printf "{{ stdin|default('\n') }}" | pecl install {{ package }}-{{ version }}
   register: result
   when: php_package_exists|failed
+  tags:
+    - php-pecl
 
 - name: "pecl | Set {{ package }} config (Ubuntu == 12.04)"
   template:
@@ -61,3 +67,5 @@
     state=link
   when: ansible_lsb.release != "12.04"
   notify: restart php
+  tags:
+    - php-pecl

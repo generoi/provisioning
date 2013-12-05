@@ -24,22 +24,24 @@
   vars:
     package: apc
     version: beta
+  tags:
+    - php-apc
 
 - name: apc | Create APC frontend directory
   file:
     path=/opt/apc
     state=directory
   tags:
-    - apc
-    - config
+    - php-apc
+    - webui
 
 - name: "apc | Set up frontend web ui: /opt/apc/index.php"
   command:
     cp {{ php.apc.frontend_archive }} /opt/apc/index.php
     creates=/opt/apc/index.php
   tags:
-    - apc
-    - config
+    - php-apc
+    - webui
 
 - name: apc | Disable authentication for frontend
   lineinfile:
@@ -47,11 +49,14 @@
     regexp="^defaults\('USE_AUTHENTICATION'"
     line="defaults('USE_AUTHENTICATION', 0);"
   tags:
-    - apc
-    - config
+    - php-apc
+    - webui
 
 # Manage local access only vhost alias /apc
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
     docroot: /opt/apc
     alias: /apc
+  tags:
+    - php-apc
+    - webui

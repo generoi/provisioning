@@ -24,7 +24,7 @@
     - ssl-cert
     - pound
   tags:
-    - install
+    - pound-config
 
 - include: join-cert-key.yml
   vars:
@@ -33,7 +33,7 @@
     output: '{{ pound.ssl.combined_cert }}'
   when: pound.join_cert_key
   tags:
-    - config
+    - pound-config
 
 - name: "config | Configure Pound: /usr/local/etc/pound.cfg"
   template:
@@ -42,7 +42,7 @@
     owner=root group=root
   notify: restart pound
   tags:
-    - config
+    - pound-config
 
 # General management
 ###
@@ -52,12 +52,16 @@
     name: pound
     enabled: '{{ pound.enabled }}'
     set_default: true
+  tags:
+    - pound-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: pound
     port: '{{ pound.port }}'
     enabled: '{{ pound.enabled }}'
+  tags:
+    - pound-config
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -66,6 +70,8 @@
     size: 100M
     maxage: 30
     enabled: '{{ pound.enabled }}'
+  tags:
+    - pound-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -74,8 +80,12 @@
     facility: local6.*
     enabled: '{{ pound.enabled }}'
     output: '{{ pound.log.file }}'
+  tags:
+    - pound-config
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: '{{ pound.port }}'
     enabled: '{{ pound.enabled }}'
+  tags:
+    - pound-config

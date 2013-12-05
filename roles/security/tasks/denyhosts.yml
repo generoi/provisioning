@@ -19,8 +19,7 @@
     pkg=denyhosts
     state=present
   tags:
-    - denyhosts
-    - install
+    - security-denyhosts
 
 # @see http://blog.bigdinosaur.org/securing-your-server-with-denyhosts/
 - name: "denyhosts | Configure: /etc/denyhosts.conf"
@@ -30,8 +29,7 @@
     owner=root group=root
   notify: restart denyhosts
   tags:
-    - denyhosts
-    - config
+    - security-denyhosts
 
 # General management
 ###
@@ -40,12 +38,15 @@
   vars:
     name: denyhosts
     enabled: '{{ security.denyhosts.enabled }}'
+  tags:
+    - security-denyhosts
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: denyhosts
     enabled: '{{ security.denyhosts.enabled }}'
-
+  tags:
+    - security-denyhosts
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -54,6 +55,8 @@
     special: weekly
     maxage: 30
     enabled: '{{ security.denyhosts.enabled }}'
+  tags:
+    - security-denyhosts
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -61,3 +64,5 @@
     mode: programname
     enabled: '{{ security.denyhosts.enabled }}'
     output: '{{ security.denyhosts.log.file }}'
+  tags:
+    - security-denyhosts

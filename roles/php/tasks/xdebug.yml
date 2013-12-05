@@ -28,14 +28,14 @@
   register: php_extension_dir
   changed_when: false
   tags:
-    - php-dev
-    - xdebug
-    - install
+    - php-xdebug
 
 - include: pecl.yml
   vars:
     package: xdebug
     version: stable
+  tags:
+    - php-xdebug
 
 - include: ../../common/tasks/source-install.yml
   vars:
@@ -44,9 +44,14 @@
     sha256sum: '{{ webgrind_install.sha256sum }}'
     strip: 1
     creates: index.php
+  tags:
+    - php-xdebug
 
 # Manage local vhost alias for /webgrind
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
     docroot: /opt/webgrind
     alias: /webgrind
+  tags:
+    - php-xdebug
+    - webug

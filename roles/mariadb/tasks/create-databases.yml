@@ -21,7 +21,7 @@
     name=mysql
     state=started
   tags:
-    - service
+    - mariadb-db-create
 
 - name: database | Create database
   mysql_db:
@@ -31,5 +31,4 @@
     state=present
   with_items: databases
   tags:
-    - user
-    - enable
+    - mariadb-db-create

@@ -6,6 +6,9 @@
       -exec chown {{ item.owner }}:{{ item.owner }} {} \;
   when: project.permissions.dir
   with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-drupal-permissions
 
 - name: drupal | permissions | Set general file permissions
   raw: >
@@ -15,6 +18,9 @@
       -exec chown {{ item.owner }}:{{ item.owner }} {} \;
   when: project.permissions.file
   with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-drupal-permissions
 
 - name: drupal | permissions | Set directory permissions of files directory
   raw: >
@@ -23,6 +29,9 @@
       -exec chown {{ web.owner }}:{{ web.group }} {} \;
   when: project.permissions.uploads
   with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
+  tags:
+    - project-drupal
+    - project-drupal-permissions
 
 - name: drupal | permissions | Set file permissions of files directory
   raw: >
@@ -31,4 +40,6 @@
       -exec chown {{ web.owner }}:{{ web.group }} {} \;
   when: project.permissions.uploads
   with_items: '{{ projects.drupal|selectattr("checkout")|list }}'
-
+  tags:
+    - project-drupal
+    - project-drupal-permissions

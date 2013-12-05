@@ -25,14 +25,14 @@
     state=present
   when: ansible_lsb.release != "13.04"
   tags:
-    - install
+    - varnish-config
 
 - name: install | Add Varnish repository
   apt_repository:
     repo="deb http://repo.varnish-cache.org/ubuntu/ {{ ansible_lsb.codename }} varnish-3.0"
   when: ansible_lsb.release != "13.04"
   tags:
-    - install
+    - varnish-config
 
 - name: install | Install Varnish package
   apt:
@@ -55,7 +55,7 @@
     owner=root group=root
   notify: restart varnish
   tags:
-    - config
+    - varnish-config
 
 - name: "security | Verify file permissions: /etc/varnish/secret"
   file:
@@ -63,7 +63,7 @@
     state=file
     owner=root group=root mode=0600
   tags:
-    - security
+    - varnish-config
 
 - name: "config | Ensure /etc/varnish/custom.vcl exists for error pages and hooks."
   copy:
@@ -72,8 +72,7 @@
     force=no
     owner=root group=root
   tags:
-    - config
-
+    - varnish-config
 
 - name: "config | Create default configurations: /etc/varnish/"
   template:
@@ -85,8 +84,7 @@
     - drupal.vcl
   notify: restart varnish
   tags:
-    - config
-    - lint
+    - varnish-config
 
 # General management
 ###
@@ -95,12 +93,16 @@
   vars:
     name: varnish
     enabled: '{{ varnish.enabled }}'
+  tags:
+    - varnish-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: varnish
     port: '{{ varnish.port }}'
     enabled: '{{ varnish.enabled }}'
+  tags:
+    - varnish-config
 
 # Manage logrotation
 - include: ../../logrotate/tasks/entry.yml
@@ -110,6 +112,8 @@
     maxage: 30
     logs: '{{ varnish.log.file }}'
     enabled: '{{ varnish.log.enabled and varnish.enabled }}'
+  tags:
+    - varnish-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -118,8 +122,12 @@
     facility: '{{ varnish.log.facility }}.*'
     output: '{{ varnish.log.file }}'
     enabled: '{{ varnish.log.enabled and varnish.enabled }}'
+  tags:
+    - varnish-config
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: '{{ varnish.port }}'
     enabled: '{{ varnish.enabled }}'
+  tags:
+    - varnish-config

@@ -19,3 +19,5 @@
   copy:
     src=wp-completion.sh
     dest={{ bash_completion_dir }}/wp-completion.sh
+  tags:
+    - wpcli-config

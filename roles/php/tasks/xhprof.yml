@@ -26,14 +26,15 @@
   vars:
     package: xhprof
     version: beta
+  tags:
+    - php-xhprof
 
 - name: "xhprof | Create xhprof cheatsheet directory: /opt/xhprof"
   file:
     path=/opt/xhprof
     state=directory
   tags:
-    - xhprof
-    - config
+    - php-xhprof
 
 - name: "xhprof | Put xhprof quick loading header and footer + usage instructions in: /opt/xhprof"
   template:
@@ -44,16 +45,14 @@
     - header.php
     - notes.txt
   tags:
-    - xhrpof
-    - config
+    - php-xhprof
 
 - name: "xhprof | Install graphviz for execution flow plotting by XhProf"
   apt:
     pkg=graphviz
     state=installed
   tags:
-    - xhrpof
-    - install
+    - php-xhprof
 
 - name: "xhprof | Create xhprof output directory {{ php.xhprof.output_dir }}"
   # @TODO www-data?
@@ -61,11 +60,13 @@
     path={{ php.xhprof.output_dir }}
     state=directory
   tags:
-    - xhprof
-    - config
+    - php-xhprof
 
 # Manage local vhost alias for /xhprof
 - include: ../../apache/tasks/vhost-local-alias.yml
   vars:
     docroot: '{{ php.pecl.install_dir }}/xhprof_html'
     alias: /xhprof
+  tags:
+    - php-xhprof
+    - webui

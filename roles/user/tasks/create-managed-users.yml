@@ -23,6 +23,8 @@
   with_subelements:
     - users
     - groups
+  tags:
+    - user-groups
 
 - name: Managed users | Create user accounts
   user:
@@ -35,5 +37,9 @@
     update_password=always
     state=present
   with_items: users
+  tags:
+    - user-create
 
 - include: set-user-permissions.yml
+  tags:
+    - user-create

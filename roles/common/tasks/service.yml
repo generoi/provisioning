@@ -24,7 +24,7 @@
   when: enabled|default(true)
   tags:
     - service
-    - enable
+    - service-enable
 
 - name: "service | disable | Shutdown service and disable autostart: {{ name }}"
   service:
@@ -34,7 +34,8 @@
   when: not enabled|default(true)
   tags:
     - service
-    - disable
+    - service-disable
+
 - name: "service | Set startup in /etc/default/{{ name }}"
   lineinfile:
     dest=/etc/default/{{ name }}
@@ -42,5 +43,5 @@
     line="startup={{ enabled|default(true)|bool|int }}"
   when: set_default|default(false)
   tags:
-    - service
-    - config
+    - service-enable
+    - service-disable

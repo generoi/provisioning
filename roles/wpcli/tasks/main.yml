@@ -22,6 +22,8 @@
   register: wp_uptodate
   changed_when: wp_uptodate.rc != 0
   ignore_errors: true
+  tags:
+    - wpcli-config
 
 - name: "install | Download install script /tmp/wpcli-install.sh"
   get_url:
@@ -31,7 +33,7 @@
     mode=0700
   when: wp_uptodate|failed
   tags:
-    - install
+    - wpcli-config
 
 - name: "install | Run install script"
   shell:
@@ -39,15 +41,14 @@
     creates={{ wpcli.dir }}/bin/wp
   when: wp_uptodate|failed
   tags:
-    - install
+    - wpcli-config
 
 - name: "install | Remove install script: /tmp/wpcli-install.sh"
   file:
     path=/tmp/wpcli-install.sh
     state=absent
   tags:
-    - clean
-    - install
+    - wpcli-config
 
 - name: "install | Create symlink to binary: /usr/bin/wp"
   file:
@@ -55,7 +56,7 @@
     dest=/usr/bin/wp
     state=link
   tags:
-    - install
+    - wpcli-config
 
 - include: wp-cli_completion.yml
   vars:

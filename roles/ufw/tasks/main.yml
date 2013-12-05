@@ -20,21 +20,22 @@
 - include: entry.yml
   vars:
     name: '22'
+  tags:
+    - ufw-config
 
 - name: config | Register current firewall status
   command: ufw status verbose
   changed_when: false
   register: result
   tags:
-    - config
+    - ufw-config
 
 - name: config | Turn on logging
   command: ufw logging on
   notify: restart ufw
   when: "ufw.enabled and 'Logging: on' not in result.stdout"
   tags:
-    - ufw
-    - config
+    - ufw-config
 
 - name: config | Allow portforwarding when a VM is used
   lineinfile:
@@ -45,9 +46,7 @@
   when: ufw.enabled and vm|default(false)
   notify: restart ufw
   tags:
-    - ufw
-    - config
-    - enable
+    - ufw-config
 
 - name: config | Disable ipv6
   lineinfile:
@@ -58,9 +57,8 @@
   when: ansible_virtualization_type == 'openvz' or not ufw.ipv6.enable
   notify: restart ufw
   tags:
-    - ufw
-    - config
-    - enable
+    - ufw-config
+    - openvz
 
 - name: config | Enable ipv6
   lineinfile:
@@ -72,20 +70,20 @@
   when: not ansible_virtualization_type == 'openvz' and ufw.ipv6.enable
   notify: restart ufw
   tags:
-    - ufw
-    - config
-    - enable
+    - ufw-config
 
 # OpenVZ Kernel doesnt support various rules/modules
 - include: openvz.yml
   when: ansible_virtualization_type == 'openvz'
+  tags:
+    - ufw-config
+    - openvz
 
 - name: service | Enable firewall
   command: ufw --force enable
   when: "ufw.enabled and 'Status: inactive' in result.stdout"
   tags:
-    - ufw
-    - service
+    - ufw-config
 
 - name: "config | Enable ufw on startup: /etc/ufw/ufw.conf"
   lineinfile:
@@ -96,9 +94,7 @@
   when: ufw.enabled
   notify: restart ufw
   tags:
-    - ufw
-    - config
-    - enable
+    - ufw-config
 
 - name: "config | Disable ufw on startup: /etc/ufw/ufw.conf"
   lineinfile:
@@ -109,9 +105,7 @@
   when: not ufw.enabled
   notify: restart ufw
   tags:
-    - ufw
-    - config
-    - enable
+    - ufw-config
 
 # General management
 ###
@@ -123,6 +117,8 @@
     size: 100M
     maxage: 30
     enabled: '{{ ufw.enabled }}'
+  tags:
+    - ufw-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -132,3 +128,5 @@
     output: '{{ ufw.log.file }}'
     stop_processing: true # ufw has its own entry
     enabled: '{{ ufw.enabled }}'
+  tags:
+    - ufw-config

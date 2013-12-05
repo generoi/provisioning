@@ -7,6 +7,9 @@
       -exec chown {{ item.owner }}:{{ item.owner }} {} \;
   with_items: projects
   when: project.permissions.dir
+  tags:
+    - project-wordpress
+    - project-wordpress-permissions
 
 - name: permissions | wordpress | Set general file permissions
   raw: >
@@ -17,6 +20,9 @@
       -exec chown {{ item.owner }}:{{ item.owner }} {} \;
   with_items: projects
   when: project.permissions.file
+  tags:
+    - project-wordpress
+    - project-wordpress-permissions
 
 - name: permissions | wordpress | Remove php and html files from uploads
   raw: >
@@ -25,6 +31,9 @@
     | xargs rm -f
   with_items: projects
   when: project.permissions.php_clean
+  tags:
+    - project-wordpress
+    - project-wordpress-permissions
 
 - name: permissions | wordpress | Set directory permissions of files directory
   raw: >
@@ -35,6 +44,9 @@
     - projects
     - ['files_mf', 'uploads']
   when: project.permissions.uploads
+  tags:
+    - project-wordpress
+    - project-wordpress-permissions
 
 - name: permissions | wordpress | Set file permissions of files directory
   raw: >
@@ -45,4 +57,6 @@
     - projects
     - ['files_mf', 'uploads']
   when: project.permissions.uploads
-
+  tags:
+    - project-wordpress
+    - project-wordpress-permissions

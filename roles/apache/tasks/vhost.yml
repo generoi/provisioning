@@ -37,8 +37,7 @@
     state=directory
   when: enabled|default(true)|bool
   tags:
-    - vhost
-    - enable
+    - apache
 
 - name: "vhost | enable | Add virtual host configuration for {{ vhost }}: /etc/apache2/sites-available/{{ vhost }}"
   template:
@@ -47,8 +46,7 @@
     owner=root group=root
   when: enabled|default(true)|bool
   tags:
-    - vhost
-    - enable
+    - apache
 
 - name: "vhost | enable | Activate virtual host {{ vhost }}: /etc/apache2/sites-enabled/{{ vhost }}"
   command:
@@ -57,8 +55,7 @@
   notify: reload apache
   when: enabled|default(true)|bool
   tags:
-    - vhost
-    - enable
+    - apache
 
 # Remove
 ###
@@ -70,8 +67,6 @@
   when: not enabled|default(true)|bool and purge|default(false)|bool
   tags:
     - apache
-    - vhost
-    - disable
 
 - name: "vhost | disable | Deactivate virtual host {{ vhost }}: /etc/apache2/sites-enabled/{{ vhost }}"
   command:
@@ -81,8 +76,6 @@
   notify: reload apache
   tags:
     - apache
-    - vhost
-    - disable
 
 - name: "vhost | disable | Remove virtual host configuration: /etc/apache2/sites-available/{{ vhost }}"
   file:
@@ -91,8 +84,6 @@
   when: not enabled|default(true)|bool and purge|default(false)|bool
   tags:
     - apache
-    - vhost
-    - disable
 
 - name: "vhost | disable | Remove per virtual host include configuration: /etc/apache2/vhosts.d/{{ vhost }}.conf"
   file:
@@ -101,5 +92,3 @@
   when: not enabled|default(true)|bool and purge|default(false)|bool
   tags:
     - apache
-    - vhost
-    - disable

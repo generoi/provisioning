@@ -24,14 +24,14 @@
   register: php_version_available
   changed_when: php_version_available.rc != 0
   tags:
-    - install
+    - php-config
 
 - name: 'install | Add the PHP 5.4 PPA, current is {{ php_version_avaiable.stdout }}'
   apt_repository:
     repo=ppa:ondrej/php5-oldstable
   when: php_version_available|failed
   tags:
-    - install
+    - php-config
 
 - name: install | Install required php packages
   apt:
@@ -48,7 +48,7 @@
     - php5-imagick
     - php5-common
   tags:
-    - install
+    - php-config
 
 - name: "config | Configuration file: /etc/php5/apache2/php.ini"
   template:
@@ -57,4 +57,4 @@
     owner=root group=root
   notify: restart php
   tags:
-    - config
+    - php-config

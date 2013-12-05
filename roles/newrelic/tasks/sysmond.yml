@@ -20,8 +20,7 @@
     pkg=newrelic-sysmond
     state=present
   tags:
-    - install
-    - sysmond
+    - newrelic-sysmond
 
 - name: "sysmond | Configure: /etc/newrelic/nrsysmond.cfg"
   template:
@@ -30,8 +29,7 @@
     owner=root group=newrelic mode=0640 # @TODO permissions
   notify: restart newrelic-sysmond
   tags:
-    - sysmond
-    - config
+    - newrelic-sysmond
 
 # General management
 ###
@@ -41,11 +39,15 @@
   vars:
     name: newrelic-sysmond
     enabled: '{{ newrelic.sysmond.enabled and newrelic_license|default(false) }}'
+  tags:
+    - newrelic-sysmond
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: newrelic-sysmond
     enabled: '{{ newrelic.sysmond.enabled }}'
+  tags:
+    - newrelic-sysmond
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -53,6 +55,8 @@
     special: weekly
     logs: '{{ newrelic.sysmond.logfile }}'
     enabled: '{{ newrelic.sysmond.enabled }}'
+  tags:
+    - newrelic-sysmond
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -60,3 +64,5 @@
     mode: filemonitor
     logfile: '{{ newrelic.sysmond.logfile }}'
     enabled: '{{ newrelic.sysmond.enabled }}'
+  tags:
+    - newrelic-sysmond

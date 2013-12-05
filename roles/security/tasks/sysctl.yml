@@ -25,8 +25,7 @@
   when: security.sysctl.ipspoof
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
 - name: sysctl | Log suspcicious packets, such as spoofed, source-routed, and redirect
   sysctl:
@@ -39,8 +38,7 @@
   when: security.sysctl.log_martians
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
 - name: sysctl | Protect ICMP attacks
   sysctl:
@@ -50,8 +48,7 @@
   when: security.sysctl.ignore_icmp_broadcasts
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
 - name: sysctl | Disable source packet routing
   sysctl:
@@ -66,8 +63,7 @@
   when: security.sysctl.disable_source_routing
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
 - name: sysctl | Make sure no one can alter the routing tables
   sysctl:
@@ -80,8 +76,7 @@
   when: security.sysctl.ignore_send_redirects
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
 # http://en.wikipedia.org/wiki/SYN_flood
 - name: sysctl | Block SYN attacks
@@ -112,5 +107,4 @@
   when: security.sysctl.ignore_icmp_redirects
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl

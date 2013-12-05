@@ -21,7 +21,7 @@
     pkg=monit
     state=present
   tags:
-    - install
+    - monit-config
 
 - name: "config | Configure monit: /etc/monitrc"
   template:
@@ -30,7 +30,7 @@
     owner=root group=root
   notify: restart monit
   tags:
-    - config
+    - monit-config
 
 - include: webinterface.yml
   when: monit.webinterface.install
@@ -50,6 +50,8 @@
     name: monit
     enabled: "{{ monit.enabled }}"
     set_default: true
+  tags:
+    - monit-config
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -58,6 +60,8 @@
     special: weekly
     maxage: 30
     enabled: "{{ monit.enabled }}"
+  tags:
+    - monit-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -66,3 +70,5 @@
     facility: '{{ monit.log.facility }}.*'
     output: '{{ monit.log.file }}'
     enabled: "{{ monit.enabled }}"
+  tags:
+    - monit-config

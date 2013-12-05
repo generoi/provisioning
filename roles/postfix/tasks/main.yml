@@ -26,7 +26,7 @@
   command: debconf-set-selections /tmp/postfix_selections
   changed_when: false
   tags:
-    - config
+    - postfix-config
 
 # Conflict http://goo.gl/DrTw48
 - name: clean | Remove sendmail if installed
@@ -34,8 +34,7 @@
     pkg=sendmail
     state=absent
   tags:
-    - clean
-    - install
+    - postfix-config
 
 - name: install | Install required mail packages
   apt:
@@ -47,7 +46,7 @@
     - ca-certificates
     - ssl-cert
   tags:
-    - install
+    - postfix-config
 
 - name: "config | Set up Postfix to be a null client, only sending mail: /etc/postfix/main.cf"
   template:
@@ -55,7 +54,7 @@
     dest=/etc/postfix/main.cf
   notify: reload postfix
   tags:
-    - config
+    - postfix-config
 
 # General management
 ###
@@ -64,11 +63,15 @@
   vars:
     name: postfix
     enabled: '{{ postfix.enabled }}'
+  tags:
+    - postfix-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: postfix
     enabled: '{{ postfix.enabled }}'
+  tags:
+    - postfix-config
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -78,6 +81,8 @@
     owner: postfix
     maxage: 30
     enabled: '{{ postfix.enabled }}'
+  tags:
+    - postfix-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -87,3 +92,5 @@
     enabled: '{{ postfix.enabled }}'
     output: '{{ postfix.log.file }}'
     stop_processing: true
+  tags:
+    - postfix-config

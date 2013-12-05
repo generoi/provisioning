@@ -34,6 +34,8 @@
   file:
     path=/etc/monit/conf.d
     state=directory
+  tags:
+    - monit
 
 - name: "monit | Create monitor {{ name }}"
   template:
@@ -42,8 +44,7 @@
   notify: restart monit
   when: enabled|default(true)
   tags:
-    - config
-    - enable
+    - monit
 
 - name: "monit | Remove monitor {{ name }}"
   file:
@@ -52,5 +53,4 @@
   notify: restart monit
   when: not enabled|default(true)
   tags:
-    - config
-    - disable
+    - monit

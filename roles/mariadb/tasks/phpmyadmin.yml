@@ -25,8 +25,8 @@
   with_items:
     - php5-mcrypt
   tags:
-    - phpmyadmin
-    - install
+    - mariadb-pma
+    - webui
 
 - include: ../../common/tasks/source-install.yml
   vars:
@@ -37,6 +37,9 @@
     destination: /opt
     creates: index.php
     update: false
+  tags:
+    - mariadb-pma
+    - webui
 
 # Manage local vhost alias /pma
 - include: ../../apache/tasks/vhost-local-alias.yml
@@ -44,6 +47,9 @@
     docroot: /opt/phpmyadmin
     alias: /pma
     enabled: '{{ mariadb.pma.enabled }}'
+  tags:
+    - mariadb-pma
+    - webui
 
 # Used in /etc/phpmyadmin/config.inc.php
 - name: pma | Generate random blowfish secret
@@ -51,8 +57,8 @@
   register: pma_blowfish_secret
   changed_when: false
   tags:
-    - phpmyadmin
-    - config
+    - mariadb-pma
+    - webui
 
 # This will continuasly trigger change event as secret changes.
 - name: "pma | Create: /etc/phpmyadmin"
@@ -60,8 +66,8 @@
     path=/etc/phpmyadmin
     state=directory
   tags:
-    - phpmyadmin
-    - config
+    - mariadb-pma
+    - webui
 
 - name: "pma | Configure: /etc/phpmyadmin/config.inc.php"
   template:
@@ -69,8 +75,8 @@
     dest=/etc/phpmyadmin/config.inc.php
     owner=root group=root
   tags:
-    - phpmyadmin
-    - config
+    - mariadb-pma
+    - webui
 
 - name: "pma | Update blowfish secret: /etc/phpmyadmin/secret.inc.php"
   template:
@@ -79,5 +85,5 @@
     owner=root group=root
   changed_when: false
   tags:
-    - phpmyadmin
-    - config
+    - mariadb-pma
+    - webui

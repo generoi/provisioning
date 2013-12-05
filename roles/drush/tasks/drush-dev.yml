@@ -28,6 +28,8 @@
   vars:
     packages: '{{ drush.dev.modules }}'
     dir: '{{ drush.dir }}'
+  tags:
+    - drush-dev
 
 # Module Builder
 ###
@@ -39,8 +41,6 @@
     state=present
   tags:
     - drush-dev
-    - module_builder
-    - config
 
 - name: "module builder | config | Check if hook directory is present: {{ drush.dir }}/hooks"
   file:
@@ -48,8 +48,6 @@
     state=directory
   tags:
     - drush-dev
-    - module_builder
-    - config
 
 - name: "module builder | config | Add hooks data directory: drushrc.php"
   lineinfile:
@@ -58,8 +56,6 @@
     state=present
   tags:
     - drush-dev
-    - module_builder
-    - config
 
 # Coder
 ###
@@ -69,8 +65,6 @@
   register: php_dir
   tags:
     - drush-dev
-    - coder
-    - config
 
 - name: coder | config | Symlink Drupal CoderSniffer standard to PHPCS standards
   file:
@@ -79,5 +73,3 @@
     state=link
   tags:
     - drush-dev
-    - coder
-    - config

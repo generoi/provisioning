@@ -15,21 +15,21 @@
 
   roles:
     # Make sure admin users exist
-    - { role: common }
-    - { role: user }
-    - { role: ufw }
-    - { role: monit }
-    - { role: rsyslog }
-    - { role: postfix }
-    - { role: apache }
-    - { role: development }
-    - { role: php }
-    - { role: mariadb }
-    - { role: drush }
-    - { role: wpcli }
-    - { role: varnish }
-    - { role: pound }
-    - { role: vnstat }
-    - { role: security }
-    - { role: newrelic }
-    - { role: project }
+    - { role: common, tags: ['common'] }
+    - { role: user, tags: ['user'] }
+    - { role: ufw, tags: ['ufw '] }
+    - { role: monit, tags: ['monit '] }
+    - { role: rsyslog, tags: ['rsyslog '] }
+    - { role: postfix, tags: ['postfix '] }
+    - { role: apache, tags: ['apache '] }
+    - { role: development, tags: ['development '] }
+    - { role: php, tags: ['php '] }
+    - { role: mariadb, tags: ['mariadb '] }
+    - { role: drush, tags: ['drush '] }
+    - { role: wpcli, tags: ['wpcli '] }
+    - { role: varnish, tags: ['varnish '] }
+    - { role: pound, tags: ['pound '] }
+    - { role: vnstat, tags: ['vnstat '] }
+    - { role: security, tags: ['security '] }
+    - { role: newrelic, tags: ['newrelic '] }
+    - { role: project, tags: ['project '] }

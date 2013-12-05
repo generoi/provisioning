@@ -24,8 +24,7 @@
   when: security.ssh.disallow_root
   notify: restart ssh
   tags:
-    - ssh-security
-    - security
+    - security-ssh
 
 - name: "ssh | Prevent DoS of SSH daemon: /etc/ssh/sshd_config"
   lineinfile:
@@ -36,8 +35,7 @@
   when: security.ssh.prevent_dos
   notify: restart ssh
   tags:
-    - ssh-security
-    - security
+    - security-ssh
 
 - name: "ssh | Force SFTP: /etc/ssh/sshd_config"
   lineinfile:
@@ -48,8 +46,7 @@
   when: security.ssh.force_sftp
   notify: restart ssh
   tags:
-    - ssh-security
-    - security
+    - security-ssh
 
 - name: "ssh | Only allow users from admin or sshlogin groups: /etc/ssh/sshd_config"
   lineinfile:
@@ -60,5 +57,4 @@
   notify: restart ssh
   when: security.ssh.access_group
   tags:
-    - ssh-security
-    - security
+    - security-ssh

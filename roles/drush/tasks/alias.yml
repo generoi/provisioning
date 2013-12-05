@@ -22,6 +22,8 @@
     path={{ drush.config.alias_dir }}
     state=directory
     owner=root group=root mode=0755
+  tags:
+    - drush
 
 - name: alias | Create global development alias file
   template:
@@ -29,6 +31,8 @@
     dest={{ drush.config.alias_dir }}/aliases.drushrc.php
     owner=root group=root mode=0644
   notify: cache-clear drush
+  tags:
+    - drush
 
 - name: alias | Create drush alias file
   template:
@@ -37,3 +41,5 @@
     owner=root group=root mode=0644
   notify: cache-clear drush
   with_items: items
+  tags:
+    - drush

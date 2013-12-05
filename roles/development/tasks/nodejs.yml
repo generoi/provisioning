@@ -25,22 +25,21 @@
   with_items:
     - python-pycurl
   tags:
-    - install
+    - development-nodejs
+    - ansible
 
 - name: node.js | install | Add node PPA repository
   apt_repository:
     repo={{ nodejs_repository }}
   tags:
-    - install
-    - nodejs
+    - development-nodejs
 
 - name: node.js | install | Install required packages
   apt:
     pkg=nodejs
     state=present
   tags:
-    - install
-    - nodejs
+    - development-nodejs
 
 - name: node.js | npm | Install npm packages
   npm:
@@ -51,9 +50,8 @@
   with_items: packages
   when: not global|default(false)
   tags:
-    - install
-    - nodejs
-    - npm
+    - development-nodejs
+    - development-nodejs-npm
 
 - name: node.js | npm | Install npm packages globally
   npm:
@@ -63,6 +61,5 @@
   with_items: packages
   when: global|default(false)
   tags:
-    - install
-    - nodejs
-    - npm
+    - development-nodejs
+    - development-nodejs-npm

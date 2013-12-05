@@ -25,7 +25,7 @@
   with_items:
     - vnstat
   tags:
-    - install
+    - vnstat-config
 
 - name: "config | Configure: /etc/vnstat.conf"
   template:
@@ -34,23 +34,31 @@
     owner=root group=root
   notify: restart vnstat
   tags:
-    - config
+    - vnstat-config
 
 - name: config | Ininitalize vnstat
   command: vnstat -u -i {{ vnstat.interface }}
-  changed_when: false
+  register: result
+  changed_when: result.rc != 0
   tags:
-    - config
+    - vnstat-config
+
+# General management
+###
 
 - include: ../../common/tasks/service.yml
   vars:
     name: vnstat
     enabled: '{{ vnstat.enabled }}'
+  tags:
+    - vnstat-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: vnstat
     enabled: '{{ vnstat.enabled }}'
+  tags:
+    - vnstat-config
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -59,6 +67,8 @@
     special: weekly
     maxage: 30
     enabled: '{{ vnstat.enabled }}'
+  tags:
+    - vnstat-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -66,3 +76,5 @@
     mode: programname
     output: '{{ vnstat.log.file }}'
     enabled: '{{ vnstat.enabled }}'
+  tags:
+    - vnstat-config

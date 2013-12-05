@@ -22,6 +22,9 @@
     name={{ item }}
     state=present
   with_items: user_groups
+  tags:
+    - user-create
+    - user-groups
 
 - name: Create user accounts (without passwords)
   user:
@@ -32,6 +35,8 @@
     ssh_key_comment={{ item.email }}
     state=present
   with_items: '{{ users|rejectattr("password")|list }}'
+  tags:
+    - user-create
 
 - name: Create user accounts (with passwords)
   user:
@@ -44,5 +49,9 @@
     password={{ item.password }}
     update_password=on_create
   with_items: '{{ users|selectattr("password")|list }}'
+  tags:
+    - user-create
 
 - include: set-user-permissions.yml
+  tags:
+    - user-create

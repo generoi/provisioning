@@ -27,16 +27,12 @@
   register: package_exists
   ignore_errors: true
   changed_when: false
-  tags:
-    - install
 
 - name: "source | clean | Clean old files"
   file:
     path={{ destination|default('/opt') }}/{{ name }}
     state=absent
   when: package_exists|success and update|default(false)
-  tags:
-    - clean
 
 - name: "souce | install | Download source to: /tmp/{{ tarball|basename }}"
   get_url:
@@ -45,29 +41,20 @@
     dest=/tmp/{{ tarball|basename }}
     mode=0440
   when: package_exists|failed or update|default(false)
-  tags:
-    - install
 
 - name: "source | install | Create: {{ destination|default('/opt') }}/{{ name }}"
   file:
     path={{ destination|default('/opt') }}/{{ name }}
     state=directory
   when: package_exists|failed or update|default(false)
-  tags:
-    - install
 
 - name: "source | install | Extract source: {{ destination|default('/opt') }}/{{ name }}"
   command:
     tar -xf /tmp/{{ tarball|basename }} --strip {{ strip|default(0) }} -C {{ destination|default('/opt') }}/{{ name }}
     creates={{ destination|default('/opt') }}/{{ name }}/{{ creates }}
   when: package_exists|failed or update|default(false)
-  tags:
-    - install
 
 - name: "source | clean | Clean up temporary files"
   file:
     path=/tmp/{{ tarball|basename }}
     state=absent
-  tags:
-    - install
-    - clean

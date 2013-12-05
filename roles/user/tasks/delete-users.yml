@@ -20,4 +20,4 @@
     state=absent
   with_items: users
   tags:
-    - clean
+    - user-delete

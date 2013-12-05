@@ -18,9 +18,7 @@
     pkg=rkhunter
     state=present
   tags:
-    - rootkit
-    - rkhunter
-    - install
+    - security-rootkit
 
 # Only enabled if both enabled and notify_email specified
 - name: "rootkit | rkhunter | Run rootkit check at 2am on every sunday: {{ rkhunter_cron }}"
@@ -29,10 +27,7 @@
     dest={{ rkhunter_cron }}
   when: security.rootkit.enabled and security.rootkit.notify_email|bool
   tags:
-    - rootkit
-    - rkhunter
-    - cron
-    - enable
+    - security-rootkit
 
 - name: "rootkit | rkhunter | Disable cron: {{ rkhunter_cron }}"
   file:
@@ -40,7 +35,4 @@
     state=absent
   when: not security.rootkit.enabled or not security.rootkit.notify_email|bool
   tags:
-    - rooktkit
-    - rkhunter
-    - cron
-    - disable
+    - security-rootkit

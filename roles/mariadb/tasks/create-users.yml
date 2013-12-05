@@ -22,7 +22,7 @@
     name=mysql
     state=started
   tags:
-    - service
+    - mariadb-user-create
 
 - name: user | Create users
   mysql_user:
@@ -35,5 +35,4 @@
   when: password is not defined
   with_items: users
   tags:
-    - user
-    - enable
+    - mariadb-user-create

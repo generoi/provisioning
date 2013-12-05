@@ -20,7 +20,7 @@
     pkg=rsyslog
     state=present
   tags:
-    - install
+    - rsyslog-config
 
 - name: "config | Configure: /etc/rsyslog.conf"
   template:
@@ -29,7 +29,7 @@
     owner=root group=root
   notify: restart rsyslog
   tags:
-    - config
+    - rsyslog-config
 
 - name: "config | Set owner to syslog: /var/spool/rsyslog"
   file:
@@ -37,8 +37,7 @@
     owner={{ rsyslog.owner }} group={{ rsyslog.group }}
   notify: restart rsyslog
   tags:
-    - config
-    - bug
+    - rsyslog-config
 
 - include: loggly.yml
   when: rsyslog.loggly.enabled
@@ -55,8 +54,12 @@
 - include: ../../common/tasks/service.yml
   vars:
     name: rsyslog
+  tags:
+    - rsyslog-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: rsyslog
     enabled: '{{ rsyslog.enabled }}'
+  tags:
+    - rsyslog-config

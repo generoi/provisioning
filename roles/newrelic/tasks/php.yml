@@ -20,8 +20,7 @@
     pkg=newrelic-php5
     state=present
   tags:
-    - install
-    - php
+    - newrelic-php
 
 - name: "php | Configure: /etc/php5/conf.d/newrelic.ini"
   template:
@@ -30,8 +29,7 @@
     owner=root group=newrelic
   notify: restart apache
   tags:
-    - config
-    - php
+    - newrelic-php
 
 # General management
 ###
@@ -46,6 +44,8 @@
     maxage: 30
     logs: '{{ newrelic.php.logfile }} {{ newrelic.php.daemon_logfile }}'
     enabled: '{{ newrelic.php.enabled }}'
+  tags:
+    - newrelic-php
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -53,6 +53,8 @@
     mode: filemonitor
     logfile: '{{ newrelic.php.logfile }}'
     enabled: '{{ newrelic.php.enabled }}'
+  tags:
+    - newrelic-php
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -60,3 +62,5 @@
     mode: filemonitor
     logfile: '{{ newrelic.php.daemon_logfile }}'
     enabled: '{{ newrelic.php.enabled }}'
+  tags:
+    - newrelic-php

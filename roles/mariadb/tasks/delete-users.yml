@@ -23,7 +23,7 @@
     name=mysql
     state=started
   tags:
-    - service
+    - mariadb-user-delete
 
 # Remove each user. Use a plain text password for remote login (not recommended)
 - name: user | Delete users

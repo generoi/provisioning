@@ -32,7 +32,7 @@
     - apache2-utils # ab, rotatelogs
     - ssl-cert # snakeoil certificate
   tags:
-    - install
+    - apache-config
 
 - name: "config | Configure: /etc/apache2/*"
   template:
@@ -46,7 +46,7 @@
     - conf.d/security
   notify: restart apache
   tags:
-
+    - apache-config
 
 - name: "install | Enable required modules: {{ apache.mods_enabled|join(', ') }}"
   command: a2enmod {{ item }}
@@ -55,30 +55,30 @@
   changed_when: "'already enabled' not in a2enmod_result.stdout"
   notify: restart apache
   tags:
-    - install
-    - apachemods
+    - apache-config
+    - apache-mods
 
 - name: "clean | Disable banned modules: {{ apache.mods_disabled|join(', ') }}"
   command: a2enmod {{ item }}
   with_items: apache.mods_disabled
   notify: restart apache
   tags:
-    - clean
-    - apachemods
+    - apache-config
+    - apache-mods
 
 - name: "clean | Disable default apache virtual host"
   command: a2dissite 000-default
   register: a2dissite_result
   changed_when: "'already disabled' not in a2dissite_result.stdout"
   tags:
-    - clean
+    - apache-config
 
 - name: "clean | Remove default index file from docroot: /var/www/index.html"
   file:
     path=/var/www/index.html
     state=absent
   tags:
-    - clean
+    - apache-config
 
 - name: "config | vhost | Create a directory for per vhost configurations: /etc/apache2/vhosts.d/"
   file:
@@ -86,8 +86,7 @@
     state=directory
     owner=root group=root
   tags:
-    - vhost
-    - config
+    - apache-config
 
 - name: "install | Enable: vhost_alias"
   command: a2enmod vhost_alias
@@ -97,8 +96,8 @@
   notify: restart apache
   when: apache.wildcard_subdomains
   tags:
-    - install
-    - apachemods
+    - apache-mods
+    - apache-wildcard
 
 - name: "config | wildcard subdomains | Enable: /etc/apache2/conf.d/wildcard-subdomains"
   template:
@@ -110,7 +109,7 @@
   notify: restart apache
   when: apache.wildcard_subdomains
   tags:
-    - config
+    - apache-wildcard
 
 - name: "config | wildcard subdomains | Add global robots.txt: /var/www/robots.txt"
   copy:
@@ -119,7 +118,7 @@
     owner=root group=root mode=644
   when: apache.wildcard_subdomains
   tags:
-    - config
+    - apache-wildcard
 
 # Create a default virtual host
 - include: vhost.yml
@@ -140,6 +139,7 @@
   changed_when: false
   tags:
     - lint
+    - apache-vhost
 
 # General management
 ###
@@ -148,12 +148,16 @@
   vars:
     name: apache2
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../monit/tasks/entry.yml
   vars:
     name: apache
     port: '{{ apache.port.http }}'
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../logrotate/tasks/entry.yml
   vars:
@@ -163,6 +167,8 @@
     maxage: 30
     postrotate: '/etc/init.d/apache2 reload > /dev/null'
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -170,6 +176,8 @@
     mode: filemonitor
     logfile: '{{ apache.log.access_file }}'
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../rsyslog/tasks/entry.yml
   vars:
@@ -177,13 +185,20 @@
     mode: filemonitor
     logfile: '{{ apache.log.error_file }}'
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: '{{ apache.port.http }}'
     enabled: '{{ apache.enabled }}'
+  tags:
+    - apache-config
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: '{{ apache.port.https }}'
     enabled: '{{ apache.enabled and apache.ssl.enabled }}'
+  tags:
+    - apache-config
+    - apache-https

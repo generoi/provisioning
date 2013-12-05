@@ -20,27 +20,29 @@
 - include: ../../php/tasks/pear.yml
   vars:
     package: pear.drush.org/drush
+  tags:
+    - drush-config
 
 - name: install | Run drush once so it downloads it's dependencies
   command: drush
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   tags:
-    - install
+    - drush-config
 
 - name: config | Ensure global drush directory is present
   file:
     path={{ drush.dir }}
     state=directory
   tags:
-    - config
+    - drush-config
 
 - name: config | Ensure dump drush directory is present
   file:
     path={{ drush.config.dump_dir }}
     state=directory
   tags:
-    - config
+    - drush-config
 
 - name: config | Add global drushrc.php
   template:
@@ -48,7 +50,7 @@
     dest={{ drush.dir }}/drushrc.php
     owner=root group=admin mode=0664
   tags:
-    - config
+    - drush-config
 
 - name: config | Add global drushrc.local.php
   copy:
@@ -57,7 +59,7 @@
     owner=root group=admin mode=0664
     force=no
   tags:
-    - config
+    - drush-config
 
 # Install drush development modules
 - include: drush-dev.yml

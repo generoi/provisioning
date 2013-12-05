@@ -19,8 +19,7 @@
   ignore_errors: true
   changed_when: vim_has_lua.rc != 0
   tags:
-    - vim
-    - install
+    - development-vim
 
 - name: vim | install | Remove current vim installations
   apt:
@@ -35,8 +34,7 @@
     - gvim
   when: vim_has_lua|failed
   tags:
-    - install
-    - vim
+    - development-vim
 
 - name: vim | install | Install dependencies
   apt:
@@ -53,8 +51,7 @@
     - liblua5.1-0-dev
   when: vim_has_lua|failed
   tags:
-    - install
-    - vim
+    - development-vim
 
 - name: vim | install | Symlink luajit-2.0.0-beta9 to luajit
   file:
@@ -62,8 +59,7 @@
     dest=/usr/bin/luajit
     state=link
   tags:
-    - install
-    - vim
+    - development-vim
 
 - include: ../../common/tasks/source-install.yml
   vars:
@@ -74,6 +70,8 @@
     creates: 'configure'
     destination: /opt
   when: vim_has_lua|failed
+  tags:
+    - development-vim
 
 - name: vim | install | Configure install
   shell: >
@@ -96,8 +94,7 @@
     chdir=/opt/vim
   when: vim_has_lua|failed
   tags:
-    - vim
-    - install
+    - development-vim
 
 - name: vim | install | Make
   command:
@@ -105,8 +102,7 @@
     chdir=/opt/vim
   when: vim_has_lua|failed
   tags:
-    - vim
-    - install
+    - development-vim
 
 - name: vim | install | Make install
   command:
@@ -114,5 +110,4 @@
     chdir=/opt/vim
   when: vim_has_lua|failed
   tags:
-    - vim
-    - install
+    - development-vim

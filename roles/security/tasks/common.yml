@@ -26,8 +26,8 @@
     - unattended-upgrades
   when: security.common.unattended_upgrades
   tags:
-    - unattended-upgrades
-    - install
+    - security-common
+    - security-unattended-upgrades
 
 - name: "common | Adjust APT update intervals: /etc/apt/apt.conf.d/10periodic"
   copy:
@@ -50,8 +50,7 @@
   command: dpkg-statoverride --update --add root admin 4750 /bin/su
   when: security.common.limit_su and su_is_overriden|failed
   tags:
-    - su
-    - config
+    - security-common
 
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
 - name: "common | Prevent IP spoofing: /etc/host.conf"
@@ -65,8 +64,7 @@
     - { key: 'nospoof', line: 'nospoof on' }
   when: security.common.ipspoof
   tags:
-    - ipspoofing
-    - config
+    - security-common
 
 - name: common | Install tiger security auditing system
   apt:
@@ -74,8 +72,8 @@
     state=present
   when: security.common.tiger
   tags:
-    - tiger
-    - install
+    - security-common
+    - security-tiger
 
 - name: "common | Tiger | Run auditing at 2am on the 1st of every month: /etc/cron.d/tiger-audit"
   cron:
@@ -87,9 +85,8 @@
     state=present
   when: security.common.tiger
   tags:
-    - tiger
-    - cron
-    - disable
+    - security-common
+    - security-tiger
 
 - name: "common | Tiger | Disable cron: /etc/cron.d/tiger-audit"
   cron:
@@ -97,9 +94,8 @@
     state=absent
   when: not security.common.tiger
   tags:
-    - tiger
-    - cron
-    - enable
+    - security-common
+    - security-tiger
 
 # Mount shared memory as wrtiable but without permission to execute programs or
 # change UID of running processes.
@@ -114,5 +110,4 @@
   notify: reload fstab
   when: security.common.secure_shm
   tags:
-    - shm
-    - config
+    - security-common

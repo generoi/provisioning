@@ -32,6 +32,8 @@
     dest=/etc/rsyslog.d/00-{{ name }}.conf
   notify: restart rsyslog
   when: enabled|default(true)
+  tags:
+    - rsyslog
 
 - name: "rsyslog | Make sure log file is owned by the rsyslog user"
   file:
@@ -40,6 +42,8 @@
     owner={{ rsyslog.owner }} group={{ rsyslog.group }}
   notify: restart rsyslog
   when: enabled|default(true)
+  tags:
+    - rsyslog
 
 - name: "rsyslog | Remove rsyslog entry for {{ name }}: /etc/rsyslog.d/00-{{ name }}.conf"
   file:
@@ -47,3 +51,5 @@
     state=absent
   notify: restart rsyslog
   when: not enabled|default(true)
+  tags:
+    - rsyslog

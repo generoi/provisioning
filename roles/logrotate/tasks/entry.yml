@@ -30,7 +30,6 @@
   when: enabled|default(true)
   tags:
     - logrotate
-    - enable
 
 - name: "logrotate | disable | Delete logrotate entry for {{ name }}: /etc/logrotate.d/{{ name }}"
   file:
@@ -39,4 +38,3 @@
   when: not enabled|default(true)
   tags:
     - logrotate
-    - disable
