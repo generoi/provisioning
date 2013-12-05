@@ -172,6 +172,7 @@ projects:
 #       - yo
 #       - generator-webapp
 #       - phantomjs
+#       - phantomas
 #
 #   ruby:
 #     install: true
