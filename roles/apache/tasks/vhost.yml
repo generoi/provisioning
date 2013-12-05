@@ -52,7 +52,9 @@
   command:
     a2ensite {{ vhost }}
     creates=/etc/apache2/sites-enabled/{{ vhost }}
-  notify: reload apache
+  notify:
+    - lint apache
+    - reload apache
   when: enabled|default(true)|bool
   tags:
     - apache
@@ -73,7 +75,9 @@
     a2dissite {{ vhost }}
     removes=/etc/apache2/sites-enabled/{{ vhost }}
   when: not enabled|default(true)|bool
-  notify: reload apache
+  notify:
+    - lint apache
+    - reload apache
   tags:
     - apache
 

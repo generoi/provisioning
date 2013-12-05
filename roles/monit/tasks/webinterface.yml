@@ -20,7 +20,9 @@
     src=webinterface.j2
     dest=/etc/monit/conf.d/webinterface
     owner=root group=root
-  notify: restart monit
+  notify:
+    - lint monit
+    - restart monit
   when: monit.webinterface.enabled
   tags:
     - monit-webui

@@ -27,7 +27,9 @@
     src=rsyslog.conf.j2
     dest=/etc/rsyslog.conf
     owner=root group=root
-  notify: restart rsyslog
+  notify:
+    - lint rsyslog
+    - restart rsyslog
   tags:
     - rsyslog-config
 
@@ -41,12 +43,8 @@
 
 - include: loggly.yml
   when: rsyslog.loggly.enabled
-
-- name: lint | Verify configuration
-  command: rsyslogd -N1
-  changed_when: false
   tags:
-    - lint
+    - rsyslog-config
 
 # General management
 ###

@@ -8,3 +8,7 @@
   service:
     name=apache2
     state=reloaded
+
+- name: lint apache
+  command: apachectl configtest
+  changed_when: false

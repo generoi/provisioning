@@ -28,7 +28,9 @@
     src=monitrc.j2
     dest=/etc/monit/monitrc
     owner=root group=root
-  notify: restart monit
+  notify:
+    - lint monit
+    - restart monit
   tags:
     - monit-config
 
@@ -37,10 +39,6 @@
 
 - include: mail.yml
   when: monit.mail.install
-
-- name: Monit | Verify configurations are valid
-  command: monit -t
-  changed_when: false
 
 # General management
 ###

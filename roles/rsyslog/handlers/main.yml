@@ -3,3 +3,7 @@
   service:
     name=rsyslog
     state=restarted
+
+- name: lint rsyslog
+  command: rsyslogd -N1
+  changed_when: false

@@ -3,3 +3,6 @@
   service:
     name=monit
     state=restarted
+
+- name: lint monit
+  command: monit -t

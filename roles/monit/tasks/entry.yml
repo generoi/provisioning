@@ -41,7 +41,9 @@
   template:
     src=monitors/{{ name }}.j2
     dest=/etc/monit/conf.d/{{ name }}
-  notify: restart monit
+  notify:
+    - lint monit
+    - restart monit
   when: enabled|default(true)
   tags:
     - monit

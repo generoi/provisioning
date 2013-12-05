@@ -44,7 +44,9 @@
     - apache2.conf
     - ports.conf
     - conf.d/security
-  notify: restart apache
+  notify:
+    - lint apache
+    - restart apache
   tags:
     - apache-config
 
@@ -106,7 +108,9 @@
     owner=root group=root
   with_items:
     - conf.d/wildcard-subdomains
-  notify: restart apache
+  notify:
+    - lint apache
+    - restart apache
   when: apache.wildcard_subdomains
   tags:
     - apache-wildcard
@@ -132,13 +136,6 @@
       certificate_key_file: '{{ apache.ssl.certificate_key_file }}'
       certificate_chain_file: '{{ apache.ssl.certificate_chain_file }}'
   tags:
-    - config
-
-- name: lint | verify configuration files are valid
-  command: apachectl configtest
-  changed_when: false
-  tags:
-    - lint
     - apache-vhost
 
 # General management

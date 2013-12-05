@@ -30,7 +30,9 @@
   template:
     src=entry.conf.j2
     dest=/etc/rsyslog.d/00-{{ name }}.conf
-  notify: restart rsyslog
+  notify:
+    - lint rsyslog
+    - restart rsyslog
   when: enabled|default(true)
   tags:
     - rsyslog
@@ -40,7 +42,9 @@
     path=/etc/rsyslog.d/00-{{ name }}.conf
     state=file
     owner={{ rsyslog.owner }} group={{ rsyslog.group }}
-  notify: restart rsyslog
+  notify:
+    - lint rsyslog
+    - restart rsyslog
   when: enabled|default(true)
   tags:
     - rsyslog
@@ -49,7 +53,9 @@
   file:
     path=/etc/rsyslog.d/00-{{ name }}.conf
     state=absent
-  notify: restart rsyslog
+  notify:
+    - lint rsyslog
+    - restart rsyslog
   when: not enabled|default(true)
   tags:
     - rsyslog
