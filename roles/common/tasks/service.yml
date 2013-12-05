@@ -6,6 +6,7 @@
 # Parameters:
 # - name: Name of service
 # - enabled (default: true)
+# - set_default (default: false)
 #
 # Dependencies:
 #
@@ -15,7 +16,6 @@
 #
 ###############################################################################
 
-# @TODO why change event?
 - name: "service | enable | Start service and enable autostart: {{ name }}"
   service:
     name={{ name }}

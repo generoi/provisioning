@@ -39,14 +39,7 @@
     pkg=varnish
     state=present
   tags:
-    - install
-
-- name: config | Count CPU cores
-  shell: grep processor /proc/cpuinfo | wc -l
-  register: cpu_cores
-  changed_when: false
-  tags:
-    - config
+    - varnish-config
 
 - name: "config | Set varnish startup configurations: /etc/default/varnish"
   template:
@@ -104,7 +97,6 @@
   tags:
     - varnish-config
 
-# Manage logrotation
 - include: ../../logrotate/tasks/entry.yml
   vars:
     name: varnish

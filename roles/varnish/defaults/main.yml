@@ -20,8 +20,8 @@ varnish:
     # Advanced
     # Based on http://www.lullabot.com/blog/article/configuring-varnish-high-availability-multiple-web-servers
     thread_pool_add_delay: 2
-    thread_pools: '{{ cpu_cores.stdout|int }}'
-    thread_pool_min: '{{ 800 // cpu_cores.stdout|int }}'
+    thread_pools: '{{ ansible_processor_cores }}'
+    thread_pool_min: '{{ 800 // ansible_processor_cores|int }}'
     thread_pool_max: 4000
     session_linger: 50
     sess_workspace: 262144

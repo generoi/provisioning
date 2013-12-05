@@ -44,28 +44,11 @@
   tags:
     - php-pecl
 
-- name: "pecl | Set {{ package }} config (Ubuntu == 12.04)"
+- name: "pecl | Set {{ package }} config"
   template:
     src=conf.d/{{ package }}.ini.j2
     dest=/etc/php5/conf.d/{{ package }}.ini
     owner=root group=root
-  when: ansible_lsb.release == "12.04"
-  notify: restart php
-
-- name: "pecl | Set {{ package }} config (Ubuntu > 12.04)"
-  template:
-    src=conf.d/{{ package }}.ini.j2
-    dest=/etc/php5/mods-available/{{ package }}.ini
-    owner=root group=root
-  when: ansible_lsb.release != "12.04"
-  notify: restart php
-
-- name: "pecl | Set symbolic link to {{ package }} config (Ubuntu > 12.04)"
-  file:
-    src=/etc/php5/mods-available/{{ package }}.ini
-    dest=/etc/php5/conf.d/20-{{ package }}.ini
-    state=link
-  when: ansible_lsb.release != "12.04"
   notify: restart php
   tags:
     - php-pecl

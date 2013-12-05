@@ -36,19 +36,17 @@
     owner=root group=root
   when: security.common.unattended_upgrades
   tags:
-    - unattended-upgrades
-    - config
-
-- name: common | Check if su command is overriden
-  shell: dpkg-statoverride --list | grep '/bin/su'
-  register: su_is_overriden
-  ignore_errors: true
-  changed_when: false
+    - security-common
+    - security-unattended-upgrades
 
 # @see http://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics
 - name: common | Limit su access to only admin group.
   command: dpkg-statoverride --update --add root admin 4750 /bin/su
-  when: security.common.limit_su and su_is_overriden|failed
+  register: su_result
+  ignore_errors: true
+  failed_when: "result.rc != 0 and not 'already exists' in su_result"
+  changed_when: "not 'already exists' in su_result.stdout"
+  when: security.common.limit_su
   tags:
     - security-common
 

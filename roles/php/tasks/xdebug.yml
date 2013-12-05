@@ -24,7 +24,8 @@
 
 # Used in conf.d/xdebug.ini.j2
 - name: xdebug | Fetch PHP extension dir
-  shell: "php -i | grep -i '^extension_dir' | awk '{print $3}'"
+  shell:
+    "php -i | grep -i '^extension_dir' | awk '{ print $3 }'"
   register: php_extension_dir
   changed_when: false
   tags:

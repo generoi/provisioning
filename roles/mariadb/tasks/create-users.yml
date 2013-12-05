@@ -6,7 +6,7 @@
 # Parameters:
 # - users: List of account dictionaries, each with the keys:
 #   username and privileges
-# - user: User to log in with (default: root)
+# - login_user (default: root)
 #
 # Dependencies:
 # - tasks:main
@@ -26,8 +26,8 @@
 
 - name: user | Create users
   mysql_user:
-    login_user=root
-    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    login_user={{ login_user|default('root') }}
+    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + login_user|default('root') + '/mariadb_password length=15') }}
     name={{ item.username }}
     password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + item.username + '/mariadb_password length=15') }}
     priv={{ item.privileges }}

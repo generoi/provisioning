@@ -35,6 +35,7 @@
     state=file
   ignore_errors: true
   register: composer_exists
+  when: php.composer.install
   tags:
     - php-dev
 

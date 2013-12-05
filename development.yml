@@ -12,6 +12,7 @@
     hostname: '{{ ansible_hostname }}'
     ip: '{{ ansible_venet0_0.ipv4.address }}'
     notify_email: ['public@oxy.fi', 'christoffer.bjorkskog@genero.fi']
+    virtualization: '{{ ansible_virtualization_type  }}'
 
   roles:
     # Make sure admin users exist

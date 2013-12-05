@@ -14,17 +14,12 @@
 #
 ###############################################################################
 
-- name: config | Copy debconf selections so that Postfix can configure itself non-interactively
-  template:
-    src=postfix_selections.j2
-    dest=/tmp/postfix_selections
-    mode=0600
-  tags:
-    - config
-
 - name: config | Set up Postfix to handle mail directly using SMTP
-  command: debconf-set-selections /tmp/postfix_selections
+  command: echo "{{ item }}" | debconf-set-selections
   changed_when: false
+  with_items:
+    - "postfix postfix/mailname string {{ ansible_fqdn }}"
+    - "postfix postfix/main_mailer_type select Internet Site"
   tags:
     - postfix-config
 
@@ -91,6 +86,5 @@
     facility: mail.*
     enabled: '{{ postfix.enabled }}'
     output: '{{ postfix.log.file }}'
-    stop_processing: true
   tags:
     - postfix-config

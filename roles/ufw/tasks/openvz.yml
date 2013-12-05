@@ -1,4 +1,23 @@
 ---
+# Part: UFW
+#
+# Description: Disable various UFW features which arent supported by the OpenVZ kernel.
+# @see http://blog.bodhizazen.net/linux/how-to-use-ufw-in-openvz-templates/
+#
+# Parameters:
+#
+# Dependencies:
+# - tasks:ufw-allow
+#
+# Creates:
+#
+# File modifications:
+# - /etc/default/ufw
+# - /etc/ufw/after.rules
+# - /etc/ufw/after.before
+#
+###############################################################################
+
 - name: config | Disable ipv6
   lineinfile:
     dest=/etc/default/ufw

@@ -54,7 +54,7 @@
     regexp="^IPV6="
     line="IPV6=no"
     state=present
-  when: ansible_virtualization_type == 'openvz' or not ufw.ipv6.enable
+  when: virtualization == 'openvz' or not ufw.ipv6.enable
   notify: restart ufw
   tags:
     - ufw-config
@@ -67,14 +67,14 @@
     line="IPV6=yes"
     state=present
   # OpenVZ does not have the kernel features required for ipv6
-  when: not ansible_virtualization_type == 'openvz' and ufw.ipv6.enable
+  when: virtualization == 'openvz' and ufw.ipv6.enable
   notify: restart ufw
   tags:
     - ufw-config
 
 # OpenVZ Kernel doesnt support various rules/modules
 - include: openvz.yml
-  when: ansible_virtualization_type == 'openvz'
+  when: virtualization == 'openvz'
   tags:
     - ufw-config
     - openvz

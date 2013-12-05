@@ -26,7 +26,7 @@
   template:
     src=nrsysmond.cfg.j2
     dest=/etc/newrelic/nrsysmond.cfg
-    owner=root group=newrelic mode=0640 # @TODO permissions
+    owner=root group=newrelic mode=0640
   notify: restart newrelic-sysmond
   tags:
     - newrelic-sysmond
@@ -34,7 +34,6 @@
 # General management
 ###
 
-# @TODO change
 - include: ../../common/tasks/service.yml
   vars:
     name: newrelic-sysmond

@@ -5,9 +5,7 @@
 #
 # Parameters:
 # - users: List of account dictionaries, each with the keys: username
-# - user: User to log in with (default: root)
-# - password: Login password as plain text (optional and not
-#   recommended). By default a password lookup will be done.
+# - login_user: User to log in with (default: root)
 #
 # Dependencies:
 # - tasks:main
@@ -25,27 +23,12 @@
   tags:
     - mariadb-user-delete
 
-# Remove each user. Use a plain text password for remote login (not recommended)
 - name: user | Delete users
   mysql_user:
-    login_user={{ user|default('root') }}
-    login_password={{ password }}
+    login_user={{ login_user|default('root') }}
+    login_password="{{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + login_user|default('root') + '/mariadb_password length=15') }}"
     name={{ item.username }}
     state=absent
-  when: password is defined
   with_items: users
   tags:
-    - disable
-    - user
-
-- name: user | Delete users
-  mysql_user:
-    login_user={{ user|default('root') }}
-    login_password="{{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/' + user|default('root') + '/mariadb_password length=15') }}"
-    name={{ item.username }}
-    state=absent
-  when: password is not defined
-  with_items: users
-  tags:
-    - disable
-    - user
+    - mariadb-user-delete

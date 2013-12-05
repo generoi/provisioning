@@ -29,9 +29,9 @@
 - name: certificate | Check current certificate md5sum
   shell:
     md5sum {{ output }}
-  ignore_errors: true
-  changed_when: false
   register: certificate_md5sum
+  failed_when: false
+  changed_when: "'No such file or directory' in certificate_md5sum.stdout"
   tags:
     - certificate-combined
 
@@ -46,7 +46,6 @@
 - name: "certificate | Set certificate permissions"
   file:
     path={{ output }}
-    mode=0700
-    owner=root group=root
+    owner=root group=root mode=0700
   tags:
     - certificate-combined

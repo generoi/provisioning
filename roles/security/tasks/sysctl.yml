@@ -65,7 +65,7 @@
   tags:
     - security-sysctl
 
-- name: sysctl | Make sure no one can alter the routing tables
+- name: sysctl | Host only (we're not a router)
   sysctl:
     name={{ item }}
     value=0
@@ -89,10 +89,9 @@
   when: security.sysctl.synattack
   notify: reload sysctl
   tags:
-    - sysctl
-    - security
+    - security-sysctl
 
-- name: sysctl | 
+- name: sysctl | Make sure no one can alter the routing tables
   sysctl:
     name={{ item }}
     value=0

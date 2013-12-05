@@ -22,6 +22,7 @@
   git:
     repo={{ dotfiles_repository }}
     dest=/home/{{ item.username }}/.dotfiles
+    owner={{ item.username }} group={{ item.username }}
     force=no
   ignore_errors: true
   register: fetched_dotfiles
@@ -33,7 +34,12 @@
   shell: >
     if [ -f "bootstrap.sh" ]; then sudo sudo su {{ item.username }} ./bootstrap.sh; fi
     chdir=/home/{{ item.username }}/.dotfiles
-  changed_when: false
+  result: dotfiles_result
+  # Trigger changed when old files are replaced
+  changed_when: "' files changed.' in dotfiles_result.stdout"
+  # Trigger failure but not stop when the repository is dirty.
+  failed_when: "'Repository is dirty' in dotfiles_result.stdout"
+  ignore_errors: true
   when: fetched_dotfiles|success and fetched_dotfiles|changed
   with_items: users
   tags:
@@ -59,7 +65,7 @@
   tags:
     - user-dotfiles
 
-- name: "dotfiles | Change owner of dotfiles"
+- name: "dotfiles | Change owner of all user files"
   file:
     path=/home/{{ item[0].username }}/{{ item[1] }}
     recurse=yes

@@ -21,6 +21,7 @@
   shell: wp --version | grep 'WP-CLI {{ wpcli_install.version }}'
   register: wp_uptodate
   changed_when: wp_uptodate.rc != 0
+  failed_when: false
   ignore_errors: true
   tags:
     - wpcli-config

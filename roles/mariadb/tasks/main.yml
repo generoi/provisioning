@@ -72,6 +72,9 @@
   tags:
     - mariadb-config
 
+# Check if the password file exists, if not that means this is the first time
+# the task runs.
+# We do it this way because we do not want to store the password in my.cnf
 - name: config | Check if root password is generated
   sudo: false
   local_action: raw test -s {{ inventory_dir }}/credentials/{{ ansible_hostname }}/root/mariadb_password

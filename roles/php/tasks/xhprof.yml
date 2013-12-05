@@ -55,10 +55,10 @@
     - php-xhprof
 
 - name: "xhprof | Create xhprof output directory {{ php.xhprof.output_dir }}"
-  # @TODO www-data?
   file:
     path={{ php.xhprof.output_dir }}
     state=directory
+    owner={{ apache.user|default('www-data') }} group={{ apache.group|default('www-data') }} mode=0755
   tags:
     - php-xhprof
 
