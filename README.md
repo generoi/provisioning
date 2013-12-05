@@ -67,6 +67,7 @@ most likely not available in jobs._
 - service-disable
 
 - development
+- development-afp
 - development-ruby
 - development-ruby-gems
 - development-nodejs

@@ -18,7 +18,7 @@
     pkg=netatalk
     state=installed
   tags:
-    - development-netatalk
+    - development-afp
 
 - name: "config | Configure: /etc/netatalk/AppleVolumes.default"
   template:
@@ -27,7 +27,7 @@
     owner=root group=root mode=0644
   notify: restart netatalk
   tags:
-    - development-netatalk
+    - development-afp
 
 # General management
 ###
@@ -37,11 +37,11 @@
     name: netatalk
     enabled: '{{ development.afp.enabled }}'
   tags:
-    - development-netatalk
+    - development-afp
 
 - include: ../../ufw/tasks/entry.yml
   vars:
     name: 548/tcp
     enabled: '{{ development.afp.enabled }}'
   tags:
-    - development-netatalk
+    - development-afp
