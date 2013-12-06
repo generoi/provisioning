@@ -436,7 +436,7 @@ pound:
 
   alive_check: 30
   port: 443
-  ip: '{{ ip }}'
+  ip: '{{ ip.stdout }}'
 
   # Should be set to varnish
   backend:

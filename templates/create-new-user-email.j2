@@ -8,7 +8,7 @@ SERVER
 ======
 
 Host: {{ ansible_fqdn }}
-IP:   {{ ip  }}
+IP:   {{ ip.stdout  }}
 SFTP: {{ ansible_fqdn }} (You have to connect using sftp, regular ftp is disabled)
 
 
@@ -99,7 +99,7 @@ You should change this as soon as possible by signing in and issuing the
 command: passwd
 
 Host: {{ ansible_fqdn }}
-IP:   {{ ip }}
+IP:   {{ ip.stdout  }}
 
 // Genero
 {% endif %}

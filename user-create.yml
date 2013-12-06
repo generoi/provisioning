@@ -48,6 +48,10 @@
       prompt: 'Account type (admin,user)'
       default: 'admin'
       private: no
+
+  pre_tasks:
+    - include: tasks/ip.yml
+
   tasks:
     # Create a MariaDB user, consequently creating a credentials file with a
     # random generated password.

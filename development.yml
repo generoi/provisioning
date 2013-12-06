@@ -10,9 +10,11 @@
   connection: '{{ connection|default("ssh") }}'
   vars:
     hostname: '{{ ansible_hostname }}'
-    ip: '{{ ansible_venet0_0.ipv4.address }}'
     notify_email: ['public@oxy.fi', 'christoffer.bjorkskog@genero.fi']
     virtualization: '{{ ansible_virtualization_type  }}'
+
+  pre_tasks:
+    - include: tasks/ip.yml
 
   roles:
     # Make sure admin users exist
