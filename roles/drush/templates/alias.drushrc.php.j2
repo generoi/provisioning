@@ -1,8 +1,23 @@
 <?php
 
 $aliases['live'] = array(
-  'parent' => '@live',
   'root' => '{{ item.root|default("/var/www/" + item.name) }}',
   'remote-host' => '{{ item.name }}',
   'remote-user' => '{{ item.remote_user }}',
+  'uri' => 'default',
+  'path-aliases' => array(
+    // '%root' => '',
+    '%drush' => '/usr/share/php/drush/',
+    '%drush-script' => 'drush',
+    // Path to directory that "drush sql-sync" should use to store
+    // sql-dump files. Helpful filenames are auto-generated.
+    '%dump-dir' => '{{ drush.config.dump_dir }}',
+    // Path to the file that "drush sql-sync" should use to store sql-dump file.
+    '%dump' => '{{ drush.config.dump_dir }}/sync-dump.sql',
+  ),
+  'target-command-specific' => array(
+    'sql-sync' => array(
+      'skip-tables-list',
+    ),
+  ),
 );

@@ -152,8 +152,11 @@ $options['alias-path'] = array('{{ drush.config.alias_dir }}');
  * Keeping the dump files around improves the performance of rsync when the
  * database is rsync'ed to a remote system.  If a dump directory is not
  * specified, then 'sql-sync' will store dumps in temporary files.
+ * @see https://drupal.org/node/1730758
  */
-$options['dump-dir'] = '{{ drush.config.dump_dir }}';
+foreach (array('dump', 'source-dump', 'target-dump') as $key) {
+  $options[$key] = '{{ drush.config.dump_dir }}/sync-dump.sql';
+}
 
 /**
  * Specify the filename and path where 'sql-dump' should store backups of
@@ -295,7 +298,8 @@ $options['skip-tables']['common'] = array('migration_*');
 // Exclude some drupal generated files from rsync
 $command_specific['rsync'] = array(
   'verbose' => TRUE,
-  'exclude-paths' => 'sites/default/files' . implode(':sites/default/files/', array('js', 'css', 'xmlsitemap', 'ctools', 'languages')),
+  'mode' => 'rlpgoz',
+  'exclude-paths' => implode('/:', array('styles', 'js', 'css', 'xmlsitemap', 'ctools', 'languages')) .'/',
 );
 
 // Prevent drush ssh command from adding a cd to Drupal root before provided command.
