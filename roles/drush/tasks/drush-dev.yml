@@ -31,6 +31,15 @@
   tags:
     - drush-dev
 
+# @see bug https://drupal.org/node/2077539
+- include: package.yml
+  vars:
+    packages: ['coder']
+    dir: '{{ drush.dir }}'
+    version: ' --dev'
+  tags:
+    - drush-dev
+
 # Module Builder
 ###
 
