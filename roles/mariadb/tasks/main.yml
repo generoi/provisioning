@@ -55,6 +55,24 @@
   tags:
     - mariadb-config
 
+# Start service now as we need it to configure root
+- name: service | Start mysql service
+  service:
+    name=mysql
+    state=started
+  tags:
+    - mariadb-config
+
+- name: config | Set root password
+  mysql_user:
+    name=root
+    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
+    priv="*.*:ALL,GRANT"
+    state=present
+  when: mariadb.manage_root
+  tags:
+    - mariadb-config
+
 - name: "config | Configure: /etc/mysql/my.cnf"
   template:
     src=my.cnf.j2
@@ -64,48 +82,6 @@
   tags:
     - mariadb-config
 
-# Start service now as we need it to configure root
-- name: service | Start mysql service
-  service:
-    name=mysql
-    state=started
-  tags:
-    - mariadb-config
-
-# Check if the password file exists, if not that means this is the first time
-# the task runs.
-# We do it this way because we do not want to store the password in my.cnf
-- name: config | Check if root password is generated
-  sudo: false
-  local_action: raw test -s {{ inventory_dir }}/credentials/{{ ansible_hostname }}/root/mariadb_password
-  changed_when: false
-  ignore_errors: true
-  register: root_password_set
-  tags:
-    - mariadb-config
-
-- name: config | Set root password (first time)
-  mysql_user:
-    name=root
-    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
-    priv="*.*:ALL,GRANT"
-    state=present
-  when: mariadb.manage_root and root_password_set|failed
-  tags:
-    - mariadb-config
-
-# Subsequent run requires the login information.
-- name: config | Set root password (verify)
-  mysql_user:
-    login_user=root
-    login_password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
-    name=root
-    password={{ lookup('password', inventory_dir + '/credentials/' + ansible_hostname + '/root/mariadb_password length=15') }}
-    priv="*.*:ALL,GRANT"
-    state=present
-  when: mariadb.manage_root and root_password_set|success
-  tags:
-    - mariadb-config
 
 - include: create-users.yml
   vars:
