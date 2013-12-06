@@ -23,7 +23,7 @@
 
 - name: pear | Update pear packages
   command: pear upgrade
-  result: pear_upgrade
+  register: pear_upgrade
   changed_when: "'Nothing to upgrade' not in pear_upgrade.stdout"
   tags:
     - php-pear

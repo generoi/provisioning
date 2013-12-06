@@ -34,7 +34,7 @@
   shell: >
     if [ -f "bootstrap.sh" ]; then sudo sudo su {{ item.username }} ./bootstrap.sh; fi
     chdir=/home/{{ item.username }}/.dotfiles
-  result: dotfiles_result
+  register: dotfiles_result
   # Trigger changed when old files are replaced
   changed_when: "' files changed.' in dotfiles_result.stdout"
   # Trigger failure but not stop when the repository is dirty.
