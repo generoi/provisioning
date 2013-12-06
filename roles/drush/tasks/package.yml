@@ -7,6 +7,7 @@
 # - packages: List of packages to install
 # - dir: parent directory where package will be installed
 # - remove (default: false)
+# - version (optional)
 #
 # Dependencies:
 # - tasks:main
@@ -18,7 +19,7 @@
 
 - name: install | Install drush modules
   command:
-    drush dl -y {{ item }} --destination={{ dir }}/
+    drush dl -y {{ item }}{{ version|default('') }} --destination={{ dir }}/
     creates={{ dir }}/{{ item }}
   with_items: packages
   when: not remove|default(false)
