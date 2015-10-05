@@ -1,3 +1,5 @@
+> **Warning This project was never finished and has since been abandoned.**
+
 Definitions
 -----------
 
